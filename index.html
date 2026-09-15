@@ -6,104 +6,114 @@
     <title>Sistem Input Lapangan</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- LEAFLET MAPS CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f0f4f8; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f1f5f9; }
+        #map { height: 180px; width: 100%; border-radius: 1rem; z-index: 1; }
         .toast-msg {
             position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%);
             background: #0f172a; color: white; padding: 10px 20px; border-radius: 99px;
             transition: all 0.3s ease; z-index: 1000; font-size: 12px; font-weight: 600;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
         }
     </style>
 </head>
-<body class="p-3 sm:p-6 max-w-xl mx-auto min-h-screen flex flex-col justify-between">
+<body class="p-3 sm:p-6 max-w-lg mx-auto min-h-screen flex flex-col justify-between">
 
-    <div class="space-y-4">
+    <div class="space-y-3">
         <!-- HEADER APPS -->
-        <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-center">
+        <div class="bg-white p-4 rounded-3xl shadow-sm border border-slate-100 flex justify-between items-center">
             <div>
-                <h1 class="text-base font-extrabold text-slate-800">SISTEM LAPANGAN</h1>
-                <p class="text-[10px] text-gray-400">Formulir Input Data Terintegrasi</p>
+                <span class="bg-indigo-100 text-indigo-700 text-[9px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider">Field Operations</span>
+                <h1 class="text-lg font-black text-slate-800 mt-0.5">SISTEM LAPANGAN</h1>
             </div>
-            <!-- TOMBOL KE DASHBOARD ADMIN -->
-            <a href="admin.html" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-bold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5 border border-indigo-200 transition">
-                <i class="fas fa-user-shield"></i> Login Admin
+            <a href="admin.html" class="bg-slate-900 hover:bg-slate-800 text-white font-bold px-3.5 py-2 rounded-2xl text-xs flex items-center gap-2 transition shadow-md">
+                <i class="fas fa-user-shield text-amber-400"></i> Admin
             </a>
         </div>
 
         <!-- FORM INPUT LAPANGAN -->
-        <form id="formLapangan" onsubmit="handleFormSubmit(event)" class="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-gray-100 space-y-3 text-xs">
+        <form id="formLapangan" onsubmit="handleFormSubmit(event)" class="bg-white p-4 sm:p-5 rounded-3xl shadow-sm border border-slate-100 space-y-3.5 text-xs">
             
-            <!-- KOORDINAT GPS -->
-            <div>
-                <label class="font-bold text-gray-600 uppercase text-[10px]">Koordinat GPS *</label>
-                <div class="flex gap-2 mt-1">
-                    <input type="text" id="inpKoordinat" required placeholder="Contoh: 2.883793, 99.184753" class="w-full bg-gray-50 border rounded-xl px-3 py-2 outline-none font-semibold">
-                    <button type="button" onclick="getGPSLocation()" class="bg-slate-800 text-white font-bold px-3 rounded-xl hover:bg-slate-700 whitespace-nowrap">
-                        <i class="fas fa-location-arrow"></i> GPS
+            <!-- MAP & KOORDINAT GPS -->
+            <div class="space-y-2">
+                <div class="flex justify-between items-center">
+                    <label class="font-bold text-slate-600 uppercase text-[10px] tracking-wider"><i class="fas fa-map-marker-alt text-red-500 mr-1"></i> Lokasi GPS & Peta *</label>
+                    <button type="button" onclick="getGPSLocation()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-1 rounded-xl text-[10px] flex items-center gap-1 transition shadow-sm">
+                        <i class="fas fa-crosshairs"></i> Deteksi GPS
                     </button>
                 </div>
+                
+                <!-- CONTAINER PETA LEAFLET -->
+                <div id="map" class="border border-slate-200 shadow-inner"></div>
+
+                <input type="text" id="inpKoordinat" required placeholder="Koordinat GPS (Otomatis dari Peta/GPS)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none font-semibold text-slate-700 focus:border-indigo-500">
             </div>
 
             <!-- ODP & POP -->
             <div class="grid grid-cols-2 gap-2">
                 <div>
-                    <label class="font-bold text-gray-600 uppercase text-[10px]">ODP *</label>
-                    <input type="text" id="inpOdp" required placeholder="Nama ODP" class="w-full bg-gray-50 border rounded-xl px-3 py-2 outline-none font-semibold mt-1">
+                    <label class="font-bold text-slate-600 uppercase text-[10px]">ODP *</label>
+                    <input type="text" id="inpOdp" required placeholder="Nama ODP" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none font-semibold text-slate-700 mt-1 focus:border-indigo-500">
                 </div>
                 <div>
-                    <label class="font-bold text-gray-600 uppercase text-[10px]">POP *</label>
-                    <input type="text" id="inpPop" required placeholder="Nama POP" class="w-full bg-gray-50 border rounded-xl px-3 py-2 outline-none font-semibold mt-1">
+                    <label class="font-bold text-slate-600 uppercase text-[10px]">POP *</label>
+                    <input type="text" id="inpPop" required placeholder="Nama POP" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none font-semibold text-slate-700 mt-1 focus:border-indigo-500">
                 </div>
             </div>
 
             <!-- CID LAMA & NAMA LAMA -->
             <div class="grid grid-cols-2 gap-2">
                 <div>
-                    <label class="font-bold text-gray-600 uppercase text-[10px]">CID Lama *</label>
-                    <input type="text" id="inpCidLama" required placeholder="Nomor CID" class="w-full bg-gray-50 border rounded-xl px-3 py-2 outline-none font-semibold mt-1">
+                    <label class="font-bold text-slate-600 uppercase text-[10px]">CID Lama *</label>
+                    <input type="text" id="inpCidLama" required placeholder="Nomor CID" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none font-semibold text-slate-700 mt-1 focus:border-indigo-500">
                 </div>
                 <div>
-                    <label class="font-bold text-gray-600 uppercase text-[10px]">Nama Lama *</label>
-                    <input type="text" id="inpNamaLama" required placeholder="Nama Pelanggan" class="w-full bg-gray-50 border rounded-xl px-3 py-2 outline-none font-semibold mt-1">
+                    <label class="font-bold text-slate-600 uppercase text-[10px]">Nama Lama *</label>
+                    <input type="text" id="inpNamaLama" required placeholder="Nama Pelanggan" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none font-semibold text-slate-700 mt-1 focus:border-indigo-500">
                 </div>
             </div>
 
             <!-- SERIAL NUMBER (SN) UNIT -->
             <div>
-                <label class="font-bold text-gray-600 uppercase text-[10px]">Serial Number (SN) Unit *</label>
+                <label class="font-bold text-slate-600 uppercase text-[10px]">Serial Number (SN) Unit *</label>
                 <div class="flex gap-2 mt-1">
-                    <input type="text" id="inpSnUnit" required placeholder="SN Unit Baru" class="w-full bg-gray-50 border rounded-xl px-3 py-2 outline-none font-semibold uppercase">
-                    <button type="button" onclick="triggerScan('inpSnUnit')" class="bg-amber-500 hover:bg-amber-600 text-white font-bold px-3 rounded-xl whitespace-nowrap">
+                    <input type="text" id="inpSnUnit" required placeholder="SN Unit Baru" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none font-semibold text-slate-700 uppercase focus:border-indigo-500">
+                    <button type="button" onclick="triggerScan('inpSnUnit')" class="bg-amber-500 hover:bg-amber-600 text-white font-bold px-3.5 rounded-xl whitespace-nowrap transition shadow-sm">
                         <i class="fas fa-barcode"></i> Scan SN
                     </button>
                 </div>
             </div>
 
-            <!-- P-SN (FIELD BARU SAMAA PERTIS SEPERTI SN) -->
+            <!-- P-SN (PATCHCORD SN) -->
             <div>
-                <label class="font-bold text-gray-600 uppercase text-[10px]">P-SN (Patchcord SN) *</label>
+                <label class="font-bold text-slate-600 uppercase text-[10px]">P-SN (Patchcord SN) *</label>
                 <div class="flex gap-2 mt-1">
-                    <input type="text" id="inpPSn" required placeholder="P-SN Unit" class="w-full bg-gray-50 border rounded-xl px-3 py-2 outline-none font-semibold uppercase">
-                    <button type="button" onclick="triggerScan('inpPSn')" class="bg-amber-500 hover:bg-amber-600 text-white font-bold px-3 rounded-xl whitespace-nowrap">
+                    <input type="text" id="inpPSn" required placeholder="P-SN Unit" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none font-semibold text-slate-700 uppercase focus:border-indigo-500">
+                    <button type="button" onclick="triggerScan('inpPSn')" class="bg-amber-500 hover:bg-amber-600 text-white font-bold px-3.5 rounded-xl whitespace-nowrap transition shadow-sm">
                         <i class="fas fa-barcode"></i> Scan P-SN
                     </button>
                 </div>
             </div>
 
             <!-- UPLOAD FOTO RUMAH & FOTO ALAT -->
-            <div class="grid grid-cols-2 gap-2 pt-2">
+            <div class="grid grid-cols-2 gap-2 pt-1">
                 <div>
-                    <label class="block text-center bg-gray-50 border-2 border-dashed border-gray-200 hover:border-indigo-500 rounded-2xl p-3 cursor-pointer">
-                        <i class="fas fa-camera text-gray-400 text-lg mb-1 block"></i>
-                        <span id="labelFotoRumah" class="font-bold text-[10px] text-gray-500">FOTO RUMAH *</span>
+                    <label class="block text-center bg-slate-50 border-2 border-dashed border-slate-200 hover:border-indigo-500 rounded-2xl p-3 cursor-pointer transition">
+                        <i class="fas fa-camera text-slate-400 text-xl mb-1 block"></i>
+                        <span id="labelFotoRumah" class="font-extrabold text-[10px] text-slate-600">FOTO RUMAH *</span>
                         <input type="file" id="fileFotoRumah" accept="image/*" required class="hidden" onchange="updateFileLabel(this, 'labelFotoRumah')">
                     </label>
                 </div>
                 <div>
-                    <label class="block text-center bg-gray-50 border-2 border-dashed border-gray-200 hover:border-indigo-500 rounded-2xl p-3 cursor-pointer">
-                        <i class="fas fa-camera text-gray-400 text-lg mb-1 block"></i>
-                        <span id="labelFotoAlat" class="font-bold text-[10px] text-gray-500">FOTO ALAT *</span>
+                    <label class="block text-center bg-slate-50 border-2 border-dashed border-slate-200 hover:border-indigo-500 rounded-2xl p-3 cursor-pointer transition">
+                        <i class="fas fa-camera text-slate-400 text-xl mb-1 block"></i>
+                        <span id="labelFotoAlat" class="font-extrabold text-[10px] text-slate-600">FOTO ALAT *</span>
                         <input type="file" id="fileFotoAlat" accept="image/*" required class="hidden" onchange="updateFileLabel(this, 'labelFotoAlat')">
                     </label>
                 </div>
@@ -111,13 +121,13 @@
 
             <!-- KETERANGAN -->
             <div>
-                <label class="font-bold text-gray-600 uppercase text-[10px]">Keterangan Tambahan</label>
-                <textarea id="inpKeterangan" rows="2" placeholder="Catatan opsional..." class="w-full bg-gray-50 border rounded-xl p-2.5 outline-none mt-1"></textarea>
+                <label class="font-bold text-slate-600 uppercase text-[10px]">Keterangan Tambahan</label>
+                <textarea id="inpKeterangan" rows="2" placeholder="Catatan opsional..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 outline-none mt-1 focus:border-indigo-500"></textarea>
             </div>
 
             <!-- SUBMIT BUTTON -->
-            <button type="submit" id="btnSubmit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-extrabold py-3 rounded-2xl text-xs transition mt-2">
-                Kirim Data Lapangan
+            <button type="submit" id="btnSubmit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold py-3.5 rounded-2xl text-xs transition shadow-lg shadow-indigo-200 mt-2">
+                <i class="fas fa-paper-plane mr-1"></i> Kirim Data Lapangan
             </button>
         </form>
     </div>
@@ -128,19 +138,58 @@
     const GAS_WEB_APP_URL = "MASUKKAN_URL_GOOGLE_APPS_SCRIPT_DI_SINI";
     const IMAGEKIT_PUBLIC_KEY = "MASUKKAN_PUBLIC_KEY_IMAGEKIT_DI_SINI";
 
-    function updateFileLabel(input, labelId) {
-        if (input.files && input.files[0]) {
-            document.getElementById(labelId).innerText = "✓ " + input.files[0].name.substring(0, 10) + "...";
-        }
+    let map, marker;
+    const defaultLat = 2.883793, defaultLng = 99.184753; // Default Lokasi
+
+    // INISIALISASI PETA LEAFLET
+    window.addEventListener('load', () => {
+        map = L.map('map').setView([defaultLat, defaultLng], 15);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        marker = L.marker([defaultLat, defaultLng], { draggable: true }).addTo(map);
+
+        // Saat marker digeser manual di peta
+        marker.on('dragend', function (e) {
+            const position = marker.getLatLng();
+            updateKoordinatInput(position.lat, position.lng);
+        });
+
+        // Coba deteksi GPS otomatis saat pertama kali dibuka
+        getGPSLocation();
+    });
+
+    function updateKoordinatInput(lat, lng) {
+        document.getElementById('inpKoordinat').value = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
     }
 
     function getGPSLocation() {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition((pos) => {
-                document.getElementById('inpKoordinat').value = `${pos.coords.latitude}, ${pos.coords.longitude}`;
-                showToast("Lokasi berhasil didapatkan!");
-            }, () => showToast("Gagal mengambil lokasi GPS"));
-        } else showToast("Browser tidak mendukung GPS");
+                const lat = pos.coords.latitude;
+                const lng = pos.coords.longitude;
+                
+                updateKoordinatInput(lat, lng);
+                
+                // Geser peta & marker ke posisi GPS
+                map.setView([lat, lng], 17);
+                marker.setLatLng([lat, lng]);
+                showToast("Lokasi GPS terdeteksi!");
+            }, () => {
+                showToast("Gagal mengambil GPS. Silakan klik peta/isi manual.");
+            }, { enableHighAccuracy: true });
+        } else {
+            showToast("Browser tidak mendukung GPS");
+        }
+    }
+
+    function updateFileLabel(input, labelId) {
+        if (input.files && input.files[0]) {
+            document.getElementById(labelId).innerText = "✓ " + input.files[0].name.substring(0, 10) + "...";
+        }
     }
 
     function triggerScan(targetFieldId) {
@@ -182,7 +231,7 @@
 
             const snUnit = document.getElementById('inpSnUnit').value || 'unit';
 
-            // Upload ke folder ImageKit masing-masing
+            // Upload langsung ke folder ImageKit spesifik
             const urlRumah = await directUploadToImageKit(fileRumah, `Rumah_${snUnit}_${Date.now()}.jpg`, "/Foto Rumah");
             const urlAlat = await directUploadToImageKit(fileAlat, `Alat_${snUnit}_${Date.now()}.jpg`, "/Foto perangkat");
 
