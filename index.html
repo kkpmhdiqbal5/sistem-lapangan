@@ -244,18 +244,23 @@
 
 
 
-    async function directUploadToImageKit(fileInput, customFileName, targetFolder) {
+// Ganti dengan URL hasil deployment baru di Langkah 1!
+const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwESnxnJqIkgKIkEOc2UMr4uG9esO7l2wiGQ8q6uGNMLGYE6HAATTyRaXenGs5ok0HJSw/exec"; 
+
+async function directUploadToImageKit(fileInput, customFileName, targetFolder) {
     const base64File = await fileToBase64(fileInput);
 
-    // 1. Ambil Auth Token dari Apps Script via GET request
+    // Ambil auth token menggunakan GET request
     const authUrl = `${GAS_WEB_APP_URL}?action=getImageKitAuth&t=${Date.now()}`;
-    const authRes = await fetch(authUrl).then(r => r.json());
+    
+    const responseAuth = await fetch(authUrl);
+    const authRes = await responseAuth.json();
 
     if (!authRes || !authRes.signature) {
-        throw new Error("Gagal mengambil signature dari Apps Script");
+        throw new Error("Gagal mengambil signature dari Apps Script. Pastikan akses Web App diset ke 'Anyone'.");
     }
 
-    // 2. Upload langsung ke Endpoint Rest API ImageKit
+    // Upload langsung ke ImageKit API
     const formData = new FormData();
     formData.append("file", base64File);
     formData.append("fileName", customFileName);
@@ -266,18 +271,18 @@
     formData.append("useUniqueFileName", "true");
     if (targetFolder) formData.append("folder", targetFolder);
 
-    const response = await fetch("https://upload.imagekit.io/api/v1/files/upload", {
+    const uploadResponse = await fetch("https://upload.imagekit.io/api/v1/files/upload", {
         method: "POST",
         body: formData
     });
 
-    const json = await response.json();
+    const uploadJson = await uploadResponse.json();
 
-    if (!response.ok) {
-        throw new Error(json.message || "Gagal upload gambar ke ImageKit");
+    if (!uploadResponse.ok) {
+        throw new Error(uploadJson.message || "Gagal upload gambar ke ImageKit");
     }
 
-    return json.url;
+    return uploadJson.url;
 }
 
 
