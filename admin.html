@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Admin - Rekap Data</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; }
+    body { background-color: #f8fafc; color: #1e293b; padding-bottom: 40px; }
+
+    header {
+      background: white;
+      padding: 15px 25px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #e2e8f0;
+      margin-bottom: 20px;
+    }
+    .brand { font-size: 1.25rem; font-weight: 700; color: #2563eb; }
+    .nav-btn {
+      padding: 8px 16px;
+      background: #f1f5f9;
+      color: #334155;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: 600;
+      border: 1px solid #cbd5e1;
+    }
+
+    .container { max-width: 1250px; margin: 0 auto; padding: 0 15px; }
+    .card { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }
+    .card-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 20px; }
+
+    .filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+    .form-group label { display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 5px; color: #64748b; }
+    .form-control { width: 100%; padding: 9px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem; }
+
+    .btn { padding: 9px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; font-size: 0.875rem; }
+    .btn-primary { background: #2563eb; color: white; }
+    .btn-success { background: #16a34a; color: white; }
+
+    .table-responsive { overflow-x: auto; background: white; border-radius: 8px; border: 1px solid #e2e8f0; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; text-align: left; }
+    th, td { padding: 12px 14px; border-bottom: 1px solid #e2e8f0; white-space: nowrap; }
+    th { background: #0f172a; color: white; font-weight: 600; }
+    tr:hover { background: #f1f5f9; }
+
+    .badge { padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; background: #e2e8f0; color: #334155; }
+    
+    /* Login Modal */
+    .modal { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 100; }
+    .modal-content { background: white; padding: 25px; border-radius: 10px; width: 100%; max-width: 360px; }
+  </style>
+</head>
+<body>
+
+  <!-- MODAL LOGIN ADMIN -->
+  <div id="loginModal" class="modal">
+    <div class="modal-content">
+      <h3 style="margin-bottom: 15px;">Login Admin Required</h3>
+      <div class="form-group" style="margin-bottom: 15px;">
+        <label>Password Admin</label>
+        <input type="password" id="adminPassword" class="form-control" placeholder="Masukkan password">
+      </div>
+      <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="handleLoginAdmin()">Login</button>
+    </div>
+  </div>
+
+  <header>
+    <div class="brand"><i class="fas fa-user-shield"></i> Dashboard Admin</div>
+    <a href="index.html" class="nav-btn"><i class="fas fa-edit"></i> Form Lapangan</a>
+  </header>
+
+  <div class="container">
+    <div class="card">
+      <div class="card-title">Panel Rekap Data Admin</div>
+
+      <div class="filter-grid">
+        <div class="form-group">
+          <label>PILIH SUMBER SHEET</label>
+          <select id="filterSheet" class="form-control" onchange="applyFilters()">
+            <option value="ALL">Semua Sheet</option>
+            <option value="Baris 1">Baris 1 / Laporan</option>
+            <option value="sudah diambil">sudah diambil</option>
+            <option value="Full Data">Full Data</option>
+            <option value="target">target</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>KATA KUNCI PENCARIAN</label>
+          <input type="text" id="searchKeyword" class="form-control" placeholder="Cari ODP, CID, Nama, POP..." onkeyup="applyFilters()">
+        </div>
+        <div class="form-group" style="display: flex; align-items: flex-end;">
+          <button class="btn btn-primary" onclick="loadDataRekap()"><i class="fas fa-sync"></i> Refresh Data</button>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 12px; font-weight: 600; font-size: 0.9rem;">
+        Total Hasil: <span id="totalCount">0</span> Data
+      </div>
+
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th><input type="checkbox" id="selectAll" onclick="toggleSelectAll(this)"></th>
+              <th>SUMBER SHEET</th>
+              <th>WAKTU</th>
+              <th>SHERLOK</th>
+              <th>ODP</th>
+              <th>POP</th>
+              <th>CID / NAMA</th>
+              <th>SN UNIT</th>
+              <th>FOTO RUMAH</th>
+              <th>FOTO PERANGKAT</th>
+              <th>AKSI WA</th>
+            </tr>
+          </thead>
+          <tbody id="tableBodyData">
+            <tr><td colspan="11" style="text-align: center;">Silahkan Login Terlebih Dahulu...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // MASUKKAN URL WEB APP GOOGLE APPS SCRIPT ANDA DI SINI
+    const GAS_WEB_APP_URL = "URL_WEB_APP_UTAMA_ANDA";
+    let globalDataRekap = [];
+
+    async function handleLoginAdmin() {
+      const pass = document.getElementById('adminPassword').value;
+      if (!pass) return alert("Masukkan password!");
+
+      try {
+        const res = await fetch(GAS_WEB_APP_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ action: "loginAdmin", password: pass })
+        });
+        const result = await res.json();
+
+        if (result.success) {
+          document.getElementById('loginModal').style.display = 'none';
+          loadDataRekap();
+        } else {
+          alert("Password Salah!");
+        }
+      } catch (err) {
+        alert("Gagal Login ke Server!");
+      }
+    }
+
+    async function loadDataRekap() {
+      const tbody = document.getElementById('tableBodyData');
+      tbody.innerHTML = '<tr><td colspan="11" style="text-align: center;">Mengambil data dari Google Sheets...</td></tr>';
+
+      try {
+        const res = await fetch(GAS_WEB_APP_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ action: "getRekap" })
+        });
+        const result = await res.json();
+
+        if (result.success) {
+          globalDataRekap = result.data;
+          applyFilters();
+        } else {
+          tbody.innerHTML = `<tr><td colspan="11" style="text-align: center; color: red;">Error: ${result.message}</td></tr>`;
+        }
+      } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="11" style="text-align: center; color: red;">Gagal mengambil data dari server.</td></tr>';
+      }
+    }
+
+    function applyFilters() {
+      const selectedSheet = document.getElementById('filterSheet').value;
+      const keyword = document.getElementById('searchKeyword').value.toLowerCase().trim();
+
+      const filtered = globalDataRekap.filter(item => {
+        const matchSheet = (selectedSheet === 'ALL') || (item.sheetAsal === selectedSheet);
+        const matchKeyword = !keyword || 
+          (item.cidLama && item.cidLama.toLowerCase().includes(keyword)) ||
+          (item.namaLama && item.namaLama.toLowerCase().includes(keyword)) ||
+          (item.odp && item.odp.toLowerCase().includes(keyword)) ||
+          (item.pop && item.pop.toLowerCase().includes(keyword)) ||
+          (item.snUnit && item.snUnit.toLowerCase().includes(keyword));
+
+        return matchSheet && matchKeyword;
+      });
+
+      renderTable(filtered);
+    }
+
+    function renderTable(data) {
+      const tbody = document.getElementById('tableBodyData');
+      document.getElementById('totalCount').innerText = data.length;
+
+      if(data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="11" style="text-align: center;">Data tidak ditemukan.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = data.map((item, idx) => {
+        // Tautkan Sherlok langsung tanpa encode ganda
+        const sherlokLink = (item.koordinat && item.koordinat.startsWith("http")) 
+          ? item.koordinat 
+          : (item.koordinat && item.koordinat !== "-" ? `https://maps.google.com/?q=${encodeURIComponent(item.koordinat)}` : "");
+
+        const sherlokHtml = sherlokLink 
+          ? `<a href="${sherlokLink}" target="_blank" style="color: #2563eb; font-weight: 600;"><i class="fas fa-map-marker-alt"></i> Buka Maps</a>` 
+          : "-";
+
+        const fotoRumahHtml = (item.urlFotoRumah && item.urlFotoRumah.startsWith("http")) 
+          ? `<a href="${item.urlFotoRumah}" target="_blank" style="color: #2563eb;">Lihat Foto</a>` 
+          : "-";
+
+        const fotoAlatHtml = (item.urlFotoAlat && item.urlFotoAlat.startsWith("http")) 
+          ? `<a href="${item.urlFotoAlat}" target="_blank" style="color: #2563eb;">Lihat Foto</a>` 
+          : "-";
+
+        return `
+          <tr>
+            <td><input type="checkbox" class="row-checkbox" value="${idx}"></td>
+            <td><span class="badge">${item.sheetAsal}</span></td>
+            <td>${item.waktu || "-"}</td>
+            <td>${sherlokHtml}</td>
+            <td>${item.odp || "-"}</td>
+            <td>${item.pop || "-"}</td>
+            <td><b>${item.cidLama || "-"}</b><br><small>${item.namaLama || "-"}</small></td>
+            <td>${item.snUnit || "-"}</td>
+            <td>${fotoRumahHtml}</td>
+            <td>${fotoAlatHtml}</td>
+            <td>
+              <button onclick="kirimWA('${item.cidLama}', '${item.namaLama}', '${sherlokLink}')" class="btn btn-success" style="padding: 4px 8px; font-size: 0.75rem;">
+                <i class="fab fa-whatsapp"></i> WA
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function toggleSelectAll(master) {
+      document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = master.checked);
+    }
+
+    function kirimWA(cid, nama, sherlok) {
+      const linkText = sherlok ? `\nSherlok: ${sherlok}` : "";
+      const text = `Halo Kak, mengonfirmasi data dismantle/perbaikan:\nCID: ${cid}\nNama: ${nama}${linkText}`;
+      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+    }
+  </script>
+</body>
+</html>
