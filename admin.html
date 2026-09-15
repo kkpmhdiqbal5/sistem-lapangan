@@ -250,11 +250,46 @@
       document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = master.checked);
     }
 
-    function kirimWA(cid, nama, sherlok) {
-      const linkText = sherlok ? `\nSherlok: ${sherlok}` : "";
-      const text = `Halo Kak, mengonfirmasi data dismantle/perbaikan:\nCID: ${cid}\nNama: ${nama}${linkText}`;
-      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+    function kirimWA(itemIndex) {
+  // Ambil data item dari array global berdasarkan indeks
+  const item = globalDataRekap[itemIndex];
+  if (!item) return;
+
+  // 1. Bersihkan & rapikan Link Sherlock / Maps
+  let sherlokUrl = item.koordinat || "-";
+  if (sherlokUrl !== "-" && sherlokUrl.includes("http")) {
+    // Jika mengandung URL Google Maps yang ter-encode ganda, ambil URL aslinya
+    const match = sherlokUrl.match(/https?:\/\/[^\s]+/);
+    if (match) {
+      sherlokUrl = match[0].replace(/^https:\/\/maps\.google\.com\/\?q=/, '');
+      sherlokUrl = decodeURIComponent(sherlokUrl);
     }
+  } else if (sherlokUrl !== "-" && !sherlokUrl.startsWith("http")) {
+    // Jika hanya berupa koordinat angka (3.535, 98.562)
+    sherlokUrl = `https://maps.google.com/?q=${encodeURIComponent(sherlokUrl)}`;
+  }
+
+  // 2. Format Template Pesan Sesuai Screenshot
+  const pesan = 
+`📌 LAPORAN DATA LAPANGAN
+Sumber Data: Sheet (${item.sheetAsal || 'Laporan'})
+------------------------------------
+Waktu: ${item.waktu || '-'}
+ODP: ${item.odp || '-'}
+POP: ${item.pop || '-'}
+CID Lama: ${item.cidLama || '-'}
+Nama Lama: ${item.namaLama || '-'}
+SN Unit: ${item.snUnit || '-'}
+Ket: ${item.keterangan || '-'}
+------------------------------------
+📍 Sherlock: ${sherlokUrl}
+🖼️ Foto Rumah: ${item.urlFotoRumah || '-'}
+🖼️ Foto Perangkat: ${item.urlFotoAlat || '-'}`;
+
+  // 3. Buka WhatsApp Web / App
+  const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(pesan)}`;
+  window.open(waUrl, '_blank');
+}
   </script>
 </body>
 </html>
