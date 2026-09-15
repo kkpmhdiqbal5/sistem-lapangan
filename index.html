@@ -40,8 +40,8 @@
             </a>
         </div>
 
-        <!-- FORM INPUT LAPANGAN -->
-        <form id="formLapangan" onsubmit="handleFormSubmit(event)" class="bg-white p-4 sm:p-5 rounded-3xl shadow-sm border border-slate-100 space-y-3.5 text-xs">
+        <!-- FORM INPUT LAPANGAN (Tanpa submit HTML bawaan agar tidak auto reload) -->
+        <div class="bg-white p-4 sm:p-5 rounded-3xl shadow-sm border border-slate-100 space-y-3.5 text-xs">
             
             <!-- MAP & KOORDINAT GPS -->
             <div class="space-y-2">
@@ -53,18 +53,18 @@
                 </div>
                 
                 <div id="map" class="border border-slate-200 shadow-inner"></div>
-                <input type="text" id="inpKoordinat" required placeholder="Koordinat GPS (Otomatis dari Peta/GPS)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none font-semibold text-slate-700 focus:border-indigo-500">
+                <input type="text" id="inpKoordinat" placeholder="Koordinat GPS (Otomatis dari Peta/GPS)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none font-semibold text-slate-700 focus:border-indigo-500">
             </div>
 
             <!-- ODP & POP -->
             <div class="grid grid-cols-2 gap-2">
                 <div>
                     <label class="font-bold text-slate-600 uppercase text-[10px]">ODP *</label>
-                    <input type="text" id="inpOdp" required placeholder="Nama ODP" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none font-semibold text-slate-700 mt-1 focus:border-indigo-500">
+                    <input type="text" id="inpOdp" placeholder="Nama ODP" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none font-semibold text-slate-700 mt-1 focus:border-indigo-500">
                 </div>
                 <div>
                     <label class="font-bold text-slate-600 uppercase text-[10px]">POP *</label>
-                    <input type="text" id="inpPop" required placeholder="Nama POP" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none font-semibold text-slate-700 mt-1 focus:border-indigo-500">
+                    <input type="text" id="inpPop" placeholder="Nama POP" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none font-semibold text-slate-700 mt-1 focus:border-indigo-500">
                 </div>
             </div>
 
@@ -72,11 +72,11 @@
             <div class="grid grid-cols-2 gap-2">
                 <div>
                     <label class="font-bold text-slate-600 uppercase text-[10px]">CID Lama *</label>
-                    <input type="text" id="inpCidLama" required placeholder="Nomor CID" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none font-semibold text-slate-700 mt-1 focus:border-indigo-500">
+                    <input type="text" id="inpCidLama" placeholder="Nomor CID" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none font-semibold text-slate-700 mt-1 focus:border-indigo-500">
                 </div>
                 <div>
                     <label class="font-bold text-slate-600 uppercase text-[10px]">Nama Lama *</label>
-                    <input type="text" id="inpNamaLama" required placeholder="Nama Pelanggan" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none font-semibold text-slate-700 mt-1 focus:border-indigo-500">
+                    <input type="text" id="inpNamaLama" placeholder="Nama Pelanggan" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none font-semibold text-slate-700 mt-1 focus:border-indigo-500">
                 </div>
             </div>
 
@@ -84,7 +84,7 @@
             <div>
                 <label class="font-bold text-slate-600 uppercase text-[10px]">Serial Number (SN) Unit *</label>
                 <div class="flex gap-2 mt-1">
-                    <input type="text" id="inpSnUnit" required placeholder="SN Unit Baru" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none font-semibold text-slate-700 uppercase focus:border-indigo-500">
+                    <input type="text" id="inpSnUnit" placeholder="SN Unit Baru" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none font-semibold text-slate-700 uppercase focus:border-indigo-500">
                     <button type="button" onclick="startScanner('inpSnUnit')" class="bg-amber-500 hover:bg-amber-600 text-white font-bold px-3.5 rounded-xl whitespace-nowrap transition shadow-sm">
                         <i class="fas fa-camera"></i> Scan SN
                     </button>
@@ -95,7 +95,7 @@
             <div>
                 <label class="font-bold text-slate-600 uppercase text-[10px]">P-SN (Patchcord SN) *</label>
                 <div class="flex gap-2 mt-1">
-                    <input type="text" id="inpPSn" required placeholder="P-SN Unit" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none font-semibold text-slate-700 uppercase focus:border-indigo-500">
+                    <input type="text" id="inpPSn" placeholder="P-SN Unit" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none font-semibold text-slate-700 uppercase focus:border-indigo-500">
                     <button type="button" onclick="startScanner('inpPSn')" class="bg-amber-500 hover:bg-amber-600 text-white font-bold px-3.5 rounded-xl whitespace-nowrap transition shadow-sm">
                         <i class="fas fa-camera"></i> Scan P-SN
                     </button>
@@ -108,14 +108,14 @@
                     <label class="block text-center bg-slate-50 border-2 border-dashed border-slate-200 hover:border-indigo-500 rounded-2xl p-3 cursor-pointer transition">
                         <i class="fas fa-camera text-slate-400 text-xl mb-1 block"></i>
                         <span id="labelFotoRumah" class="font-extrabold text-[10px] text-slate-600">FOTO RUMAH *</span>
-                        <input type="file" id="fileFotoRumah" accept="image/*" required class="hidden" onchange="updateFileLabel(this, 'labelFotoRumah')">
+                        <input type="file" id="fileFotoRumah" accept="image/*" class="hidden" onchange="updateFileLabel(this, 'labelFotoRumah')">
                     </label>
                 </div>
                 <div>
                     <label class="block text-center bg-slate-50 border-2 border-dashed border-slate-200 hover:border-indigo-500 rounded-2xl p-3 cursor-pointer transition">
                         <i class="fas fa-camera text-slate-400 text-xl mb-1 block"></i>
                         <span id="labelFotoAlat" class="font-extrabold text-[10px] text-slate-600">FOTO ALAT *</span>
-                        <input type="file" id="fileFotoAlat" accept="image/*" required class="hidden" onchange="updateFileLabel(this, 'labelFotoAlat')">
+                        <input type="file" id="fileFotoAlat" accept="image/*" class="hidden" onchange="updateFileLabel(this, 'labelFotoAlat')">
                     </label>
                 </div>
             </div>
@@ -127,10 +127,10 @@
             </div>
 
             <!-- SUBMIT BUTTON -->
-            <button type="submit" id="btnSubmit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold py-3.5 rounded-2xl text-xs transition shadow-lg shadow-indigo-200 mt-2">
+            <button type="button" id="btnSubmit" onclick="kirimDataLapangan()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold py-3.5 rounded-2xl text-xs transition shadow-lg shadow-indigo-200 mt-2">
                 <i class="fas fa-paper-plane mr-1"></i> Kirim Data Lapangan
             </button>
-        </form>
+        </div>
     </div>
 
     <!-- MODAL SCANNER KAMERA BARCODE -->
@@ -147,7 +147,8 @@
     <div id="toast" class="toast-msg">Notifikasi</div>
 
 <script>
-    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwESnxnJqIkgKIkEOc2UMr4uG9esO7l2wiGQ8q6uGNMLGYE6HAATTyRaXenGs5ok0HJSw/exec";
+    // MASUKKAN URL HASIL DEPLOYMENT BARU GOOGLE APPS SCRIPT KAMU DISINI:
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyHOXnA4YsBeNdPDUxXwPlsJHPJo7k7E4IqItpNOKLjfsYeQce7a9Gda8p-3p-Ys6tJkg/exec";
     const IMAGEKIT_PUBLIC_KEY = "public_W4LevC6+WUWX5uocg3TlUiZ8T/g=";
 
     let map, marker, html5QrcodeScanner = null, activeTargetInput = null;
@@ -176,6 +177,7 @@
     }
 
     function getGPSLocation() {
+        showToast("Mencari lokasi GPS...");
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition((pos) => {
                 const lat = pos.coords.latitude;
@@ -183,12 +185,12 @@
                 updateKoordinatInput(lat, lng);
                 map.setView([lat, lng], 17);
                 marker.setLatLng([lat, lng]);
-                showToast("Lokasi GPS terdeteksi!");
-            }, () => {
-                showToast("Gagal mengambil GPS. Silakan tentukan titik di peta.");
-            }, { enableHighAccuracy: true });
+                showToast("GPS Terdeteksi!");
+            }, (err) => {
+                showToast("Gagal GPS. Aktifkan izin lokasi di HP.");
+            }, { enableHighAccuracy: true, timeout: 10000 });
         } else {
-            showToast("Browser tidak mendukung GPS");
+            showToast("Browser tidak mendukung lokasi GPS.");
         }
     }
 
@@ -198,7 +200,7 @@
         }
     }
 
-    // MODUL AUTOMATIS KAMERA SCANNER BARCODE
+    // KAMERA BARCODE SCANNER
     function startScanner(inputId) {
         activeTargetInput = inputId;
         document.getElementById('scannerModal').classList.remove('hidden');
@@ -209,12 +211,12 @@
             { fps: 10, qrbox: { width: 250, height: 150 } },
             (decodedText) => {
                 document.getElementById(activeTargetInput).value = decodedText.trim().toUpperCase();
-                showToast("Barcode Terbaca: " + decodedText);
+                showToast("Berhasil Scan: " + decodedText);
                 stopScanner();
             },
             (errorMessage) => {}
         ).catch(err => {
-            showToast("Gagal membuka kamera. Pastikan izin kamera aktif.");
+            showToast("Gagal buka kamera. Periksa izin kamera browser.");
             stopScanner();
         });
     }
@@ -241,60 +243,48 @@
         });
     }
 
+    async function directUploadToImageKit(fileInput, customFileName, targetFolder) {
+        const base64File = await fileToBase64(fileInput);
 
+        const authUrl = `${GAS_WEB_APP_URL}?action=getImageKitAuth&t=${Date.now()}`;
+        const authRes = await fetch(authUrl).then(r => r.json());
 
+        if (!authRes || !authRes.signature) {
+            throw new Error("Gagal mengambil izin ImageKit dari Apps Script.");
+        }
 
-// Ganti dengan URL hasil deployment baru di Langkah 1!
-const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwESnxnJqIkgKIkEOc2UMr4uG9esO7l2wiGQ8q6uGNMLGYE6HAATTyRaXenGs5ok0HJSw/exec"; 
+        const formData = new FormData();
+        formData.append("file", base64File);
+        formData.append("fileName", customFileName);
+        formData.append("publicKey", IMAGEKIT_PUBLIC_KEY);
+        formData.append("signature", authRes.signature);
+        formData.append("expire", authRes.expire);
+        formData.append("token", authRes.token);
+        formData.append("useUniqueFileName", "true");
+        if (targetFolder) formData.append("folder", targetFolder);
 
-async function directUploadToImageKit(fileInput, customFileName, targetFolder) {
-    const base64File = await fileToBase64(fileInput);
+        const response = await fetch("https://upload.imagekit.io/api/v1/files/upload", {
+            method: "POST",
+            body: formData
+        });
 
-    // Ambil auth token menggunakan GET request
-    const authUrl = `${GAS_WEB_APP_URL}?action=getImageKitAuth&t=${Date.now()}`;
-    
-    const responseAuth = await fetch(authUrl);
-    const authRes = await responseAuth.json();
+        const json = await response.json();
 
-    if (!authRes || !authRes.signature) {
-        throw new Error("Gagal mengambil signature dari Apps Script. Pastikan akses Web App diset ke 'Anyone'.");
+        if (!response.ok) {
+            throw new Error(json.message || "Gagal Upload Gambar");
+        }
+
+        return json.url;
     }
 
-    // Upload langsung ke ImageKit API
-    const formData = new FormData();
-    formData.append("file", base64File);
-    formData.append("fileName", customFileName);
-    formData.append("publicKey", IMAGEKIT_PUBLIC_KEY);
-    formData.append("signature", authRes.signature);
-    formData.append("expire", authRes.expire);
-    formData.append("token", authRes.token);
-    formData.append("useUniqueFileName", "true");
-    if (targetFolder) formData.append("folder", targetFolder);
-
-    const uploadResponse = await fetch("https://upload.imagekit.io/api/v1/files/upload", {
-        method: "POST",
-        body: formData
-    });
-
-    const uploadJson = await uploadResponse.json();
-
-    if (!uploadResponse.ok) {
-        throw new Error(uploadJson.message || "Gagal upload gambar ke ImageKit");
-    }
-
-    return uploadJson.url;
-}
-
-
-    
-
-    async function handleFormSubmit(e) {
-        e.preventDefault();
+    async function kirimDataLapangan() {
         const btn = document.getElementById('btnSubmit');
         const fileRumah = document.getElementById('fileFotoRumah').files[0];
         const fileAlat = document.getElementById('fileFotoAlat').files[0];
 
-        if (!fileRumah || !fileAlat) return showToast("Foto Rumah & Alat Wajib!");
+        // Validasi
+        if (!fileRumah || !fileAlat) return showToast("Pilih Foto Rumah & Alat dahulu!");
+        if (!document.getElementById('inpOdp').value || !document.getElementById('inpPop').value) return showToast("Isi ODP & POP dahulu!");
 
         try {
             btn.innerText = "Mengunggah Gambar...";
@@ -305,13 +295,12 @@ async function directUploadToImageKit(fileInput, customFileName, targetFolder) {
             const urlRumah = await directUploadToImageKit(fileRumah, `Rumah_${snUnit}_${Date.now()}.jpg`, "/Foto Rumah");
             const urlAlat = await directUploadToImageKit(fileAlat, `Alat_${snUnit}_${Date.now()}.jpg`, "/Foto perangkat");
 
-            btn.innerText = "Menyimpan Data...";
+            btn.innerText = "Menyimpan ke Sheet...";
 
             const koordinat = document.getElementById('inpKoordinat').value;
-            const linkMaps = koordinat ? `https://maps.google.com/?q=${koordinat}` : "";
+            const linkMaps = koordinat ? `https://maps.google.com/?q=${koordinat.replace(/\s+/g, '')}` : "";
 
             const payload = {
-                action: "simpanData",
                 koordinat: koordinat,
                 odp: document.getElementById('inpOdp').value,
                 pop: document.getElementById('inpPop').value,
@@ -332,12 +321,23 @@ async function directUploadToImageKit(fileInput, customFileName, targetFolder) {
 
             btn.innerText = "Kirim Data Lapangan";
             btn.disabled = false;
-            showToast(res.message);
 
             if (res.success) {
-                document.getElementById('formLapangan').reset();
+                showToast("SUKSES: Data Terkirim ke Sheet!");
+                // Clear Form Manual
+                document.getElementById('inpOdp').value = '';
+                document.getElementById('inpPop').value = '';
+                document.getElementById('inpCidLama').value = '';
+                document.getElementById('inpNamaLama').value = '';
+                document.getElementById('inpSnUnit').value = '';
+                document.getElementById('inpPSn').value = '';
+                document.getElementById('inpKeterangan').value = '';
+                document.getElementById('fileFotoRumah').value = '';
+                document.getElementById('fileFotoAlat').value = '';
                 document.getElementById('labelFotoRumah').innerText = "FOTO RUMAH *";
                 document.getElementById('labelFotoAlat').innerText = "FOTO ALAT *";
+            } else {
+                showToast("Gagal Simpan: " + res.message);
             }
         } catch (err) {
             btn.innerText = "Kirim Data Lapangan";
@@ -350,7 +350,7 @@ async function directUploadToImageKit(fileInput, customFileName, targetFolder) {
         const t = document.getElementById('toast');
         t.innerText = msg;
         t.style.bottom = '20px';
-        setTimeout(() => t.style.bottom = '-100px', 3000);
+        setTimeout(() => t.style.bottom = '-100px', 4000);
     }
 </script>
 </body>
