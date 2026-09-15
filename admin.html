@@ -1,3 +1,6 @@
+Berikut adalah kode lengkap untuk **`admin.html`** yang sudah disesuaikan dengan struktur spreadsheet kamu (termasuk kolom **P-SN**, Link Maps, statistik, dan sistem pencarian):
+
+```html
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -18,9 +21,9 @@
         input, select, button { font-size: 12px !important; }
     </style>
 </head>
-<body class="p-3 sm:p-6 max-w-6xl mx-auto w-full space-y-4">
+<body class="p-3 sm:p-6 max-w-7xl mx-auto w-full space-y-4">
 
-    <!-- LOGIN MODAL -->
+    <!-- MODAL LOGIN -->
     <div id="modalLogin" class="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-xs w-full p-5 space-y-4 shadow-xl">
             <div class="text-center">
@@ -28,38 +31,108 @@
                 <p class="text-[10px] text-gray-400">Masukkan kata sandi untuk melanjutkan</p>
             </div>
             <input type="password" id="adminPassword" placeholder="Kata Sandi Admin" class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs font-bold outline-none">
-            <button onclick="submitAdminLogin()" class="w-full bg-indigo-600 text-white py-2 rounded-xl text-xs font-bold">Masuk</button>
+            <button onclick="submitAdminLogin()" class="w-full bg-indigo-600 text-white py-2 rounded-xl text-xs font-bold hover:bg-indigo-700">Masuk</button>
         </div>
     </div>
 
     <!-- MAIN ADMIN CONTENT -->
     <div id="adminContent" class="hidden space-y-4">
+        
+        <!-- HEADER ADMIN -->
         <div class="flex justify-between items-center bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
-            <h2 class="text-base font-extrabold text-gray-800"><i class="fas fa-chart-line text-indigo-600 mr-2"></i>Rekap Data Realtime</h2>
-            <button onclick="logoutAdmin()" class="bg-red-50 text-red-600 border border-red-200 font-bold px-3 py-1.5 rounded-xl text-xs">
-                <i class="fas fa-sign-out-alt"></i> Keluar
-            </button>
+            <div class="flex items-center gap-3">
+                <a href="lapangan.html" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1">
+                    <i class="fas fa-arrow-left"></i> Input Form
+                </a>
+                <h2 class="text-base font-extrabold text-gray-800"><i class="fas fa-chart-line text-indigo-600 mr-1"></i> Dashboard Admin</h2>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="toggleSearchPanel()" class="bg-indigo-50 text-indigo-600 border border-indigo-200 font-bold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5">
+                    <i class="fas fa-search"></i> <span class="hidden sm:inline">Modul Pencarian</span>
+                </button>
+                <button onclick="logoutAdmin()" class="bg-red-50 text-red-600 border border-red-200 font-bold px-3 py-1.5 rounded-xl text-xs">
+                    <i class="fas fa-sign-out-alt"></i> Keluar
+                </button>
+            </div>
         </div>
 
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="p-3 bg-gray-50 border-b space-y-2">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <div>
-                        <label class="text-[9px] font-bold text-gray-500 uppercase">Cari Data</label>
-                        <input type="text" id="adminSearchInput" onkeyup="filterAdminData()" placeholder="Cari ODP, CID, SN..." class="w-full bg-white border border-gray-200 rounded-xl px-3 py-1.5 text-xs outline-none">
-                    </div>
+        <!-- STATISTIK RINGKAS -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div class="bg-white p-3.5 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-[10px] font-bold text-gray-400 uppercase">Total Input</p>
+                    <h3 id="statTotal" class="text-lg font-extrabold text-slate-800">0</h3>
                 </div>
+                <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xs">
+                    <i class="fas fa-database"></i>
+                </div>
+            </div>
+            <div class="bg-white p-3.5 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-[10px] font-bold text-gray-400 uppercase">Total ODP</p>
+                    <h3 id="statOdp" class="text-lg font-extrabold text-teal-600">0</h3>
+                </div>
+                <div class="w-8 h-8 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center text-xs">
+                    <i class="fas fa-network-wired"></i>
+                </div>
+            </div>
+            <div class="bg-white p-3.5 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-[10px] font-bold text-gray-400 uppercase">Total POP</p>
+                    <h3 id="statPop" class="text-lg font-extrabold text-amber-600">0</h3>
+                </div>
+                <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xs">
+                    <i class="fas fa-server"></i>
+                </div>
+            </div>
+            <div class="bg-white p-3.5 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">
+                <div>
+                    <p class="text-[10px] font-bold text-gray-400 uppercase">Total Foto</p>
+                    <h3 id="statFoto" class="text-lg font-extrabold text-blue-600">0</h3>
+                </div>
+                <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xs">
+                    <i class="fas fa-images"></i>
+                </div>
+            </div>
+        </div>
 
-                <div class="flex flex-col sm:flex-row justify-between items-center pt-1 gap-2 border-t border-gray-200">
-                    <span id="searchResultCount" class="text-[10px] font-bold text-gray-500">Memuat data...</span>
-                    <div class="flex items-center gap-2">
-                        <button onclick="sendGroupToWA()" class="bg-teal-700 text-white font-bold text-xs px-3 py-1.5 rounded-xl shadow-sm flex items-center gap-1">
-                            <i class="fas fa-layer-group"></i> Kirim WA Gabungan (<span id="selectedCount">0</span>)
-                        </button>
-                        <button onclick="loadAdminData()" class="text-indigo-600 text-xs font-bold bg-white px-3 py-1.5 rounded-xl border border-gray-200 hover:bg-gray-100">
-                            <i class="fas fa-sync-alt"></i> Refresh
-                        </button>
-                    </div>
+        <!-- PANEL PENCARIAN & FILTER -->
+        <div id="searchPanel" class="bg-white p-4 rounded-2xl border border-indigo-100 shadow-sm space-y-3">
+            <div class="flex justify-between items-center border-b pb-2">
+                <h3 class="text-xs font-bold text-gray-700"><i class="fas fa-filter mr-1 text-indigo-500"></i> Sistem Pencarian Data</h3>
+                <button onclick="resetSearch()" class="text-[10px] text-gray-400 hover:text-indigo-600 font-bold">Reset Filter</button>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div>
+                    <label class="text-[9px] font-bold text-gray-500 uppercase">Kata Kunci Utama</label>
+                    <input type="text" id="adminSearchInput" onkeyup="filterAdminData()" placeholder="Cari ODP, POP, CID, Nama, SN, P-SN..." class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5 text-xs outline-none focus:border-indigo-500">
+                </div>
+                <div>
+                    <label class="text-[9px] font-bold text-gray-500 uppercase">Filter ODP</label>
+                    <select id="filterOdp" onchange="filterAdminData()" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-1.5 text-xs font-semibold outline-none">
+                        <option value="ALL">-- Semua ODP --</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-[9px] font-bold text-gray-500 uppercase">Filter POP</label>
+                    <select id="filterPop" onchange="filterAdminData()" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-1.5 text-xs font-semibold outline-none">
+                        <option value="ALL">-- Semua POP --</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- TABEL DATA -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="p-3 bg-gray-50 border-b flex flex-col sm:flex-row justify-between items-center gap-2">
+                <span id="searchResultCount" class="text-[10px] font-bold text-gray-500">Memuat data...</span>
+                <div class="flex items-center gap-2">
+                    <button onclick="sendGroupToWA()" class="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs px-3 py-1.5 rounded-xl shadow-sm flex items-center gap-1">
+                        <i class="fab fa-whatsapp"></i> Kirim WA Gabungan (<span id="selectedCount">0</span>)
+                    </button>
+                    <button onclick="loadAdminData()" class="text-indigo-600 text-xs font-bold bg-white px-3 py-1.5 rounded-xl border border-gray-200 hover:bg-gray-100">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
                 </div>
             </div>
 
@@ -69,12 +142,12 @@
                         <tr>
                             <th class="py-2.5 px-3 text-center"><input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)"></th>
                             <th class="py-2.5 px-3">Waktu</th>
-                            <th class="py-2.5 px-3">ODP</th>
-                            <th class="py-2.5 px-3">POP</th>
+                            <th class="py-2.5 px-3">ODP / POP</th>
                             <th class="py-2.5 px-3">CID / Nama</th>
                             <th class="py-2.5 px-3">SN Unit</th>
-                            <th class="py-2.5 px-3 text-center">Gambar</th>
-                            <th class="py-2.5 px-3 text-center">Aksi WA</th>
+                            <th class="py-2.5 px-3">P-SN</th>
+                            <th class="py-2.5 px-3 text-center">Gambar & Maps</th>
+                            <th class="py-2.5 px-3 text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody id="tableBodyAdmin">
@@ -88,7 +161,7 @@
     <div id="toast" class="toast-msg">Notifikasi</div>
 
 <script>
-    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwESnxnJqIkgKIkEOc2UMr4uG9esO7l2wiGQ8q6uGNMLGYE6HAATTyRaXenGs5ok0HJSw/exec";
+    const GAS_WEB_APP_URL = "MASUKKAN_URL_GOOGLE_APPS_SCRIPT_DI_SINI";
     let globalAdminData = [], filteredAdminData = [];
 
     window.addEventListener('load', () => {
@@ -107,7 +180,7 @@
                 sessionStorage.setItem('admin_session', 'true');
                 showAdminDashboard();
             } else showToast("Password Salah!");
-        });
+        }).catch(err => showToast("Gagal Login: " + err.message));
     }
 
     function showAdminDashboard() {
@@ -121,6 +194,10 @@
         location.reload();
     }
 
+    function toggleSearchPanel() {
+        document.getElementById('searchPanel').classList.toggle('hidden');
+    }
+
     function loadAdminData() {
         document.getElementById('searchResultCount').innerText = "Memuat data...";
         fetch(GAS_WEB_APP_URL, {
@@ -128,33 +205,68 @@
             body: JSON.stringify({ action: "getRekap" })
         }).then(res => res.json()).then(res => {
             globalAdminData = res.data || [];
+            updateStatistics(globalAdminData);
+            populateDropdownFilters(globalAdminData);
             filterAdminData();
         });
     }
 
+    function updateStatistics(data) {
+        document.getElementById('statTotal').innerText = data.length;
+
+        const uniqueOdp = new Set(data.map(i => i.odp).filter(x => x && x !== '-'));
+        const uniquePop = new Set(data.map(i => i.pop).filter(x => x && x !== '-'));
+        
+        let totalFoto = 0;
+        data.forEach(i => {
+            if (i.urlFotoRumah) totalFoto++;
+            if (i.urlFotoAlat) totalFoto++;
+        });
+
+        document.getElementById('statOdp').innerText = uniqueOdp.size;
+        document.getElementById('statPop').innerText = uniquePop.size;
+        document.getElementById('statFoto').innerText = totalFoto;
+    }
+
+    function populateDropdownFilters(data) {
+        const selOdp = document.getElementById('filterOdp');
+        const selPop = document.getElementById('filterPop');
+
+        const uniqueOdp = [...new Set(data.map(i => i.odp).filter(x => x && x !== '-'))].sort();
+        const uniquePop = [...new Set(data.map(i => i.pop).filter(x => x && x !== '-'))].sort();
+
+        selOdp.innerHTML = '<option value="ALL">-- Semua ODP --</option>' + uniqueOdp.map(o => `<option value="${o}">${o}</option>`).join('');
+        selPop.innerHTML = '<option value="ALL">-- Semua POP --</option>' + uniquePop.map(p => `<option value="${p}">${p}</option>`).join('');
+    }
+
     function filterAdminData() {
         const query = document.getElementById('adminSearchInput').value.toLowerCase().trim();
+        const selectedOdp = document.getElementById('filterOdp').value;
+        const selectedPop = document.getElementById('filterPop').value;
+
         filteredAdminData = globalAdminData.filter(item => {
-            if (!query) return true;
-            return (item.cidLama || "").toLowerCase().includes(query) || 
-                   (item.namaLama || "").toLowerCase().includes(query) || 
-                   (item.odp || "").toLowerCase().includes(query) || 
-                   (item.snUnit || "").toLowerCase().includes(query);
+            const matchQuery = !query || 
+                (item.cidLama || "").toLowerCase().includes(query) || 
+                (item.namaLama || "").toLowerCase().includes(query) || 
+                (item.odp || "").toLowerCase().includes(query) || 
+                (item.pop || "").toLowerCase().includes(query) || 
+                (item.snUnit || "").toLowerCase().includes(query) ||
+                (item.pSn || "").toLowerCase().includes(query);
+
+            const matchOdp = selectedOdp === "ALL" || item.odp === selectedOdp;
+            const matchPop = selectedPop === "ALL" || item.pop === selectedPop;
+
+            return matchQuery && matchOdp && matchPop;
         });
+
         renderAdminTable(filteredAdminData);
     }
 
-    function downloadImage(url, filename) {
-        if (!url) return;
-        const downloadUrl = url.includes('?') ? `${url}&ik-attachment=true` : `${url}?ik-attachment=true`;
-        fetch(downloadUrl)
-            .then(res => res.blob())
-            .then(blob => {
-                const a = document.createElement('a');
-                a.href = window.URL.createObjectURL(blob);
-                a.download = filename || 'image.jpg';
-                a.click();
-            }).catch(() => window.open(downloadUrl, '_blank'));
+    function resetSearch() {
+        document.getElementById('adminSearchInput').value = '';
+        document.getElementById('filterOdp').value = 'ALL';
+        document.getElementById('filterPop').value = 'ALL';
+        filterAdminData();
     }
 
     function renderAdminTable(data) {
@@ -169,34 +281,35 @@
 
         tbody.innerHTML = data.map((item, index) => {
             const btnRumah = item.urlFotoRumah ? 
-                `<div class="inline-flex gap-1 my-0.5">
-                    <a href="${item.urlFotoRumah}" target="_blank" class="bg-indigo-50 text-indigo-600 border font-bold px-1.5 py-0.5 rounded text-[10px]">
-                        <i class="fas fa-eye"></i> Rumah
-                    </a>
-                    <button onclick="downloadImage('${item.urlFotoRumah}', 'Rumah_${item.snUnit || index}.jpg')" class="bg-slate-100 text-slate-700 border font-bold px-1.5 py-0.5 rounded text-[10px]">
-                        <i class="fas fa-download"></i>
-                    </button>
-                </div>` : '-';
+                `<a href="${item.urlFotoRumah}" target="_blank" class="bg-indigo-50 text-indigo-600 border font-bold px-1.5 py-0.5 rounded text-[9px] inline-block my-0.5">
+                    <i class="fas fa-image"></i> Rumah
+                </a>` : '-';
 
             const btnAlat = item.urlFotoAlat ? 
-                `<div class="inline-flex gap-1 my-0.5">
-                    <a href="${item.urlFotoAlat}" target="_blank" class="bg-indigo-50 text-indigo-600 border font-bold px-1.5 py-0.5 rounded text-[10px]">
-                        <i class="fas fa-eye"></i> Alat
-                    </a>
-                    <button onclick="downloadImage('${item.urlFotoAlat}', 'Alat_${item.snUnit || index}.jpg')" class="bg-slate-100 text-slate-700 border font-bold px-1.5 py-0.5 rounded text-[10px]">
-                        <i class="fas fa-download"></i>
-                    </button>
-                </div>` : '-';
+                `<a href="${item.urlFotoAlat}" target="_blank" class="bg-indigo-50 text-indigo-600 border font-bold px-1.5 py-0.5 rounded text-[9px] inline-block my-0.5">
+                    <i class="fas fa-image"></i> Alat
+                </a>` : '-';
+
+            const btnMaps = item.linkMaps ? 
+                `<a href="${item.linkMaps}" target="_blank" class="bg-emerald-50 text-emerald-600 border font-bold px-1.5 py-0.5 rounded text-[9px] inline-block my-0.5">
+                    <i class="fas fa-map-marker-alt"></i> Maps
+                </a>` : '-';
 
             return `
                 <tr class="border-b hover:bg-gray-50">
                     <td class="py-2 px-3 text-center"><input type="checkbox" class="row-checkbox cursor-pointer" value="${index}" onchange="updateSelectedCount()"></td>
                     <td class="py-2 px-3 whitespace-nowrap">${item.waktu || '-'}</td>
-                    <td class="py-2 px-3 font-bold text-indigo-600">${item.odp || '-'}</td>
-                    <td class="py-2 px-3">${item.pop || '-'}</td>
-                    <td class="py-2 px-3">${item.cidLama || '-'} / ${item.namaLama || '-'}</td>
-                    <td class="py-2 px-3 font-mono">${item.snUnit || '-'}</td>
-                    <td class="py-2 px-3 text-center whitespace-nowrap">${btnRumah} <br/> ${btnAlat}</td>
+                    <td class="py-2 px-3">
+                        <span class="font-bold text-indigo-600 block">${item.odp || '-'}</span>
+                        <span class="text-gray-500 text-[10px]">${item.pop || '-'}</span>
+                    </td>
+                    <td class="py-2 px-3">
+                        <span class="font-bold block">${item.namaLama || '-'}</span>
+                        <span class="text-gray-400 text-[10px]">${item.cidLama || '-'}</span>
+                    </td>
+                    <td class="py-2 px-3 font-mono font-bold text-slate-700">${item.snUnit || '-'}</td>
+                    <td class="py-2 px-3 font-mono text-slate-600">${item.pSn || '-'}</td>
+                    <td class="py-2 px-3 text-center whitespace-nowrap">${btnRumah} ${btnAlat} <br/> ${btnMaps}</td>
                     <td class="py-2 px-3 text-center">
                         <button onclick="sendSingleWA(${index})" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-[10px] px-2.5 py-1 rounded-lg">
                             <i class="fab fa-whatsapp"></i> WA
@@ -228,7 +341,8 @@
         text += `*CID:* ${item.cidLama || '-'}\n`;
         text += `*Nama:* ${item.namaLama || '-'}\n`;
         text += `*SN Unit:* ${item.snUnit || '-'}\n`;
-        if(item.koordinat) text += `📍 *Sherlock:* https://maps.google.com/?q=${item.koordinat}\n`;
+        text += `*P-SN:* ${item.pSn || '-'}\n`;
+        if(item.linkMaps) text += `📍 *Maps:* ${item.linkMaps}\n`;
         if(item.urlFotoRumah) text += `🖼️ *Foto Rumah:* ${item.urlFotoRumah}\n`;
         if(item.urlFotoAlat) text += `🖼️ *Foto Alat:* ${item.urlFotoAlat}\n`;
 
@@ -248,7 +362,8 @@
                 groupText += `• ODP: ${item.odp || '-'}\n`;
                 groupText += `• CID: ${item.cidLama || '-'}\n`;
                 groupText += `• SN: ${item.snUnit || '-'}\n`;
-                if(item.koordinat) groupText += `📍 Sherlock: https://maps.google.com/?q=${item.koordinat}\n`;
+                groupText += `• P-SN: ${item.pSn || '-'}\n`;
+                if(item.linkMaps) groupText += `📍 Maps: ${item.linkMaps}\n`;
                 if(item.urlFotoRumah) groupText += `🖼️ Foto Rumah: ${item.urlFotoRumah}\n`;
                 if(item.urlFotoAlat) groupText += `🖼️ Foto Alat: ${item.urlFotoAlat}\n`;
                 groupText += `------------------------------------\n`;
@@ -267,3 +382,5 @@
 </script>
 </body>
 </html>
+
+```
