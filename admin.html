@@ -1,295 +1,269 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard Admin - Rekap Data</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; }
-    body { background-color: #f8fafc; color: #1e293b; padding-bottom: 40px; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Admin Realtime</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    header {
-      background: white;
-      padding: 15px 25px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid #e2e8f0;
-      margin-bottom: 20px;
-    }
-    .brand { font-size: 1.25rem; font-weight: 700; color: #2563eb; }
-    .nav-btn {
-      padding: 8px 16px;
-      background: #f1f5f9;
-      color: #334155;
-      text-decoration: none;
-      border-radius: 6px;
-      font-weight: 600;
-      border: 1px solid #cbd5e1;
-    }
-
-    .container { max-width: 1250px; margin: 0 auto; padding: 0 15px; }
-    .card { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }
-    .card-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 20px; }
-
-    .filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
-    .form-group label { display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 5px; color: #64748b; }
-    .form-control { width: 100%; padding: 9px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 0.9rem; }
-
-    .btn { padding: 9px 15px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; font-size: 0.875rem; }
-    .btn-primary { background: #2563eb; color: white; }
-    .btn-success { background: #16a34a; color: white; }
-
-    .table-responsive { overflow-x: auto; background: white; border-radius: 8px; border: 1px solid #e2e8f0; }
-    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; text-align: left; }
-    th, td { padding: 12px 14px; border-bottom: 1px solid #e2e8f0; white-space: nowrap; }
-    th { background: #0f172a; color: white; font-weight: 600; }
-    tr:hover { background: #f1f5f9; }
-
-    .badge { padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; background: #e2e8f0; color: #334155; }
-    
-    /* Login Modal */
-    .modal { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 100; }
-    .modal-content { background: white; padding: 25px; border-radius: 10px; width: 100%; max-width: 360px; }
-  </style>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #F1F5F9; }
+        .toast-msg {
+            position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%);
+            background: #0f172a; color: white; padding: 10px 20px; border-radius: 99px;
+            transition: all 0.3s ease; z-index: 1000; font-size: 12px; font-weight: 600;
+        }
+        input, select, button { font-size: 12px !important; }
+    </style>
 </head>
-<body>
+<body class="p-3 sm:p-6 max-w-6xl mx-auto w-full space-y-4">
 
-  <!-- MODAL LOGIN ADMIN -->
-  <div id="loginModal" class="modal">
-    <div class="modal-content">
-      <h3 style="margin-bottom: 15px;">Login Admin Required</h3>
-      <div class="form-group" style="margin-bottom: 15px;">
-        <label>Password Admin</label>
-        <input type="password" id="adminPassword" class="form-control" placeholder="Masukkan password">
-      </div>
-      <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="handleLoginAdmin()">Login</button>
+    <!-- LOGIN MODAL -->
+    <div id="modalLogin" class="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-xs w-full p-5 space-y-4 shadow-xl">
+            <div class="text-center">
+                <h3 class="text-base font-bold text-gray-900">Akses Dashboard Admin</h3>
+                <p class="text-[10px] text-gray-400">Masukkan kata sandi untuk melanjutkan</p>
+            </div>
+            <input type="password" id="adminPassword" placeholder="Kata Sandi Admin" class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs font-bold outline-none">
+            <button onclick="submitAdminLogin()" class="w-full bg-indigo-600 text-white py-2 rounded-xl text-xs font-bold">Masuk</button>
+        </div>
     </div>
-  </div>
 
-  <header>
-    <div class="brand"><i class="fas fa-user-shield"></i> Dashboard Admin</div>
-    <a href="index.html" class="nav-btn"><i class="fas fa-edit"></i> Form Lapangan</a>
-  </header>
-
-  <div class="container">
-    <div class="card">
-      <div class="card-title">Panel Rekap Data Admin</div>
-
-      <div class="filter-grid">
-        <div class="form-group">
-          <label>PILIH SUMBER SHEET</label>
-          <select id="filterSheet" class="form-control" onchange="applyFilters()">
-            <option value="ALL">Semua Sheet</option>
-            <option value="Baris 1">Baris 1 / Laporan</option>
-            <option value="sudah diambil">sudah diambil</option>
-            <option value="Full Data">Full Data</option>
-            <option value="target">target</option>
-          </select>
+    <!-- MAIN ADMIN CONTENT -->
+    <div id="adminContent" class="hidden space-y-4">
+        <div class="flex justify-between items-center bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
+            <h2 class="text-base font-extrabold text-gray-800"><i class="fas fa-chart-line text-indigo-600 mr-2"></i>Rekap Data Realtime</h2>
+            <button onclick="logoutAdmin()" class="bg-red-50 text-red-600 border border-red-200 font-bold px-3 py-1.5 rounded-xl text-xs">
+                <i class="fas fa-sign-out-alt"></i> Keluar
+            </button>
         </div>
-        <div class="form-group">
-          <label>KATA KUNCI PENCARIAN</label>
-          <input type="text" id="searchKeyword" class="form-control" placeholder="Cari ODP, CID, Nama, POP..." onkeyup="applyFilters()">
-        </div>
-        <div class="form-group" style="display: flex; align-items: flex-end;">
-          <button class="btn btn-primary" onclick="loadDataRekap()"><i class="fas fa-sync"></i> Refresh Data</button>
-        </div>
-      </div>
 
-      <div style="margin-bottom: 12px; font-weight: 600; font-size: 0.9rem;">
-        Total Hasil: <span id="totalCount">0</span> Data
-      </div>
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="p-3 bg-gray-50 border-b space-y-2">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-[9px] font-bold text-gray-500 uppercase">Cari Data</label>
+                        <input type="text" id="adminSearchInput" onkeyup="filterAdminData()" placeholder="Cari ODP, CID, SN..." class="w-full bg-white border border-gray-200 rounded-xl px-3 py-1.5 text-xs outline-none">
+                    </div>
+                </div>
 
-      <div class="table-responsive">
-        <table>
-          <thead>
-            <tr>
-              <th><input type="checkbox" id="selectAll" onclick="toggleSelectAll(this)"></th>
-              <th>SUMBER SHEET</th>
-              <th>WAKTU</th>
-              <th>SHERLOK</th>
-              <th>ODP</th>
-              <th>POP</th>
-              <th>CID / NAMA</th>
-              <th>SN UNIT</th>
-              <th>FOTO RUMAH</th>
-              <th>FOTO PERANGKAT</th>
-              <th>AKSI WA</th>
-            </tr>
-          </thead>
-          <tbody id="tableBodyData">
-            <tr><td colspan="11" style="text-align: center;">Silahkan Login Terlebih Dahulu...</td></tr>
-          </tbody>
-        </table>
-      </div>
+                <div class="flex flex-col sm:flex-row justify-between items-center pt-1 gap-2 border-t border-gray-200">
+                    <span id="searchResultCount" class="text-[10px] font-bold text-gray-500">Memuat data...</span>
+                    <div class="flex items-center gap-2">
+                        <button onclick="sendGroupToWA()" class="bg-teal-700 text-white font-bold text-xs px-3 py-1.5 rounded-xl shadow-sm flex items-center gap-1">
+                            <i class="fas fa-layer-group"></i> Kirim WA Gabungan (<span id="selectedCount">0</span>)
+                        </button>
+                        <button onclick="loadAdminData()" class="text-indigo-600 text-xs font-bold bg-white px-3 py-1.5 rounded-xl border border-gray-200 hover:bg-gray-100">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-900 text-white uppercase text-[9px]">
+                        <tr>
+                            <th class="py-2.5 px-3 text-center"><input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)"></th>
+                            <th class="py-2.5 px-3">Waktu</th>
+                            <th class="py-2.5 px-3">ODP</th>
+                            <th class="py-2.5 px-3">POP</th>
+                            <th class="py-2.5 px-3">CID / Nama</th>
+                            <th class="py-2.5 px-3">SN Unit</th>
+                            <th class="py-2.5 px-3 text-center">Gambar</th>
+                            <th class="py-2.5 px-3 text-center">Aksi WA</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBodyAdmin">
+                        <tr><td colspan="8" class="py-4 text-center text-gray-400">Memuat data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
-  </div>
 
-  <script>
-    // MASUKKAN URL WEB APP GOOGLE APPS SCRIPT ANDA DI SINI
-    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwESnxnJqIkgKIkEOc2UMr4uG9esO7l2wiGQ8q6uGNMLGYE6HAATTyRaXenGs5ok0HJSw/exec";
-    let globalDataRekap = [];
+    <div id="toast" class="toast-msg">Notifikasi</div>
 
-    async function handleLoginAdmin() {
-      const pass = document.getElementById('adminPassword').value;
-      if (!pass) return alert("Masukkan password!");
+<script>
+    const GAS_WEB_APP_URL = "URL_GOOGLE_APPS_SCRIPT_ANDA";
+    let globalAdminData = [], filteredAdminData = [];
 
-      try {
-        const res = await fetch(GAS_WEB_APP_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({ action: "loginAdmin", password: pass })
-        });
-        const result = await res.json();
-
-        if (result.success) {
-          document.getElementById('loginModal').style.display = 'none';
-          loadDataRekap();
-        } else {
-          alert("Password Salah!");
+    window.addEventListener('load', () => {
+        if(sessionStorage.getItem('admin_session') === 'true') {
+            showAdminDashboard();
         }
-      } catch (err) {
-        alert("Gagal Login ke Server!");
-      }
-    }
+    });
 
-    async function loadDataRekap() {
-      const tbody = document.getElementById('tableBodyData');
-      tbody.innerHTML = '<tr><td colspan="11" style="text-align: center;">Mengambil data dari Google Sheets...</td></tr>';
-
-      try {
-        const res = await fetch(GAS_WEB_APP_URL, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({ action: "getRekap" })
+    function submitAdminLogin() {
+        const pass = document.getElementById('adminPassword').value;
+        fetch(GAS_WEB_APP_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: "loginAdmin", password: pass })
+        }).then(res => res.json()).then(res => {
+            if(res.success) {
+                sessionStorage.setItem('admin_session', 'true');
+                showAdminDashboard();
+            } else showToast("Password Salah!");
         });
-        const result = await res.json();
+    }
 
-        if (result.success) {
-          globalDataRekap = result.data;
-          applyFilters();
-        } else {
-          tbody.innerHTML = `<tr><td colspan="11" style="text-align: center; color: red;">Error: ${result.message}</td></tr>`;
+    function showAdminDashboard() {
+        document.getElementById('modalLogin').classList.add('hidden');
+        document.getElementById('adminContent').classList.remove('hidden');
+        loadAdminData();
+    }
+
+    function logoutAdmin() {
+        sessionStorage.removeItem('admin_session');
+        location.reload();
+    }
+
+    function loadAdminData() {
+        document.getElementById('searchResultCount').innerText = "Memuat data...";
+        fetch(GAS_WEB_APP_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: "getRekap" })
+        }).then(res => res.json()).then(res => {
+            globalAdminData = res.data || [];
+            filterAdminData();
+        });
+    }
+
+    function filterAdminData() {
+        const query = document.getElementById('adminSearchInput').value.toLowerCase().trim();
+        filteredAdminData = globalAdminData.filter(item => {
+            if (!query) return true;
+            return (item.cidLama || "").toLowerCase().includes(query) || 
+                   (item.namaLama || "").toLowerCase().includes(query) || 
+                   (item.odp || "").toLowerCase().includes(query) || 
+                   (item.snUnit || "").toLowerCase().includes(query);
+        });
+        renderAdminTable(filteredAdminData);
+    }
+
+    function downloadImage(url, filename) {
+        if (!url) return;
+        const downloadUrl = url.includes('?') ? `${url}&ik-attachment=true` : `${url}?ik-attachment=true`;
+        fetch(downloadUrl)
+            .then(res => res.blob())
+            .then(blob => {
+                const a = document.createElement('a');
+                a.href = window.URL.createObjectURL(blob);
+                a.download = filename || 'image.jpg';
+                a.click();
+            }).catch(() => window.open(downloadUrl, '_blank'));
+    }
+
+    function renderAdminTable(data) {
+        const tbody = document.getElementById('tableBodyAdmin');
+        document.getElementById('searchResultCount').innerText = `Total Hasil: ${data.length} Data`;
+        updateSelectedCount();
+
+        if(!data || data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" class="py-4 text-center text-gray-400">Data tidak ditemukan.</td></tr>';
+            return;
         }
-      } catch (err) {
-        tbody.innerHTML = '<tr><td colspan="11" style="text-align: center; color: red;">Gagal mengambil data dari server.</td></tr>';
-      }
-    }
 
-    function applyFilters() {
-      const selectedSheet = document.getElementById('filterSheet').value;
-      const keyword = document.getElementById('searchKeyword').value.toLowerCase().trim();
+        tbody.innerHTML = data.map((item, index) => {
+            const btnRumah = item.urlFotoRumah ? 
+                `<div class="inline-flex gap-1 my-0.5">
+                    <a href="${item.urlFotoRumah}" target="_blank" class="bg-indigo-50 text-indigo-600 border font-bold px-1.5 py-0.5 rounded text-[10px]">
+                        <i class="fas fa-eye"></i> Rumah
+                    </a>
+                    <button onclick="downloadImage('${item.urlFotoRumah}', 'Rumah_${item.snUnit || index}.jpg')" class="bg-slate-100 text-slate-700 border font-bold px-1.5 py-0.5 rounded text-[10px]">
+                        <i class="fas fa-download"></i>
+                    </button>
+                </div>` : '-';
 
-      const filtered = globalDataRekap.filter(item => {
-        const matchSheet = (selectedSheet === 'ALL') || (item.sheetAsal === selectedSheet);
-        const matchKeyword = !keyword || 
-          (item.cidLama && item.cidLama.toLowerCase().includes(keyword)) ||
-          (item.namaLama && item.namaLama.toLowerCase().includes(keyword)) ||
-          (item.odp && item.odp.toLowerCase().includes(keyword)) ||
-          (item.pop && item.pop.toLowerCase().includes(keyword)) ||
-          (item.snUnit && item.snUnit.toLowerCase().includes(keyword));
+            const btnAlat = item.urlFotoAlat ? 
+                `<div class="inline-flex gap-1 my-0.5">
+                    <a href="${item.urlFotoAlat}" target="_blank" class="bg-indigo-50 text-indigo-600 border font-bold px-1.5 py-0.5 rounded text-[10px]">
+                        <i class="fas fa-eye"></i> Alat
+                    </a>
+                    <button onclick="downloadImage('${item.urlFotoAlat}', 'Alat_${item.snUnit || index}.jpg')" class="bg-slate-100 text-slate-700 border font-bold px-1.5 py-0.5 rounded text-[10px]">
+                        <i class="fas fa-download"></i>
+                    </button>
+                </div>` : '-';
 
-        return matchSheet && matchKeyword;
-      });
-
-      renderTable(filtered);
-    }
-
-    function renderTable(data) {
-      const tbody = document.getElementById('tableBodyData');
-      document.getElementById('totalCount').innerText = data.length;
-
-      if(data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="11" style="text-align: center;">Data tidak ditemukan.</td></tr>';
-        return;
-      }
-
-      tbody.innerHTML = data.map((item, idx) => {
-        // Tautkan Sherlok langsung tanpa encode ganda
-        const sherlokLink = (item.koordinat && item.koordinat.startsWith("http")) 
-          ? item.koordinat 
-          : (item.koordinat && item.koordinat !== "-" ? `https://maps.google.com/?q=${encodeURIComponent(item.koordinat)}` : "");
-
-        const sherlokHtml = sherlokLink 
-          ? `<a href="${sherlokLink}" target="_blank" style="color: #2563eb; font-weight: 600;"><i class="fas fa-map-marker-alt"></i> Buka Maps</a>` 
-          : "-";
-
-        const fotoRumahHtml = (item.urlFotoRumah && item.urlFotoRumah.startsWith("http")) 
-          ? `<a href="${item.urlFotoRumah}" target="_blank" style="color: #2563eb;">Lihat Foto</a>` 
-          : "-";
-
-        const fotoAlatHtml = (item.urlFotoAlat && item.urlFotoAlat.startsWith("http")) 
-          ? `<a href="${item.urlFotoAlat}" target="_blank" style="color: #2563eb;">Lihat Foto</a>` 
-          : "-";
-
-        return `
-          <tr>
-            <td><input type="checkbox" class="row-checkbox" value="${idx}"></td>
-            <td><span class="badge">${item.sheetAsal}</span></td>
-            <td>${item.waktu || "-"}</td>
-            <td>${sherlokHtml}</td>
-            <td>${item.odp || "-"}</td>
-            <td>${item.pop || "-"}</td>
-            <td><b>${item.cidLama || "-"}</b><br><small>${item.namaLama || "-"}</small></td>
-            <td>${item.snUnit || "-"}</td>
-            <td>${fotoRumahHtml}</td>
-            <td>${fotoAlatHtml}</td>
-            <td>
-              <button onclick="kirimWA('${item.cidLama}', '${item.namaLama}', '${sherlokLink}')" class="btn btn-success" style="padding: 4px 8px; font-size: 0.75rem;">
-                <i class="fab fa-whatsapp"></i> WA
-              </button>
-            </td>
-          </tr>
-        `;
-      }).join('');
+            return `
+                <tr class="border-b hover:bg-gray-50">
+                    <td class="py-2 px-3 text-center"><input type="checkbox" class="row-checkbox cursor-pointer" value="${index}" onchange="updateSelectedCount()"></td>
+                    <td class="py-2 px-3 whitespace-nowrap">${item.waktu || '-'}</td>
+                    <td class="py-2 px-3 font-bold text-indigo-600">${item.odp || '-'}</td>
+                    <td class="py-2 px-3">${item.pop || '-'}</td>
+                    <td class="py-2 px-3">${item.cidLama || '-'} / ${item.namaLama || '-'}</td>
+                    <td class="py-2 px-3 font-mono">${item.snUnit || '-'}</td>
+                    <td class="py-2 px-3 text-center whitespace-nowrap">${btnRumah} <br/> ${btnAlat}</td>
+                    <td class="py-2 px-3 text-center">
+                        <button onclick="sendSingleWA(${index})" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-[10px] px-2.5 py-1 rounded-lg">
+                            <i class="fab fa-whatsapp"></i> WA
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
     }
 
     function toggleSelectAll(master) {
-      document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = master.checked);
+        document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = master.checked);
+        updateSelectedCount();
     }
 
-    function kirimWA(itemIndex) {
-  // Ambil data item dari array global berdasarkan indeks
-  const item = globalDataRekap[itemIndex];
-  if (!item) return;
-
-  // 1. Bersihkan & rapikan Link Sherlock / Maps
-  let sherlokUrl = item.koordinat || "-";
-  if (sherlokUrl !== "-" && sherlokUrl.includes("http")) {
-    // Jika mengandung URL Google Maps yang ter-encode ganda, ambil URL aslinya
-    const match = sherlokUrl.match(/https?:\/\/[^\s]+/);
-    if (match) {
-      sherlokUrl = match[0].replace(/^https:\/\/maps\.google\.com\/\?q=/, '');
-      sherlokUrl = decodeURIComponent(sherlokUrl);
+    function updateSelectedCount() {
+        const selected = document.querySelectorAll('.row-checkbox:checked').length;
+        document.getElementById('selectedCount').innerText = selected;
     }
-  } else if (sherlokUrl !== "-" && !sherlokUrl.startsWith("http")) {
-    // Jika hanya berupa koordinat angka (3.535, 98.562)
-    sherlokUrl = `https://maps.google.com/?q=${encodeURIComponent(sherlokUrl)}`;
-  }
 
-  // 2. Format Template Pesan Sesuai Screenshot
-  const pesan = 
-`📌 LAPORAN DATA LAPANGAN
-Sumber Data: Sheet (${item.sheetAsal || 'Laporan'})
-------------------------------------
-Waktu: ${item.waktu || '-'}
-ODP: ${item.odp || '-'}
-POP: ${item.pop || '-'}
-CID Lama: ${item.cidLama || '-'}
-Nama Lama: ${item.namaLama || '-'}
-SN Unit: ${item.snUnit || '-'}
-Ket: ${item.keterangan || '-'}
-------------------------------------
-📍 Sherlock: ${sherlokUrl}
-🖼️ Foto Rumah: ${item.urlFotoRumah || '-'}
-🖼️ Foto Perangkat: ${item.urlFotoAlat || '-'}`;
+    function sendSingleWA(index) {
+        const item = filteredAdminData[index];
+        if(!item) return;
 
-  // 3. Buka WhatsApp Web / App
-  const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(pesan)}`;
-  window.open(waUrl, '_blank');
-}
-  </script>
+        let text = `*📌 LAPORAN DATA LAPANGAN*\n`;
+        text += `------------------------------------\n`;
+        text += `*ODP:* ${item.odp || '-'}\n`;
+        text += `*POP:* ${item.pop || '-'}\n`;
+        text += `*CID:* ${item.cidLama || '-'}\n`;
+        text += `*Nama:* ${item.namaLama || '-'}\n`;
+        text += `*SN Unit:* ${item.snUnit || '-'}\n`;
+        if(item.koordinat) text += `📍 *Sherlock:* https://maps.google.com/?q=${item.koordinat}\n`;
+        if(item.urlFotoRumah) text += `🖼️ *Foto Rumah:* ${item.urlFotoRumah}\n`;
+        if(item.urlFotoAlat) text += `🖼️ *Foto Alat:* ${item.urlFotoAlat}\n`;
+
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text.trim())}`, '_blank');
+    }
+
+    function sendGroupToWA() {
+        const selectedBoxes = document.querySelectorAll('.row-checkbox:checked');
+        if(selectedBoxes.length === 0) return showToast("Pilih minimal 1 data!");
+
+        let groupText = `*📋 REKAP GABUNGAN (${selectedBoxes.length} DATA LAPANGAN)*\n\n`;
+
+        selectedBoxes.forEach((box, idx) => {
+            const item = filteredAdminData[parseInt(box.value)];
+            if(item) {
+                groupText += `*${idx + 1}. ${item.namaLama || 'Tanpa Nama'}*\n`;
+                groupText += `• ODP: ${item.odp || '-'}\n`;
+                groupText += `• CID: ${item.cidLama || '-'}\n`;
+                groupText += `• SN: ${item.snUnit || '-'}\n`;
+                if(item.koordinat) groupText += `📍 Sherlock: https://maps.google.com/?q=${item.koordinat}\n`;
+                if(item.urlFotoRumah) groupText += `🖼️ Foto Rumah: ${item.urlFotoRumah}\n`;
+                if(item.urlFotoAlat) groupText += `🖼️ Foto Alat: ${item.urlFotoAlat}\n`;
+                groupText += `------------------------------------\n`;
+            }
+        });
+
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(groupText.trim())}`, '_blank');
+    }
+
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.innerText = msg;
+        t.style.bottom = '20px';
+        setTimeout(() => t.style.bottom = '-100px', 3000);
+    }
+</script>
 </body>
 </html>
