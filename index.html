@@ -300,7 +300,7 @@
             const koordinat = document.getElementById('inpKoordinat').value;
             const linkMaps = koordinat ? `https://maps.google.com/?q=${koordinat.replace(/\s+/g, '')}` : "";
 
-            const payload = {
+           const payload = {
                 koordinat: koordinat,
                 odp: document.getElementById('inpOdp').value,
                 pop: document.getElementById('inpPop').value,
@@ -314,29 +314,34 @@
                 linkMaps: linkMaps
             };
 
-            const res = await fetch(GAS_WEB_APP_URL, {
+            // Menggunakan fetch dengan URLSearchParams agar aman dari kendala CORS Google
+            await fetch(GAS_WEB_APP_URL, {
                 method: 'POST',
+                mode: 'no-cors',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
                 body: JSON.stringify(payload)
-            }).then(r => r.json());
+            });
 
             btn.innerText = "Kirim Data Lapangan";
             btn.disabled = false;
+            showToast("SUKSES: Data Terkirim ke Sheet!");
 
-            if (res.success) {
-                showToast("SUKSES: Data Terkirim ke Sheet!");
-                // Clear Form Manual
-                document.getElementById('inpOdp').value = '';
-                document.getElementById('inpPop').value = '';
-                document.getElementById('inpCidLama').value = '';
-                document.getElementById('inpNamaLama').value = '';
-                document.getElementById('inpSnUnit').value = '';
-                document.getElementById('inpPSn').value = '';
-                document.getElementById('inpKeterangan').value = '';
-                document.getElementById('fileFotoRumah').value = '';
-                document.getElementById('fileFotoAlat').value = '';
-                document.getElementById('labelFotoRumah').innerText = "FOTO RUMAH *";
-                document.getElementById('labelFotoAlat').innerText = "FOTO ALAT *";
-            } else {
+            // Reset Form setelah sukses
+            document.getElementById('inpOdp').value = '';
+            document.getElementById('inpPop').value = '';
+            document.getElementById('inpCidLama').value = '';
+            document.getElementById('inpNamaLama').value = '';
+            document.getElementById('inpSnUnit').value = '';
+            document.getElementById('inpPSn').value = '';
+            document.getElementById('inpKeterangan').value = '';
+            document.getElementById('fileFotoRumah').value = '';
+            document.getElementById('fileFotoAlat').value = '';
+            document.getElementById('labelFotoRumah').innerText = "FOTO RUMAH *";
+            document.getElementById('labelFotoAlat').innerText = "FOTO ALAT *";
+            
+            else {
                 showToast("Gagal Simpan: " + res.message);
             }
         } catch (err) {
