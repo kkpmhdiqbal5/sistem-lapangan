@@ -3,273 +3,229 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Lapangan</title>
+    <title>Sistem Input Lapangan</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/html5-qrcode"></script>
-
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #F1F5F9; }
-        #field-map { height: 160px; width: 100%; border-radius: 12px; z-index: 10; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f0f4f8; }
         .toast-msg {
             position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%);
             background: #0f172a; color: white; padding: 10px 20px; border-radius: 99px;
             transition: all 0.3s ease; z-index: 1000; font-size: 12px; font-weight: 600;
         }
-        input, select, textarea, button { font-size: 12px !important; }
     </style>
 </head>
-<body class="p-3 sm:p-5 flex justify-center items-start min-h-screen">
+<body class="p-3 sm:p-6 max-w-xl mx-auto min-h-screen flex flex-col justify-between">
 
-    <div class="w-full max-w-md bg-white rounded-2xl shadow-sm border border-gray-100 p-4 space-y-3.5">
-        <div class="bg-[#0284c7] text-white p-3 rounded-xl text-center shadow-sm">
-            <h1 class="font-extrabold text-sm uppercase tracking-wide">Sistem Input Lapangan</h1>
+    <div class="space-y-4">
+        <!-- HEADER APPS -->
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex justify-between items-center">
+            <div>
+                <h1 class="text-base font-extrabold text-slate-800">SISTEM LAPANGAN</h1>
+                <p class="text-[10px] text-gray-400">Formulir Input Data Terintegrasi</p>
+            </div>
+            <!-- TOMBOL KE DASHBOARD ADMIN -->
+            <a href="admin.html" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 font-bold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5 border border-indigo-200 transition">
+                <i class="fas fa-user-shield"></i> Login Admin
+            </a>
         </div>
 
-        <div class="rounded-xl overflow-hidden border border-gray-200 bg-gray-100 relative">
-            <div id="field-map"></div>
-        </div>
-
-        <form id="formLapangan" onsubmit="handleFormSubmit(event)" class="space-y-3">
+        <!-- FORM INPUT LAPANGAN -->
+        <form id="formLapangan" onsubmit="handleFormSubmit(event)" class="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-gray-100 space-y-3 text-xs">
+            
+            <!-- KOORDINAT GPS -->
             <div>
-                <label class="text-[10px] font-extrabold text-gray-500 uppercase block mb-1">KOORDINAT GPS</label>
-                <input type="text" id="inpKoordinat" readonly placeholder="Mengunci sinyal GPS..." class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 text-gray-700 outline-none">
+                <label class="font-bold text-gray-600 uppercase text-[10px]">Koordinat GPS *</label>
+                <div class="flex gap-2 mt-1">
+                    <input type="text" id="inpKoordinat" required placeholder="Contoh: 2.883793, 99.184753" class="w-full bg-gray-50 border rounded-xl px-3 py-2 outline-none font-semibold">
+                    <button type="button" onclick="getGPSLocation()" class="bg-slate-800 text-white font-bold px-3 rounded-xl hover:bg-slate-700 whitespace-nowrap">
+                        <i class="fas fa-location-arrow"></i> GPS
+                    </button>
+                </div>
             </div>
 
-            <div>
-                <label class="text-[10px] font-extrabold text-gray-500 uppercase block mb-1">ODP *</label>
-                <input type="text" id="inpOdp" required placeholder="Masukkan ODP" class="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-gray-800 outline-none">
-            </div>
-
-            <div>
-                <label class="text-[10px] font-extrabold text-gray-500 uppercase block mb-1">POP *</label>
-                <input type="text" id="inpPop" required placeholder="Masukkan POP" class="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-gray-800 outline-none">
-            </div>
-
+            <!-- ODP & POP -->
             <div class="grid grid-cols-2 gap-2">
                 <div>
-                    <label class="text-[10px] font-extrabold text-gray-500 uppercase block mb-1">CID LAMA *</label>
-                    <input type="text" id="inpCidLama" required placeholder="Ex: CID10" class="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-gray-800 outline-none">
+                    <label class="font-bold text-gray-600 uppercase text-[10px]">ODP *</label>
+                    <input type="text" id="inpOdp" required placeholder="Nama ODP" class="w-full bg-gray-50 border rounded-xl px-3 py-2 outline-none font-semibold mt-1">
                 </div>
                 <div>
-                    <label class="text-[10px] font-extrabold text-gray-500 uppercase block mb-1">NAMA LAMA *</label>
-                    <input type="text" id="inpNamaLama" required placeholder="Ex: Budiman" class="w-full bg-white border border-gray-200 rounded-xl px-3 py-2 text-gray-800 outline-none">
+                    <label class="font-bold text-gray-600 uppercase text-[10px]">POP *</label>
+                    <input type="text" id="inpPop" required placeholder="Nama POP" class="w-full bg-gray-50 border rounded-xl px-3 py-2 outline-none font-semibold mt-1">
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-2 pt-1">
+            <!-- CID LAMA & NAMA LAMA -->
+            <div class="grid grid-cols-2 gap-2">
                 <div>
-                    <input type="file" id="fileFotoRumah" accept="image/*" capture="environment" class="hidden" onchange="updateFileLabel('fileFotoRumah', 'btnFotoRumahLabel')">
-                    <button type="button" onclick="document.getElementById('fileFotoRumah').click()" class="w-full border-2 border-dashed border-gray-300 rounded-xl py-2 px-1 text-center hover:bg-gray-50 flex items-center justify-center gap-1">
-                        <i class="fas fa-camera text-gray-500 text-xs"></i>
-                        <span id="btnFotoRumahLabel" class="text-[9px] font-extrabold text-gray-600 uppercase truncate">FOTO RUMAH *</span>
+                    <label class="font-bold text-gray-600 uppercase text-[10px]">CID Lama *</label>
+                    <input type="text" id="inpCidLama" required placeholder="Nomor CID" class="w-full bg-gray-50 border rounded-xl px-3 py-2 outline-none font-semibold mt-1">
+                </div>
+                <div>
+                    <label class="font-bold text-gray-600 uppercase text-[10px]">Nama Lama *</label>
+                    <input type="text" id="inpNamaLama" required placeholder="Nama Pelanggan" class="w-full bg-gray-50 border rounded-xl px-3 py-2 outline-none font-semibold mt-1">
+                </div>
+            </div>
+
+            <!-- SERIAL NUMBER (SN) UNIT -->
+            <div>
+                <label class="font-bold text-gray-600 uppercase text-[10px]">Serial Number (SN) Unit *</label>
+                <div class="flex gap-2 mt-1">
+                    <input type="text" id="inpSnUnit" required placeholder="SN Unit Baru" class="w-full bg-gray-50 border rounded-xl px-3 py-2 outline-none font-semibold uppercase">
+                    <button type="button" onclick="triggerScan('inpSnUnit')" class="bg-amber-500 hover:bg-amber-600 text-white font-bold px-3 rounded-xl whitespace-nowrap">
+                        <i class="fas fa-barcode"></i> Scan SN
                     </button>
                 </div>
-                <div>
-                    <input type="file" id="fileFotoAlat" accept="image/*" capture="environment" class="hidden" onchange="updateFileLabel('fileFotoAlat', 'btnFotoAlatLabel')">
-                    <button type="button" onclick="document.getElementById('fileFotoAlat').click()" class="w-full border-2 border-dashed border-gray-300 rounded-xl py-2 px-1 text-center hover:bg-gray-50 flex items-center justify-center gap-1">
-                        <i class="fas fa-camera text-gray-500 text-xs"></i>
-                        <span id="btnFotoAlatLabel" class="text-[9px] font-extrabold text-gray-600 uppercase truncate">FOTO ALAT *</span>
+            </div>
+
+            <!-- P-SN (FIELD BARU SAMAA PERTIS SEPERTI SN) -->
+            <div>
+                <label class="font-bold text-gray-600 uppercase text-[10px]">P-SN (Patchcord SN) *</label>
+                <div class="flex gap-2 mt-1">
+                    <input type="text" id="inpPSn" required placeholder="P-SN Unit" class="w-full bg-gray-50 border rounded-xl px-3 py-2 outline-none font-semibold uppercase">
+                    <button type="button" onclick="triggerScan('inpPSn')" class="bg-amber-500 hover:bg-amber-600 text-white font-bold px-3 rounded-xl whitespace-nowrap">
+                        <i class="fas fa-barcode"></i> Scan P-SN
                     </button>
                 </div>
             </div>
 
-            <div>
-                <label class="text-[10px] font-extrabold text-gray-500 uppercase block mb-1">SERIAL NUMBER (SN) UNIT *</label>
-                <div class="flex gap-2">
-                    <input type="text" id="inpSnUnit" required placeholder="Scan SN ->" class="flex-1 bg-white border border-gray-200 rounded-xl px-3 py-2 text-gray-800 outline-none">
-                    <button type="button" onclick="triggerScanSN()" class="bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-[10px] px-3.5 py-2 rounded-xl shadow-sm whitespace-nowrap">Scan SN</button>
+            <!-- UPLOAD FOTO RUMAH & FOTO ALAT -->
+            <div class="grid grid-cols-2 gap-2 pt-2">
+                <div>
+                    <label class="block text-center bg-gray-50 border-2 border-dashed border-gray-200 hover:border-indigo-500 rounded-2xl p-3 cursor-pointer">
+                        <i class="fas fa-camera text-gray-400 text-lg mb-1 block"></i>
+                        <span id="labelFotoRumah" class="font-bold text-[10px] text-gray-500">FOTO RUMAH *</span>
+                        <input type="file" id="fileFotoRumah" accept="image/*" required class="hidden" onchange="updateFileLabel(this, 'labelFotoRumah')">
+                    </label>
+                </div>
+                <div>
+                    <label class="block text-center bg-gray-50 border-2 border-dashed border-gray-200 hover:border-indigo-500 rounded-2xl p-3 cursor-pointer">
+                        <i class="fas fa-camera text-gray-400 text-lg mb-1 block"></i>
+                        <span id="labelFotoAlat" class="font-bold text-[10px] text-gray-500">FOTO ALAT *</span>
+                        <input type="file" id="fileFotoAlat" accept="image/*" required class="hidden" onchange="updateFileLabel(this, 'labelFotoAlat')">
+                    </label>
                 </div>
             </div>
 
+            <!-- KETERANGAN -->
             <div>
-                <label class="text-[10px] font-extrabold text-gray-500 uppercase block mb-1">KETERANGAN</label>
-                <textarea id="inpKeterangan" rows="2" placeholder="Catatan..." class="w-full bg-white border border-gray-200 rounded-xl p-2.5 text-gray-800 outline-none"></textarea>
+                <label class="font-bold text-gray-600 uppercase text-[10px]">Keterangan Tambahan</label>
+                <textarea id="inpKeterangan" rows="2" placeholder="Catatan opsional..." class="w-full bg-gray-50 border rounded-xl p-2.5 outline-none mt-1"></textarea>
             </div>
 
-            <button type="submit" id="btnSubmit" class="w-full bg-[#0f2942] hover:bg-[#091b2c] text-white font-bold py-3 rounded-xl shadow-md text-xs tracking-wide mt-2">
+            <!-- SUBMIT BUTTON -->
+            <button type="submit" id="btnSubmit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-extrabold py-3 rounded-2xl text-xs transition mt-2">
                 Kirim Data Lapangan
             </button>
         </form>
     </div>
 
-    <!-- MODAL SCANNER BARCODE -->
-    <div id="modalScanner" class="fixed inset-0 z-[600] bg-black/80 hidden flex-col items-center justify-center p-4">
-        <div class="bg-white w-full max-w-xs rounded-2xl p-4 space-y-3 relative">
-            <div class="flex justify-between items-center border-b pb-2">
-                <h3 class="text-xs font-bold text-gray-800"><i class="fas fa-qrcode mr-1"></i> Scan Barcode SN</h3>
-                <button onclick="closeScanner()" class="text-gray-400 font-bold">&times;</button>
-            </div>
-            <div id="reader" class="w-full overflow-hidden rounded-xl bg-black min-h-[200px]"></div>
-        </div>
-    </div>
-
     <div id="toast" class="toast-msg">Notifikasi</div>
 
 <script>
-    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwESnxnJqIkgKIkEOc2UMr4uG9esO7l2wiGQ8q6uGNMLGYE6HAATTyRaXenGs5ok0HJSw/exec";
-    const IMAGEKIT_PUBLIC_KEY = "public_W4LevC6+WUWX5uocg3TlUiZ8T/g="; 
+    const GAS_WEB_APP_URL = "MASUKKAN_URL_GOOGLE_APPS_SCRIPT_DI_SINI";
+    const IMAGEKIT_PUBLIC_KEY = "MASUKKAN_PUBLIC_KEY_IMAGEKIT_DI_SINI";
 
-    let map, userMarker, html5QrCode;
-
-    window.addEventListener('load', () => { initGPSMap(); });
-
-    function initGPSMap() {
-        const mapContainer = document.getElementById('field-map');
-        map = L.map(mapContainer, { zoomControl: false }).setView([-6.200000, 106.816666], 15);
-        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
-
-        if (navigator.geolocation) {
-            navigator.geolocation.watchPosition(pos => {
-                const lat = pos.coords.latitude;
-                const lng = pos.coords.longitude;
-                document.getElementById('inpKoordinat').value = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-
-                if (!userMarker) {
-                    const icon = L.divIcon({
-                        className: '',
-                        html: '<div style="width:12px;height:12px;background:#3b82f6;border:2px solid white;border-radius:50%"></div>',
-                        iconSize: [12, 12], iconAnchor: [6, 6]
-                    });
-                    userMarker = L.marker([lat, lng], { icon: icon }).addTo(map);
-                } else {
-                    userMarker.setLatLng([lat, lng]);
-                }
-                map.setView([lat, lng], 16);
-            });
-        }
-    }
-
-    function triggerScanSN() {
-        document.getElementById('modalScanner').classList.replace('hidden', 'flex');
-        if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
-        html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 200 }, (decodedText) => {
-            document.getElementById('inpSnUnit').value = decodedText;
-            showToast("SN Terbaca: " + decodedText);
-            closeScanner();
-        }).catch(() => closeScanner());
-    }
-
-    function closeScanner() {
-        if (html5QrCode && html5QrCode.isScanning) html5QrCode.stop();
-        document.getElementById('modalScanner').classList.replace('flex', 'hidden');
-    }
-
-    function updateFileLabel(inputId, labelId) {
-        const input = document.getElementById(inputId);
+    function updateFileLabel(input, labelId) {
         if (input.files && input.files[0]) {
-            document.getElementById(labelId).innerText = "✓ " + input.files[0].name.substring(0, 8) + "...";
+            document.getElementById(labelId).innerText = "✓ " + input.files[0].name.substring(0, 10) + "...";
         }
     }
 
-
-// Gantilah dengan Public Key asli ImageKit kamu
-const IMAGEKIT_PUBLIC_KEY = "public_W4LevC6+WUWX5uocg3TlUiZ8T/g="; 
-
-async function directUploadToImageKit(fileInput, customFileName, targetFolder) {
-    if (!fileInput) throw new Error("File foto tidak ditemukan!");
-
-    const formData = new FormData();
-    formData.append("file", fileInput);
-    formData.append("fileName", customFileName);
-    formData.append("publicKey", IMAGEKIT_PUBLIC_KEY);
-    
-    // Hilangkan spasi di awal/akhir dan pastikan format folder benar
-    if (targetFolder) {
-        formData.append("folder", targetFolder); 
+    function getGPSLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition((pos) => {
+                document.getElementById('inpKoordinat').value = `${pos.coords.latitude}, ${pos.coords.longitude}`;
+                showToast("Lokasi berhasil didapatkan!");
+            }, () => showToast("Gagal mengambil lokasi GPS"));
+        } else showToast("Browser tidak mendukung GPS");
     }
 
-    try {
+    function triggerScan(targetFieldId) {
+        const val = prompt("Scan Barcode / Masukkan nilai manual:");
+        if (val) document.getElementById(targetFieldId).value = val.trim().toUpperCase();
+    }
+
+    async function directUploadToImageKit(fileInput, customFileName, targetFolder) {
+        const formData = new FormData();
+        formData.append("file", fileInput);
+        formData.append("fileName", customFileName);
+        formData.append("publicKey", IMAGEKIT_PUBLIC_KEY);
+        if (targetFolder) formData.append("folder", targetFolder);
+
         const response = await fetch("https://upload.imagekit.io/api/v1/files/upload", {
             method: "POST",
             body: formData
         });
 
-        const json = await response.json();
-
-        // Jika ImageKit menolak upload, tampilkan pesan error aslinya dari API
         if (!response.ok) {
-            throw new Error(json.message || "Upload gagal dari ImageKit");
+            const errJson = await response.json();
+            throw new Error(errJson.message || "Gagal upload gambar");
         }
-
-        return json.url; 
-    } catch (err) {
-        console.error("ImageKit Error Details:", err);
-        throw new Error(err.message || "Gagal terhubung ke ImageKit");
+        const json = await response.json();
+        return json.url;
     }
-}
 
-    
-async function handleFormSubmit(e) {
-    e.preventDefault();
-    const btn = document.getElementById('btnSubmit');
-    const fileRumah = document.getElementById('fileFotoRumah').files[0];
-    const fileAlat = document.getElementById('fileFotoAlat').files[0];
+    async function handleFormSubmit(e) {
+        e.preventDefault();
+        const btn = document.getElementById('btnSubmit');
+        const fileRumah = document.getElementById('fileFotoRumah').files[0];
+        const fileAlat = document.getElementById('fileFotoAlat').files[0];
 
-    if (!fileRumah || !fileAlat) return showToast("Foto Rumah & Alat Wajib!");
+        if (!fileRumah || !fileAlat) return showToast("Foto Rumah & Alat Wajib!");
 
-    try {
-        btn.innerText = "Mengunggah Gambar ke Storage...";
-        btn.disabled = true;
+        try {
+            btn.innerText = "Mengunggah Gambar...";
+            btn.disabled = true;
 
-        const snUnit = document.getElementById('inpSnUnit').value || 'unit';
-        
-        // Direct Upload langsung ke folder masing-masing di ImageKit
-        const urlRumah = await directUploadToImageKit(
-            fileRumah, 
-            `Rumah_${snUnit}_${Date.now()}.jpg`, 
-            "/Foto Rumah" // Nama folder khusus foto rumah
-        );
-        
-        const urlAlat = await directUploadToImageKit(
-            fileAlat, 
-            `Alat_${snUnit}_${Date.now()}.jpg`, 
-            "/Foto perangkat" // Nama folder khusus foto perangkat
-        );
+            const snUnit = document.getElementById('inpSnUnit').value || 'unit';
 
-        btn.innerText = "Menyimpan Data...";
+            // Upload ke folder ImageKit masing-masing
+            const urlRumah = await directUploadToImageKit(fileRumah, `Rumah_${snUnit}_${Date.now()}.jpg`, "/Foto Rumah");
+            const urlAlat = await directUploadToImageKit(fileAlat, `Alat_${snUnit}_${Date.now()}.jpg`, "/Foto perangkat");
 
-        // Kirim link gambar & data ke Google Sheet
-        const payload = {
-            action: "simpanData",
-            koordinat: document.getElementById('inpKoordinat').value,
-            odp: document.getElementById('inpOdp').value,
-            pop: document.getElementById('inpPop').value,
-            cidLama: document.getElementById('inpCidLama').value,
-            namaLama: document.getElementById('inpNamaLama').value,
-            snUnit: snUnit,
-            keterangan: document.getElementById('inpKeterangan').value,
-            urlFotoRumah: urlRumah,
-            urlFotoAlat: urlAlat
-        };
+            btn.innerText = "Menyimpan Data...";
 
-        const res = await fetch(GAS_WEB_APP_URL, {
-            method: 'POST',
-            body: JSON.stringify(payload)
-        }).then(r => r.json());
+            const koordinat = document.getElementById('inpKoordinat').value;
+            const linkMaps = koordinat ? `https://maps.google.com/?q=${koordinat}` : "";
 
-        btn.innerText = "Kirim Data Lapangan";
-        btn.disabled = false;
-        showToast(res.message);
+            const payload = {
+                action: "simpanData",
+                koordinat: koordinat,
+                odp: document.getElementById('inpOdp').value,
+                pop: document.getElementById('inpPop').value,
+                cidLama: document.getElementById('inpCidLama').value,
+                namaLama: document.getElementById('inpNamaLama').value,
+                snUnit: snUnit,
+                pSn: document.getElementById('inpPSn').value,
+                keterangan: document.getElementById('inpKeterangan').value,
+                urlFotoRumah: urlRumah,
+                urlFotoAlat: urlAlat,
+                linkMaps: linkMaps
+            };
 
-        if (res.success) {
-            document.getElementById('formLapangan').reset();
-            document.getElementById('btnFotoRumahLabel').innerText = "FOTO RUMAH *";
-            document.getElementById('btnFotoAlatLabel').innerText = "FOTO ALAT *";
+            const res = await fetch(GAS_WEB_APP_URL, {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            }).then(r => r.json());
+
+            btn.innerText = "Kirim Data Lapangan";
+            btn.disabled = false;
+            showToast(res.message);
+
+            if (res.success) {
+                document.getElementById('formLapangan').reset();
+                document.getElementById('labelFotoRumah').innerText = "FOTO RUMAH *";
+                document.getElementById('labelFotoAlat').innerText = "FOTO ALAT *";
+            }
+        } catch (err) {
+            btn.innerText = "Kirim Data Lapangan";
+            btn.disabled = false;
+            showToast("Error: " + err.message);
         }
-    } catch (err) {
-        btn.innerText = "Kirim Data Lapangan";
-        btn.disabled = false;
-        showToast("Gagal: " + err.message);
     }
-}
-
-
-    
-    
 
     function showToast(msg) {
         const t = document.getElementById('toast');
