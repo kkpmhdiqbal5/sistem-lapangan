@@ -3,57 +3,251 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sistem Cari - Admin</title>
+  <title>Panel Rekap Data Admin - Sistem Cari</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="bg-gray-100 font-sans">
 
-  <!-- NAVBAR DENGAN KEDUA TOMBOL NAVIGASI -->
+  <!-- NAVBAR ATAS -->
   <nav class="bg-white shadow-sm border-b px-6 py-3 flex justify-between items-center">
-    <div class="font-bold text-gray-800 text-lg flex items-center gap-2">
-      <i class="fa-solid fa-magnifying-glass text-emerald-600"></i> Sistem Cari Data
+    <div class="font-bold text-gray-800 text-base flex items-center gap-2">
+      Dashboard Admin - Sistem Cari
     </div>
     <div class="flex items-center gap-2">
-      <a href="index.html" class="bg-sky-600 text-white hover:bg-sky-700 px-3 py-2 rounded-md text-sm font-medium flex items-center gap-1.5 transition">
+      <a href="index.html" class="bg-white border text-gray-700 hover:bg-gray-50 px-3 py-1.5 rounded text-xs font-medium flex items-center gap-1.5 shadow-sm">
         <i class="fa-solid fa-satellite-dish"></i> Sistem Lapangan
       </a>
-      <a href="admin.html" class="bg-indigo-600 text-white hover:bg-indigo-700 px-3 py-2 rounded-md text-sm font-medium flex items-center gap-1.5 transition">
+      <a href="admin.html" class="bg-indigo-600 text-white hover:bg-indigo-700 px-3 py-1.5 rounded text-xs font-medium flex items-center gap-1.5 shadow-sm">
         <i class="fa-solid fa-gauge"></i> Dashboard Admin
       </a>
+      <span class="bg-slate-800 text-white px-3 py-1.5 rounded text-xs font-bold">ADMIN</span>
+      <button onclick="logout()" class="text-rose-600 hover:text-rose-700 p-1 text-sm"><i class="fa-solid fa-right-from-bracket"></i></button>
     </div>
   </nav>
 
-  <div class="max-w-4xl mx-auto my-8 px-4 space-y-6">
-    <div class="bg-white p-6 rounded-xl shadow-md border space-y-4">
-      <h2 class="text-base font-bold text-gray-800">Pencarian Data Perangkat / Pelanggan</h2>
-      <div class="flex gap-2">
-        <input type="text" id="search-input" placeholder="Ketik CID, Nama, ODP, SN, atau P-SN..." class="w-full border border-gray-300 p-3 rounded-md text-sm outline-none focus:ring-2 focus:ring-emerald-500">
-        <button onclick="performSearch()" class="bg-emerald-600 text-white px-6 py-3 rounded-md font-medium text-sm hover:bg-emerald-700 transition">
-          <i class="fa-solid fa-search"></i> Cari
-        </button>
+  <!-- KONTROL PANEL REKAP DATA ADMIN -->
+  <div class="max-w-7xl mx-auto my-6 px-4 space-y-4">
+    
+    <div class="bg-white p-5 rounded-xl shadow-sm border space-y-4">
+      <h2 class="font-bold text-gray-800 text-base">Panel Rekap Data & Pencarian Perangkat</h2>
+      
+      <!-- FILTER GRID -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+        <div>
+          <label class="block font-bold text-gray-500 uppercase mb-1">PILIH SUMBER KATEGORI</label>
+          <select id="filter-sheet" onchange="filterData()" class="w-full border p-2.5 rounded bg-white outline-none focus:ring-1 focus:ring-indigo-500 font-medium">
+            <option value="belum_diambil">Perangkat Belum Diambil (Full Data & Target)</option>
+            <option value="sudah_diambil">Perangkat Sudah Diambil (sudah diambil)</option>
+            <option value="info_perangkat">Info Perangkat Lapangan (Baris 1)</option>
+            <option value="semua">Semua Sumber Sheet Gabungan</option>
+          </select>
+        </div>
+        <div>
+          <label class="block font-bold text-gray-500 uppercase mb-1">KRITERIA CARI</label>
+          <select id="filter-criteria" onchange="filterData()" class="w-full border p-2.5 rounded bg-white outline-none focus:ring-1 focus:ring-indigo-500 font-medium">
+            <option value="all">Semua Gabungan (ODP / POP / CID / Nama)</option>
+            <option value="odp">ODP</option>
+            <option value="pop">POP</option>
+            <option value="cid">CID</option>
+            <option value="nama">Nama</option>
+          </select>
+        </div>
+        <div>
+          <label class="block font-bold text-gray-500 uppercase mb-1">KATA KUNCI</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400"><i class="fa-solid fa-search"></i></span>
+            <input type="text" id="filter-keyword" onkeyup="filterData()" placeholder="Cari nama, CID, ODP, POP..." class="w-full border pl-9 p-2.5 rounded outline-none focus:ring-1 focus:ring-indigo-500">
+          </div>
+        </div>
       </div>
-      <div id="search-results" class="text-sm text-gray-500 pt-4 border-t">
-        Masukkan kata kunci untuk mencari data...
+
+      <!-- INFO HASIL & TOMBOL AKSI -->
+      <div class="flex flex-wrap justify-between items-center pt-2 border-t text-xs gap-3">
+        <span id="total-hasil" class="font-bold text-gray-600">Total Hasil: 0 Data</span>
+        <div class="flex flex-wrap gap-2">
+          <button onclick="sendGroupWA()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded font-medium flex items-center gap-1 shadow-sm">
+            <i class="fa-brands fa-whatsapp"></i> Kirim Gabungan (<span id="count-checked">0</span> WA)
+          </button>
+          <button onclick="sendMultipleWA()" class="bg-emerald-700 hover:bg-emerald-800 text-white px-3 py-2 rounded font-medium flex items-center gap-1 shadow-sm">
+            <i class="fa-brands fa-whatsapp"></i> Kirim Sekaligus (<span id="count-checked-2">0</span>)
+          </button>
+          <button onclick="loadAllData()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded font-medium flex items-center gap-1 border">
+            <i class="fa-solid fa-rotate"></i> Refresh
+          </button>
+        </div>
       </div>
     </div>
+
+    <!-- TABEL DATA -->
+    <div class="bg-white rounded-xl shadow-sm border overflow-x-auto">
+      <table class="w-full text-left border-collapse text-xs">
+        <thead>
+          <tr class="bg-slate-900 text-white uppercase text-[11px]">
+            <th class="p-3 text-center w-10"><input type="checkbox" id="select-all" onclick="toggleSelectAll(this)"></th>
+            <th class="p-3">Sumber Sheet Asli</th>
+            <th class="p-3">Waktu</th>
+            <th class="p-3">ODP</th>
+            <th class="p-3">POP</th>
+            <th class="p-3">CID / Nama</th>
+            <th class="p-3">SN Unit</th>
+            <th class="p-3 text-center">Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="table-body" class="divide-y divide-gray-100 text-gray-700">
+          <tr>
+            <td colspan="8" class="p-8 text-center text-gray-400">Memuat data dari server...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
   </div>
 
   <script>
-    // Cek Sesi Login Admin
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHOXnA4YsBeNdPDUxXwPlsJHPJo7k7E4IqItpNOKLjfsYeQce7a9Gda8p-3p-Ys6tJkg/exec";
+    let masterData = {};
+
     if (localStorage.getItem("admin_logged_in") !== "true") {
       window.location.href = "login.html";
     }
 
-    function performSearch() {
-      const keyword = document.getElementById('search-input').value.trim();
-      const resultsDiv = document.getElementById('search-results');
-      if (!keyword) {
-        resultsDiv.innerHTML = "Mohon masukkan kata kunci pencarian.";
+    async function loadAllData() {
+      const tbody = document.getElementById('table-body');
+      tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-gray-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Mengambil data...</td></tr>`;
+      
+      try {
+        const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getAllData`);
+        masterData = await res.json();
+        filterData();
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-rose-500">Gagal memuat data dari spreadsheet.</td></tr>`;
+      }
+    }
+
+    function filterData() {
+      const category = document.getElementById('filter-sheet').value;
+      const criteria = document.getElementById('filter-criteria').value;
+      const keyword = document.getElementById('filter-keyword').value.toLowerCase().trim();
+
+      let targetSheets = [];
+      if (category === "belum_diambil") {
+        targetSheets = ["Full Data", "target"];
+      } else if (category === "sudah_diambil") {
+        targetSheets = ["sudah diambil"];
+      } else if (category === "info_perangkat") {
+        targetSheets = ["Baris 1"];
+      } else {
+        targetSheets = ["Full Data", "target", "sudah diambil", "Baris 1"];
+      }
+
+      let matchedRows = [];
+
+      targetSheets.forEach(sheetName => {
+        let rows = masterData[sheetName] || [];
+        if (rows.length > 1) {
+          for (let i = 1; i < rows.length; i++) {
+            let r = rows[i];
+            
+            // Pemetaan kolom fleksibel berdasarkan sheet
+            let waktu = r[0] ? new Date(r[0]).toLocaleString() : '-';
+            let odp = (sheetName === "Baris 1") ? (r[2] || '-') : (r[7] || r[2] || '-');
+            let pop = (sheetName === "Baris 1") ? (r[3] || '-') : (r[8] || r[3] || '-');
+            let cid = (sheetName === "Baris 1") ? (r[4] || '-') : (r[2] || '-');
+            let nama = (sheetName === "Baris 1") ? (r[5] || '-') : (r[1] || '-');
+            let snUnit = (sheetName === "Baris 1") ? (r[6] || '-') : (r[6] || '-');
+
+            let matchCriteria = true;
+            if (criteria === "odp") {
+              matchCriteria = odp.toLowerCase().includes(keyword);
+            } else if (criteria === "pop") {
+              matchCriteria = pop.toLowerCase().includes(keyword);
+            } else if (criteria === "cid") {
+              matchCriteria = cid.toLowerCase().includes(keyword);
+            } else if (criteria === "nama") {
+              matchCriteria = nama.toLowerCase().includes(keyword);
+            } else {
+              // Semua Kriteria / Gabungan
+              let combined = `${odp} ${pop} ${cid} ${nama} ${snUnit}`.toLowerCase();
+              matchCriteria = keyword === "" || combined.includes(keyword);
+            }
+
+            // Jika kriteria spesifik terpilih, pastikan keyword masuk ke kolom spesifik tersebut atau filter umum
+            if (criteria !== "all" && keyword !== "") {
+              let targetField = (criteria === "odp") ? odp : (criteria === "pop") ? pop : (criteria === "cid") ? cid : nama;
+              matchCriteria = targetField.toLowerCase().includes(keyword);
+            } else if (criteria === "all" && keyword !== "") {
+              let combined = `${odp} ${pop} ${cid} ${nama} ${snUnit}`.toLowerCase();
+              matchCriteria = combined.includes(keyword);
+            }
+
+            if (matchCriteria) {
+              matchedRows.push({
+                sheetAsli: sheetName,
+                waktu: waktu,
+                odp: odp,
+                pop: pop,
+                cid: cid,
+                nama: nama,
+                snUnit: snUnit
+              });
+            }
+          }
+        }
+      });
+
+      document.getElementById('total-hasil').innerText = `Total Hasil: ${matchedRows.length} Data`;
+      const tbody = document.getElementById('table-body');
+
+      if (matchedRows.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-gray-400">Data tidak ditemukan.</td></tr>`;
         return;
       }
-      resultsDiv.innerHTML = `Mencari data untuk keyword: <b>${keyword}</b>... (Fitur pencarian terhubung ke database lembar kerja)`;
+
+      let html = "";
+      matchedRows.forEach((item) => {
+        html += `
+          <tr class="hover:bg-gray-50 transition">
+            <td class="p-3 text-center"><input type="checkbox" class="row-checkbox" onchange="updateCheckedCount()"></td>
+            <td class="p-3 font-semibold text-indigo-600 bg-indigo-50/50 rounded">${item.sheetAsli}</td>
+            <td class="p-3 text-gray-500">${item.waktu}</td>
+            <td class="p-3 font-medium">${item.odp}</td>
+            <td class="p-3">${item.pop}</td>
+            <td class="p-3"><b>${item.cid}</b> / ${item.nama}</td>
+            <td class="p-3 font-mono">${item.snUnit}</td>
+            <td class="p-3 text-center">
+              <button onclick="sendSingleWA()" class="bg-emerald-600 text-white p-1.5 rounded hover:bg-emerald-700 transition" title="Kirim WA"><i class="fa-brands fa-whatsapp"></i></button>
+            </td>
+          </tr>
+        `;
+      });
+
+      tbody.innerHTML = html;
+      updateCheckedCount();
     }
+
+    function toggleSelectAll(master) {
+      const checkboxes = document.querySelectorAll('.row-checkbox');
+      checkboxes.forEach(cb => cb.checked = master.checked);
+      updateCheckedCount();
+    }
+
+    function updateCheckedCount() {
+      const checkedCount = document.querySelectorAll('.row-checkbox:checked').length;
+      document.getElementById('count-checked').innerText = checkedCount;
+      document.getElementById('count-checked-2').innerText = checkedCount;
+    }
+
+    function sendGroupWA() { alert("Fitur Kirim Gabungan WhatsApp diaktifkan."); }
+    function sendMultipleWA() { alert("Fitur Kirim Sekaligus WhatsApp diaktifkan."); }
+    function sendSingleWA() { alert("Kirim pesan WhatsApp satuan."); }
+    
+    function logout() {
+      localStorage.removeItem("admin_logged_in");
+      window.location.href = "login.html";
+    }
+
+    window.onload = loadAllData;
   </script>
 </body>
 </html>
