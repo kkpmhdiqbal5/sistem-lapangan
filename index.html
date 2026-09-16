@@ -126,26 +126,28 @@
         body: formData 
       });
       const data = await res.json();
+      
       if (data.ok) {
+        // Ambil File ID
         const fileId = data.result.photo[data.result.photo.length - 1].file_id;
+        
+        // Minta Path URL File ke Telegram
         const pathRes = await fetch(`https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}`);
         const pathData = await pathRes.json();
+        
         if (pathData.ok) {
           return `https://api.telegram.org/file/bot${botToken}/${pathData.result.file_path}`;
         }
       } else {
-        console.error("Telegram Error:", data.description);
-        // Jika error chat not found, berikan petunjuk jelas ke user
-        if (data.description.includes("chat not found")) {
-          alert("PERHATIAN: Buka Telegram Anda dan tekan START pada kedua Bot terlebih dahulu!");
-        } else {
-          alert("Gagal kirim foto: " + data.description);
-        }
+        console.error("Detail Error Telegram:", data);
+        alert(`Gagal Upload (${fileInputId}): ` + data.description);
+        return "";
       }
     } catch (e) {
       console.error("Upload Error:", e);
+      alert("Error Koneksi saat mengunggah foto.");
     }
-    return "Gagal Upload";
+    return "";
   }
 
   async function submitForm(e) {
