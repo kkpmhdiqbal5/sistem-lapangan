@@ -89,88 +89,109 @@
     </div>
   </div>
 
-  <script>
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHOXnA4YsBeNdPDUxXwPhsJHPJo7k7E4IqItpNOKLjfsYeQce7a9Gda8p-3p-Ys6tJkg/exec";
-    const BOT_TOKEN_RUMAH = "8782461297:AAF86N2WvKmbbhbQEnQ7rzfaHmPhxmVf5Xg";
-    const BOT_TOKEN_ALAT = "8903234783:AAEw2CyDfh_hNyVTEUxgF-h0XTiNvL01u14";
-    const TELEGRAM_CHAT_ID = "612345678"; 
+<script>
+  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHOXnA4YsBeNdPDUxXwPhsJHPJo7k7E4IqItpNOKLjfsYeQce7a9Gda8p-3p-Ys6tJkg/exec";
+  const BOT_TOKEN_RUMAH = "8782461297:AAF86N2WvKmbbhbQEnQ7rzfaHmPhxmVf5Xg";
+  const BOT_TOKEN_ALAT = "8903234783:AAEw2CyDfh_hNyVTEUxgF-h0XTiNvL01u14";
+  
+  // Chat ID dari Telegram Anda
+  const TELEGRAM_CHAT_ID = "8475745358"; 
 
-    let map;
-    window.onload = function() {
-      map = L.map('map').setView([2.883793, 99.184753], 13);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+  let map;
+  window.onload = function() {
+    map = L.map('map').setView([2.883793, 99.184753], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(pos => {
-          const lat = pos.coords.latitude, lng = pos.coords.longitude;
-          document.getElementById('koordinat').value = `${lat}, ${lng}`;
-          map.setView([lat, lng], 16);
-          L.marker([lat, lng]).addTo(map).bindPopup("Lokasi Anda").openPopup();
-        }, () => {
-          document.getElementById('koordinat').value = "2.883793, 99.184753";
-        });
-      }
-    };
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(pos => {
+        const lat = pos.coords.latitude, lng = pos.coords.longitude;
+        document.getElementById('koordinat').value = `${lat}, ${lng}`;
+        map.setView([lat, lng], 16);
+        L.marker([lat, lng]).addTo(map).bindPopup("Lokasi Anda").openPopup();
+      }, () => {
+        document.getElementById('koordinat').value = "2.883793, 99.184753";
+      });
+    }
+  };
 
-    async function uploadToTelegram(fileInputId, botToken) {
-      const file = document.getElementById(fileInputId).files[0];
-      if (!file) return "";
-      const formData = new FormData();
-      formData.append("chat_id", TELEGRAM_CHAT_ID);
-      formData.append("photo", file);
+  // Fungsi Upload Foto ke Telegram Bot
+  async function uploadToTelegram(fileInputId, botToken) {
+    const fileInput = document.getElementById(fileInputId);
+    if (!fileInput || !fileInput.files[0]) return "";
 
-      try {
-        const res = await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, { method: 'POST', body: formData });
-        const data = await res.json();
-        if (data.ok) {
-          const fileId = data.result.photo[data.result.photo.length - 1].file_id;
-          const pathRes = await fetch(`https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}`);
-          const pathData = await pathRes.json();
+    const formData = new FormData();
+    formData.append("chat_id", TELEGRAM_CHAT_ID);
+    formData.append("photo", fileInput.files[0]);
+
+    try {
+      const res = await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, { 
+        method: 'POST', 
+        body: formData 
+      });
+      const data = await res.json();
+      if (data.ok) {
+        const fileId = data.result.photo[data.result.photo.length - 1].file_id;
+        const pathRes = await fetch(`https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}`);
+        const pathData = await pathRes.json();
+        if (pathData.ok) {
           return `https://api.telegram.org/file/bot${botToken}/${pathData.result.file_path}`;
         }
-      } catch (e) { console.error("Upload Error:", e); }
-      return "Gagal Upload";
-    }
-
-    async function submitForm(e) {
-      e.preventDefault();
-      const btn = document.getElementById('btn-submit');
-      btn.innerText = "Mengirim Data...";
-      btn.disabled = true;
-
-      const urlFotoRumah = await uploadToTelegram('foto_rumah', BOT_TOKEN_RUMAH);
-      const urlFotoAlat = await uploadToTelegram('foto_alat', BOT_TOKEN_ALAT);
-
-      const payload = {
-        action: 'submit',
-        koordinat: document.getElementById('koordinat').value,
-        odp: document.getElementById('odp').value,
-        pop: document.getElementById('pop').value,
-        cid_lama: document.getElementById('cid_lama').value,
-        nama_lama: document.getElementById('nama_lama').value,
-        sn: document.getElementById('sn').value,
-        psn: document.getElementById('psn').value,
-        keterangan: document.getElementById('keterangan').value,
-        foto_rumah: urlFotoRumah,
-        foto_alat: urlFotoAlat
-      };
-
-      try {
-        await fetch(GOOGLE_SCRIPT_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        alert("Data Lapangan Berhasil Terkirim!");
-        document.getElementById('form-lapangan').reset();
-      } catch (err) {
-        alert("Gagal mengirim data.");
-      } finally {
-        btn.innerText = "Kirim Data Lapangan";
-        btn.disabled = false;
+      } else {
+        console.error("Telegram API Error:", data.description);
+        alert("Gagal kirim foto ke Telegram: " + data.description);
       }
+    } catch (e) {
+      console.error("Upload Telegram Error:", e);
     }
-  </script>
+    return "";
+  }
+
+  async function submitForm(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btn-submit');
+    btn.innerText = "Mengirim Data & Mengunggah Foto...";
+    btn.disabled = true;
+
+    // Upload Foto
+    const urlFotoRumah = await uploadToTelegram('foto_rumah', BOT_TOKEN_RUMAH);
+    const urlFotoAlat = await uploadToTelegram('foto_alat', BOT_TOKEN_ALAT);
+
+    const koordinat = document.getElementById('koordinat').value;
+    const linkMaps = `https://www.google.com/maps?q=${koordinat.replace(/\s+/g, '')}`;
+
+    const payload = {
+      action: 'submit',
+      koordinat: koordinat,
+      odp: document.getElementById('odp').value,
+      pop: document.getElementById('pop').value,
+      cid_lama: document.getElementById('cid_lama').value,
+      nama_lama: document.getElementById('nama_lama').value,
+      sn: document.getElementById('sn').value,
+      keterangan: document.getElementById('keterangan').value,
+      foto_rumah: urlFotoRumah,
+      foto_alat: urlFotoAlat,
+      link_maps: linkMaps,
+      psn: document.getElementById('psn').value
+    };
+
+    try {
+      await fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      alert("Data Lapangan Berhasil Disimpan!");
+      document.getElementById('form-lapangan').reset();
+    } catch (err) {
+      alert("Gagal menyimpan data.");
+      console.error(err);
+    } finally {
+      btn.innerText = "Kirim Data Lapangan";
+      btn.disabled = false;
+    }
+  }
+</script>
 </body>
 </html>
