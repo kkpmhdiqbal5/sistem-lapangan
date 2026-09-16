@@ -1,383 +1,199 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Admin Realtime</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #F1F5F9; }
-        .toast-msg {
-            position: fixed; bottom: -100px; left: 50%; transform: translateX(-50%);
-            background: #0f172a; color: white; padding: 10px 20px; border-radius: 99px;
-            transition: all 0.3s ease; z-index: 1000; font-size: 12px; font-weight: 600;
-        }
-        input, select, button { font-size: 12px !important; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="p-3 sm:p-6 max-w-7xl mx-auto w-full space-y-4">
+<body class="bg-gray-100 font-sans">
 
-    <!-- MODAL LOGIN -->
-    <div id="modalLogin" class="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-xs w-full p-5 space-y-4 shadow-xl">
-            <div class="text-center">
-                <h3 class="text-base font-bold text-gray-900">Akses Dashboard Admin</h3>
-                <p class="text-[10px] text-gray-400">Masukkan kata sandi untuk melanjutkan</p>
-            </div>
-            <input type="password" id="adminPassword" placeholder="Kata Sandi Admin" class="w-full px-3 py-2 bg-gray-50 border rounded-xl text-xs font-bold outline-none">
-            <button onclick="submitAdminLogin()" class="w-full bg-indigo-600 text-white py-2 rounded-xl text-xs font-bold hover:bg-indigo-700">Masuk</button>
-        </div>
+  <!-- MODAL LOGIN ADMIN -->
+  <div id="login-modal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+    <div class="bg-white p-6 rounded-xl shadow-xl w-full max-w-sm space-y-4">
+      <h2 class="text-xl font-bold text-center text-gray-800">Login Admin</h2>
+      <p class="text-xs text-gray-500 text-center">Akses terbatas hanya untuk admin terverifikasi</p>
+      
+      <div>
+        <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Username</label>
+        <input type="text" id="username" placeholder="Masukkan username" class="w-full border p-2.5 rounded-md text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Password</label>
+        <input type="password" id="password" placeholder="Masukkan password" class="w-full border p-2.5 rounded-md text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+      </div>
+      <p id="login-error" class="text-red-500 text-xs hidden">Username atau password salah!</p>
+
+      <div class="flex gap-2">
+        <a href="index.html" class="w-1/2 bg-gray-200 text-gray-700 text-center py-2.5 rounded-md text-sm font-semibold">Kembali</a>
+        <button onclick="checkLogin()" class="w-1/2 bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-md text-sm font-semibold">Masuk</button>
+      </div>
     </div>
+  </div>
 
-    <!-- MAIN ADMIN CONTENT -->
-    <div id="adminContent" class="hidden space-y-4">
-        
-        <!-- HEADER ADMIN -->
-        <div class="flex justify-between items-center bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
-            <div class="flex items-center gap-3">
-                <a href="index.html" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1">
-                    <i class="fas fa-arrow-left"></i> Input Form
-                </a>
-                <h2 class="text-base font-extrabold text-gray-800"><i class="fas fa-chart-line text-indigo-600 mr-1"></i> Dashboard Admin</h2>
-            </div>
-            <div class="flex items-center gap-2">
-                <button onclick="toggleSearchPanel()" class="bg-indigo-50 text-indigo-600 border border-indigo-200 font-bold px-3 py-1.5 rounded-xl text-xs flex items-center gap-1.5">
-                    <i class="fas fa-search"></i> <span class="hidden sm:inline">Modul Pencarian</span>
-                </button>
-                <button onclick="logoutAdmin()" class="bg-red-50 text-red-600 border border-red-200 font-bold px-3 py-1.5 rounded-xl text-xs">
-                    <i class="fas fa-sign-out-alt"></i> Keluar
-                </button>
-            </div>
+  <!-- DASHBOARD CONTENT -->
+  <div id="admin-content" class="hidden">
+    <!-- NAVBAR -->
+    <nav class="bg-white shadow-sm border-b px-6 py-3 flex justify-between items-center">
+      <div class="font-bold text-gray-800 text-lg">Dashboard Admin</div>
+      <div class="flex items-center space-x-3">
+        <a href="index.html" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2">
+          <i class="fa-solid fa-pen-to-square"></i> Sistem Lapangan
+        </a>
+        <button onclick="logout()" class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-md text-sm font-medium">
+          <i class="fa-solid fa-right-from-bracket"></i> Logout
+        </button>
+      </div>
+    </nav>
+
+    <div class="max-w-6xl mx-auto my-6 px-4 space-y-6">
+
+      <!-- STATISTIK PERANGKAT -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Belum Diambil -->
+        <div class="bg-white p-5 rounded-xl border shadow-sm border-l-4 border-l-amber-500 flex justify-between items-center">
+          <div>
+            <p class="text-xs text-gray-500 uppercase font-bold">Perangkat Belum Diambil</p>
+            <h3 id="stat-belum" class="text-3xl font-extrabold text-gray-800 mt-1">0</h3>
+            <p class="text-xs text-gray-400 mt-1">Sumber: Sheet "Full Data"</p>
+          </div>
+          <div class="bg-amber-100 text-amber-600 p-4 rounded-full">
+            <i class="fa-solid fa-boxes-packing text-2xl"></i>
+          </div>
         </div>
 
-        <!-- STATISTIK RINGKAS -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div class="bg-white p-3.5 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">
-                <div>
-                    <p class="text-[10px] font-bold text-gray-400 uppercase">Total Input</p>
-                    <h3 id="statTotal" class="text-lg font-extrabold text-slate-800">0</h3>
-                </div>
-                <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xs">
-                    <i class="fas fa-database"></i>
-                </div>
-            </div>
-            <div class="bg-white p-3.5 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">
-                <div>
-                    <p class="text-[10px] font-bold text-gray-400 uppercase">Total ODP</p>
-                    <h3 id="statOdp" class="text-lg font-extrabold text-teal-600">0</h3>
-                </div>
-                <div class="w-8 h-8 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center text-xs">
-                    <i class="fas fa-network-wired"></i>
-                </div>
-            </div>
-            <div class="bg-white p-3.5 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">
-                <div>
-                    <p class="text-[10px] font-bold text-gray-400 uppercase">Total POP</p>
-                    <h3 id="statPop" class="text-lg font-extrabold text-amber-600">0</h3>
-                </div>
-                <div class="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xs">
-                    <i class="fas fa-server"></i>
-                </div>
-            </div>
-            <div class="bg-white p-3.5 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">
-                <div>
-                    <p class="text-[10px] font-bold text-gray-400 uppercase">Total Foto</p>
-                    <h3 id="statFoto" class="text-lg font-extrabold text-blue-600">0</h3>
-                </div>
-                <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xs">
-                    <i class="fas fa-images"></i>
-                </div>
-            </div>
+        <!-- Sudah Diambil -->
+        <div class="bg-white p-5 rounded-xl border shadow-sm border-l-4 border-l-emerald-500 flex justify-between items-center">
+          <div>
+            <p class="text-xs text-gray-500 uppercase font-bold">Perangkat Sudah Diambil</p>
+            <h3 id="stat-sudah" class="text-3xl font-extrabold text-gray-800 mt-1">0</h3>
+            <p class="text-xs text-gray-400 mt-1">Sumber: Sheet "sudah diambil"</p>
+          </div>
+          <div class="bg-emerald-100 text-emerald-600 p-4 rounded-full">
+            <i class="fa-solid fa-circle-check text-2xl"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- SISTEM CARI & TABEL PERANGKAT (BARIS 1) -->
+      <div class="bg-white p-6 rounded-xl shadow-sm border space-y-4">
+        <div class="flex flex-col md:flex-row justify-between items-md-center gap-4 border-b pb-4">
+          <h2 class="text-lg font-bold text-gray-800">Info Perangkat Lapangan (Baris 1)</h2>
+          
+          <!-- SEARCH SYSTEM -->
+          <div class="relative w-full md:w-80">
+            <input type="text" id="search-input" onkeyup="filterTable()" placeholder="Cari CID, Nama, ODP, SN, P-SN..." class="w-full border p-2 pl-8 rounded-md text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+            <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-3 text-gray-400 text-xs"></i>
+          </div>
         </div>
 
-        <!-- PANEL PENCARIAN & FILTER -->
-        <div id="searchPanel" class="bg-white p-4 rounded-2xl border border-indigo-100 shadow-sm space-y-3">
-            <div class="flex justify-between items-center border-b pb-2">
-                <h3 class="text-xs font-bold text-gray-700"><i class="fas fa-filter mr-1 text-indigo-500"></i> Sistem Pencarian Data</h3>
-                <button onclick="resetSearch()" class="text-[10px] text-gray-400 hover:text-indigo-600 font-bold">Reset Filter</button>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                <div>
-                    <label class="text-[9px] font-bold text-gray-500 uppercase">Kata Kunci Utama</label>
-                    <input type="text" id="adminSearchInput" onkeyup="filterAdminData()" placeholder="Cari ODP, POP, CID, Nama, SN, P-SN..." class="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5 text-xs outline-none focus:border-indigo-500">
-                </div>
-                <div>
-                    <label class="text-[9px] font-bold text-gray-500 uppercase">Filter ODP</label>
-                    <select id="filterOdp" onchange="filterAdminData()" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-1.5 text-xs font-semibold outline-none">
-                        <option value="ALL">-- Semua ODP --</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="text-[9px] font-bold text-gray-500 uppercase">Filter POP</label>
-                    <select id="filterPop" onchange="filterAdminData()" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-2.5 py-1.5 text-xs font-semibold outline-none">
-                        <option value="ALL">-- Semua POP --</option>
-                    </select>
-                </div>
-            </div>
-        </div>
+        <button onclick="loadAdminData()" class="bg-indigo-600 text-white text-xs px-3 py-2 rounded font-medium">
+          <i class="fa-solid fa-rotate-right"></i> Refresh Data
+        </button>
 
-        <!-- TABEL DATA -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="p-3 bg-gray-50 border-b flex flex-col sm:flex-row justify-between items-center gap-2">
-                <span id="searchResultCount" class="text-[10px] font-bold text-gray-500">Memuat data...</span>
-                <div class="flex items-center gap-2">
-                    <button onclick="sendGroupToWA()" class="bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs px-3 py-1.5 rounded-xl shadow-sm flex items-center gap-1">
-                        <i class="fab fa-whatsapp"></i> Kirim WA Gabungan (<span id="selectedCount">0</span>)
-                    </button>
-                    <button onclick="loadAdminData()" class="text-indigo-600 text-xs font-bold bg-white px-3 py-1.5 rounded-xl border border-gray-200 hover:bg-gray-100">
-                        <i class="fas fa-sync-alt"></i> Refresh
-                    </button>
-                </div>
-            </div>
-
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs">
-                    <thead class="bg-slate-900 text-white uppercase text-[9px]">
-                        <tr>
-                            <th class="py-2.5 px-3 text-center"><input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)"></th>
-                            <th class="py-2.5 px-3">Waktu</th>
-                            <th class="py-2.5 px-3">ODP / POP</th>
-                            <th class="py-2.5 px-3">CID / Nama</th>
-                            <th class="py-2.5 px-3">SN Unit</th>
-                            <th class="py-2.5 px-3">P-SN</th>
-                            <th class="py-2.5 px-3 text-center">Gambar & Maps</th>
-                            <th class="py-2.5 px-3 text-center">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBodyAdmin">
-                        <tr><td colspan="8" class="py-4 text-center text-gray-400">Memuat data...</td></tr>
-                    </tbody>
-                </table>
-            </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-gray-600 border-collapse">
+            <thead class="bg-gray-100 uppercase text-gray-700">
+              <tr>
+                <th class="p-2 border">Waktu</th>
+                <th class="p-2 border">Koordinat</th>
+                <th class="p-2 border">ODP / POP</th>
+                <th class="p-2 border">CID / Nama</th>
+                <th class="p-2 border">SN / P-SN</th>
+                <th class="p-2 border">Foto Rumah</th>
+                <th class="p-2 border">Foto Alat</th>
+                <th class="p-2 border">Ket</th>
+              </tr>
+            </thead>
+            <tbody id="table-body">
+              <tr>
+                <td colspan="8" class="text-center p-4">Memuat Data...</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
+      </div>
+
     </div>
+  </div>
 
-    <div id="toast" class="toast-msg">Notifikasi</div>
+  <script>
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHOXnA4YsBeNdPDUxXwPhsJHPJo7k7E4IqItpNOKLjfsYeQce7a9Gda8p-3p-Ys6tJkg/exec";
 
-<script>
-    // MASUKKAN URL GOOGLE APPS SCRIPT YANG SAMA DENGAN INDEX.HTML
-    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyHOXnA4YsBeNdPDUxXwPlsJHPJo7k7E4IqItpNOKLjfsYeQce7a9Gda8p-3p-Ys6tJkg/exec"; // GANTI INI
-
-    let globalAdminData = [], filteredAdminData = [];
-
-    window.addEventListener('load', () => {
-        if(sessionStorage.getItem('admin_session') === 'true') {
-            showAdminDashboard();
-        }
-    });
-
-    function submitAdminLogin() {
-        const pass = document.getElementById('adminPassword').value;
-        fetch(GAS_WEB_APP_URL, {
-            method: 'POST',
-            body: JSON.stringify({ action: "loginAdmin", password: pass })
-        }).then(res => res.json()).then(res => {
-            if(res.success) {
-                sessionStorage.setItem('admin_session', 'true');
-                showAdminDashboard();
-            } else showToast("Password Salah!");
-        }).catch(err => showToast("Gagal Login: " + err.message));
-    }
-
-    function showAdminDashboard() {
-        document.getElementById('modalLogin').classList.add('hidden');
-        document.getElementById('adminContent').classList.remove('hidden');
+    function checkLogin() {
+      const user = document.getElementById('username').value;
+      const pass = document.getElementById('password').value;
+      if (user === "admin" && pass === "admin123") {
+        sessionStorage.setItem("adminLoggedIn", "true");
+        document.getElementById('login-modal').classList.add('hidden');
+        document.getElementById('admin-content').classList.remove('hidden');
         loadAdminData();
+      } else {
+        document.getElementById('login-error').classList.remove('hidden');
+      }
     }
 
-    function logoutAdmin() {
-        sessionStorage.removeItem('admin_session');
-        location.reload();
+    function logout() {
+      sessionStorage.removeItem("adminLoggedIn");
+      window.location.reload();
     }
 
-    function toggleSearchPanel() {
-        document.getElementById('searchPanel').classList.toggle('hidden');
+    window.onload = function() {
+      if (sessionStorage.getItem("adminLoggedIn") === "true") {
+        document.getElementById('login-modal').classList.add('hidden');
+        document.getElementById('admin-content').classList.remove('hidden');
+        loadAdminData();
+      }
     }
 
-    function loadAdminData() {
-        document.getElementById('searchResultCount').innerText = "Memuat data...";
-        fetch(GAS_WEB_APP_URL, {
-            method: 'POST',
-            body: JSON.stringify({ action: "getRekap" })
-        }).then(res => res.json()).then(res => {
-            globalAdminData = res.data || [];
-            updateStatistics(globalAdminData);
-            populateDropdownFilters(globalAdminData);
-            filterAdminData();
-        });
-    }
+    async function loadAdminData() {
+      const tbody = document.getElementById('table-body');
+      tbody.innerHTML = '<tr><td colspan="8" class="text-center p-4">Memuat data dari server...</td></tr>';
 
-    function updateStatistics(data) {
-        document.getElementById('statTotal').innerText = data.length;
+      try {
+        const res = await fetch(GOOGLE_SCRIPT_URL + "?action=getDashboard");
+        const json = await res.json();
 
-        const uniqueOdp = new Set(data.map(i => i.odp).filter(x => x && x !== '-'));
-        const uniquePop = new Set(data.map(i => i.pop).filter(x => x && x !== '-'));
-        
-        let totalFoto = 0;
-        data.forEach(i => {
-            if (i.urlFotoRumah) totalFoto++;
-            if (i.urlFotoAlat) totalFoto++;
-        });
+        // Update Statistik
+        document.getElementById('stat-belum').innerText = json.countBelum || 0;
+        document.getElementById('stat-sudah').innerText = json.countSudah || 0;
 
-        document.getElementById('statOdp').innerText = uniqueOdp.size;
-        document.getElementById('statPop').innerText = uniquePop.size;
-        document.getElementById('statFoto').innerText = totalFoto;
-    }
-
-    function populateDropdownFilters(data) {
-        const selOdp = document.getElementById('filterOdp');
-        const selPop = document.getElementById('filterPop');
-
-        const uniqueOdp = [...new Set(data.map(i => i.odp).filter(x => x && x !== '-'))].sort();
-        const uniquePop = [...new Set(data.map(i => i.pop).filter(x => x && x !== '-'))].sort();
-
-        selOdp.innerHTML = '<option value="ALL">-- Semua ODP --</option>' + uniqueOdp.map(o => `<option value="${o}">${o}</option>`).join('');
-        selPop.innerHTML = '<option value="ALL">-- Semua POP --</option>' + uniquePop.map(p => `<option value="${p}">${p}</option>`).join('');
-    }
-
-    function filterAdminData() {
-        const query = document.getElementById('adminSearchInput').value.toLowerCase().trim();
-        const selectedOdp = document.getElementById('filterOdp').value;
-        const selectedPop = document.getElementById('filterPop').value;
-
-        filteredAdminData = globalAdminData.filter(item => {
-            const matchQuery = !query || 
-                (item.cidLama || "").toLowerCase().includes(query) || 
-                (item.namaLama || "").toLowerCase().includes(query) || 
-                (item.odp || "").toLowerCase().includes(query) || 
-                (item.pop || "").toLowerCase().includes(query) || 
-                (item.snUnit || "").toLowerCase().includes(query) ||
-                (item.pSn || "").toLowerCase().includes(query);
-
-            const matchOdp = selectedOdp === "ALL" || item.odp === selectedOdp;
-            const matchPop = selectedPop === "ALL" || item.pop === selectedPop;
-
-            return matchQuery && matchOdp && matchPop;
-        });
-
-        renderAdminTable(filteredAdminData);
-    }
-
-    function resetSearch() {
-        document.getElementById('adminSearchInput').value = '';
-        document.getElementById('filterOdp').value = 'ALL';
-        document.getElementById('filterPop').value = 'ALL';
-        filterAdminData();
-    }
-
-    function renderAdminTable(data) {
-        const tbody = document.getElementById('tableBodyAdmin');
-        document.getElementById('searchResultCount').innerText = `Total Hasil: ${data.length} Data`;
-        updateSelectedCount();
-
-        if(!data || data.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="8" class="py-4 text-center text-gray-400">Data tidak ditemukan.</td></tr>';
-            return;
+        // Render Tabel Baris 1
+        tbody.innerHTML = '';
+        if(json.baris1Data && json.baris1Data.length > 1) {
+          json.baris1Data.slice(1).reverse().forEach(row => {
+            tbody.innerHTML += `
+              <tr class="border-b hover:bg-gray-50 search-row">
+                <td class="p-2 border">${row[0] || '-'}</td>
+                <td class="p-2 border">${row[1] || '-'}</td>
+                <td class="p-2 border">${row[2]} / ${row[3]}</td>
+                <td class="p-2 border">${row[4]} / ${row[5]}</td>
+                <td class="p-2 border"><b>SN:</b> ${row[6]}<br><b>P-SN:</b> ${row[7]}</td>
+                <td class="p-2 border">${row[8] ? `<a href="${row[8]}" target="_blank" class="text-blue-600 underline">Rumah</a>` : '-'}</td>
+                <td class="p-2 border">${row[9] ? `<a href="${row[9]}" target="_blank" class="text-blue-600 underline">Alat</a>` : '-'}</td>
+                <td class="p-2 border">${row[10] || '-'}</td>
+              </tr>
+            `;
+          });
+        } else {
+          tbody.innerHTML = '<tr><td colspan="8" class="text-center p-4">Data Baris 1 kosong.</td></tr>';
         }
 
-        tbody.innerHTML = data.map((item, index) => {
-            const btnRumah = item.urlFotoRumah ? 
-                `<a href="${item.urlFotoRumah}" target="_blank" class="bg-indigo-50 text-indigo-600 border font-bold px-1.5 py-0.5 rounded text-[9px] inline-block my-0.5">
-                    <i class="fas fa-image"></i> Rumah
-                </a>` : '-';
-
-            const btnAlat = item.urlFotoAlat ? 
-                `<a href="${item.urlFotoAlat}" target="_blank" class="bg-indigo-50 text-indigo-600 border font-bold px-1.5 py-0.5 rounded text-[9px] inline-block my-0.5">
-                    <i class="fas fa-image"></i> Alat
-                </a>` : '-';
-
-            const btnMaps = item.linkMaps ? 
-                `<a href="${item.linkMaps}" target="_blank" class="bg-emerald-50 text-emerald-600 border font-bold px-1.5 py-0.5 rounded text-[9px] inline-block my-0.5">
-                    <i class="fas fa-map-marker-alt"></i> Maps
-                </a>` : '-';
-
-            return `
-                <tr class="border-b hover:bg-gray-50">
-                    <td class="py-2 px-3 text-center"><input type="checkbox" class="row-checkbox cursor-pointer" value="${index}" onchange="updateSelectedCount()"></td>
-                    <td class="py-2 px-3 whitespace-nowrap">${item.waktu || '-'}</td>
-                    <td class="py-2 px-3">
-                        <span class="font-bold text-indigo-600 block">${item.odp || '-'}</span>
-                        <span class="text-gray-500 text-[10px]">${item.pop || '-'}</span>
-                    </td>
-                    <td class="py-2 px-3">
-                        <span class="font-bold block">${item.namaLama || '-'}</span>
-                        <span class="text-gray-400 text-[10px]">${item.cidLama || '-'}</span>
-                    </td>
-                    <td class="py-2 px-3 font-mono font-bold text-slate-700">${item.snUnit || '-'}</td>
-                    <td class="py-2 px-3 font-mono text-slate-600">${item.pSn || '-'}</td>
-                    <td class="py-2 px-3 text-center whitespace-nowrap">${btnRumah} ${btnAlat} <br/> ${btnMaps}</td>
-                    <td class="py-2 px-3 text-center">
-                        <button onclick="sendSingleWA(${index})" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-[10px] px-2.5 py-1 rounded-lg">
-                            <i class="fab fa-whatsapp"></i> WA
-                        </button>
-                    </td>
-                </tr>
-            `;
-        }).join('');
+      } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center p-4 text-red-500">Gagal memuat data Admin.</td></tr>';
+      }
     }
 
-    function toggleSelectAll(master) {
-        document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = master.checked);
-        updateSelectedCount();
+    // Fitur Pencarian Admin
+    function filterTable() {
+      const query = document.getElementById('search-input').value.toLowerCase();
+      const rows = document.querySelectorAll('.search-row');
+      rows.forEach(row => {
+        const text = row.innerText.toLowerCase();
+        row.style.display = text.includes(query) ? '' : 'none';
+      });
     }
-
-    function updateSelectedCount() {
-        const selected = document.querySelectorAll('.row-checkbox:checked').length;
-        document.getElementById('selectedCount').innerText = selected;
-    }
-
-    function sendSingleWA(index) {
-        const item = filteredAdminData[index];
-        if(!item) return;
-
-        let text = `*📌 LAPORAN DATA LAPANGAN*\n`;
-        text += `------------------------------------\n`;
-        text += `*ODP:* ${item.odp || '-'}\n`;
-        text += `*POP:* ${item.pop || '-'}\n`;
-        text += `*CID:* ${item.cidLama || '-'}\n`;
-        text += `*Nama:* ${item.namaLama || '-'}\n`;
-        text += `*SN Unit:* ${item.snUnit || '-'}\n`;
-        text += `*P-SN:* ${item.pSn || '-'}\n`;
-        if(item.linkMaps) text += `📍 *Maps:* ${item.linkMaps}\n`;
-        if(item.urlFotoRumah) text += `🖼️ *Foto Rumah:* ${item.urlFotoRumah}\n`;
-        if(item.urlFotoAlat) text += `🖼️ *Foto Alat:* ${item.urlFotoAlat}\n`;
-
-        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text.trim())}`, '_blank');
-    }
-
-    function sendGroupToWA() {
-        const selectedBoxes = document.querySelectorAll('.row-checkbox:checked');
-        if(selectedBoxes.length === 0) return showToast("Pilih minimal 1 data!");
-
-        let groupText = `*📋 REKAP GABUNGAN (${selectedBoxes.length} DATA LAPANGAN)*\n\n`;
-
-        selectedBoxes.forEach((box, idx) => {
-            const item = filteredAdminData[parseInt(box.value)];
-            if(item) {
-                groupText += `*${idx + 1}. ${item.namaLama || 'Tanpa Nama'}*\n`;
-                groupText += `• ODP: ${item.odp || '-'}\n`;
-                groupText += `• CID: ${item.cidLama || '-'}\n`;
-                groupText += `• SN: ${item.snUnit || '-'}\n`;
-                groupText += `• P-SN: ${item.pSn || '-'}\n`;
-                if(item.linkMaps) groupText += `📍 Maps: ${item.linkMaps}\n`;
-                if(item.urlFotoRumah) groupText += `🖼️ Foto Rumah: ${item.urlFotoRumah}\n`;
-                if(item.urlFotoAlat) groupText += `🖼️ Foto Alat: ${item.urlFotoAlat}\n`;
-                groupText += `------------------------------------\n`;
-            }
-        });
-
-        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(groupText.trim())}`, '_blank');
-    }
-
-    function showToast(msg) {
-        const t = document.getElementById('toast');
-        t.innerText = msg;
-        t.style.bottom = '20px';
-        setTimeout(() => t.style.bottom = '-100px', 3000);
-    }
-</script>
+  </script>
 </body>
 </html>
