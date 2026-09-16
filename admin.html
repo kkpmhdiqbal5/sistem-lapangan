@@ -73,32 +73,34 @@
   </div>
 
   <script>
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHOXnA4YsBeNdPDUxXwPlsJHPJo7k7E4IqItpNOKLjfsYeQce7a9Gda8p-3p-Ys6tJkg/exec";
+  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHOXnA4YsBeNdPDUxXwPhsJHPJo7k7E4IqItpNOKLjfsYeQce7a9Gda8p-3p-Ys6tJkg/exec";
 
-    // Cek Sesi Login Admin
-    if (localStorage.getItem("admin_logged_in") !== "true") {
-      window.location.href = "login.html";
+  // Cek Sesi Login Admin
+  if (localStorage.getItem("admin_logged_in") !== "true") {
+    window.location.href = "login.html";
+  }
+
+  async function loadDashboardStats() {
+    try {
+      const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getDashboard`);
+      const data = await res.json();
+      
+      document.getElementById('count-belum').innerText = data.countBelum ?? 0;
+      document.getElementById('count-sudah').innerText = data.countSudah ?? 0;
+      
+      // Menangkap variabel jumlah data info perangkat
+      document.getElementById('count-info').innerText = data.countInfoPerangkat ?? data.countInfo ?? 0;
+    } catch (err) {
+      console.error(err);
     }
+  }
 
-    async function loadDashboardStats() {
-      try {
-        const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getDashboard`);
-        const data = await res.json();
-        
-        document.getElementById('count-belum').innerText = data.countBelum;
-        document.getElementById('count-sudah').innerText = data.countSudah;
-        document.getElementById('count-info').innerText = data.countInfoPerangkat;
-      } catch (err) {
-        console.error(err);
-      }
-    }
+  function logout() {
+    localStorage.removeItem("admin_logged_in");
+    window.location.href = "login.html";
+  }
 
-    function logout() {
-      localStorage.removeItem("admin_logged_in");
-      window.location.href = "login.html";
-    }
-
-    window.onload = loadDashboardStats;
-  </script>
+  window.onload = loadDashboardStats;
+</script>
 </body>
 </html>
