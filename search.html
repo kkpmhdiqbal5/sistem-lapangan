@@ -39,7 +39,7 @@
           <select id="filter-sheet" onchange="filterData()" class="w-full border p-2.5 rounded bg-white outline-none focus:ring-1 focus:ring-indigo-500 font-medium">
             <option value="semua">Semua Sumber Sheet Gabungan</option>
             <option value="PERANGKAT_BELOM_DI_AMBIL">PERANGKAT BELOM DI AMBIL (Full Data & Target)</option>
-            <option value="sudah diambil">sudah diambil</option>
+            <option value="SUDAH_DI_AMBIL">SUDAH DI AMBIL</option>
             <option value="INFO_PERANGKAT">INFO PERANGKAT (Baris 1)</option>
           </select>
         </div>
@@ -85,7 +85,6 @@
         <thead>
           <tr class="bg-slate-900 text-white uppercase text-[11px]">
             <th class="p-3 text-center w-10"><input type="checkbox" id="select-all" onclick="toggleSelectAll(this)"></th>
-            <th class="p-3">Sumber Sheet</th>
             <th class="p-3">Waktu</th>
             <th class="p-3">ODP</th>
             <th class="p-3">POP</th>
@@ -100,7 +99,7 @@
         </thead>
         <tbody id="table-body" class="divide-y divide-gray-100 text-gray-700">
           <tr>
-            <td colspan="12" class="p-8 text-center text-gray-400">Memuat data dari server...</td>
+            <td colspan="11" class="p-8 text-center text-gray-400">Memuat data dari server...</td>
           </tr>
         </tbody>
       </table>
@@ -126,14 +125,14 @@
 
     async function loadAllData() {
       const tbody = document.getElementById('table-body');
-      tbody.innerHTML = `<tr><td colspan="12" class="p-8 text-center text-gray-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Mengambil data...</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="11" class="p-8 text-center text-gray-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Mengambil data...</td></tr>`;
       
       try {
         const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getAllData`);
         masterData = await res.json();
         filterData();
       } catch (err) {
-        tbody.innerHTML = `<tr><td colspan="12" class="p-8 text-center text-rose-500">Gagal memuat data dari spreadsheet.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="11" class="p-8 text-center text-rose-500">Gagal memuat data dari spreadsheet.</td></tr>`;
       }
     }
 
@@ -146,11 +145,11 @@
       if (selectedCategory === "semua") {
         targetSheets = Object.keys(masterData);
       } else if (selectedCategory === "PERANGKAT_BELOM_DI_AMBIL") {
-        // Menggabungkan sheet Full Data dan target
         if (masterData["Full Data"]) targetSheets.push("Full Data");
         if (masterData["target"]) targetSheets.push("target");
+      } else if (selectedCategory === "SUDAH_DI_AMBIL") {
+        if (masterData["sudah diambil"]) targetSheets.push("sudah diambil");
       } else if (selectedCategory === "INFO_PERANGKAT") {
-        // Memetakan ke nama sheet asli "Baris 1"
         if (masterData["Baris 1"]) targetSheets.push("Baris 1");
       } else {
         targetSheets = [selectedCategory];
@@ -168,7 +167,16 @@
           let idxCID = headers.findIndex(h => h === "CID" || h.includes("CID LAMA"));
           let idxODP = headers.findIndex(h => h === "ODP");
           let idxPOP = headers.findIndex(h => h === "POP");
-          let idxSherlok = headers.findIndex(h => h.includes("SHERLOK") || h.includes("KOORDINAT"));
+          
+          // Khusus Baris 1, ambil sherlok dari kolom "LINK MAPS" atau "LINK MAP"
+          let idxSherlok = -1;
+          if (sheetName === "Baris 1") {
+            idxSherlok = headers.findIndex(h => h.includes("LINK MAP") || h.includes("MAPS"));
+          }
+          if (idxSherlok === -1) {
+            idxSherlok = headers.findIndex(h => h.includes("SHERLOK") || h.includes("KOORDINAT") || h.includes("LINK MAP"));
+          }
+
           let idxSN = headers.findIndex(h => h.includes("SN"));
           let idxPSN = headers.findIndex(h => h.includes("P-SN"));
           let idxFotoRumah = headers.findIndex(h => h.includes("FOTO RUMAH"));
@@ -183,6 +191,7 @@
             let cid = (idxCID !== -1 && r[idxCID]) ? String(r[idxCID]) : (r[2] ? String(r[2]) : '-');
             let odp = (idxODP !== -1 && r[idxODP]) ? String(r[idxODP]) : '-';
             let pop = (idxPOP !== -1 && r[idxPOP]) ? String(r[idxPOP]) : '-';
+            
             let sherlok = (idxSherlok !== -1 && r[idxSherlok]) ? String(r[idxSherlok]) : '-';
             let snUnit = (idxSN !== -1 && r[idxSN]) ? String(r[idxSN]) : '-';
             let psn = (idxPSN !== -1 && r[idxPSN]) ? String(r[idxPSN]) : '-';
@@ -210,7 +219,6 @@
 
             if (matchCriteria) {
               matchedRows.push({
-                sheetAsli: sheetName,
                 waktu: waktu !== "Invalid Date" ? waktu : '-',
                 odp: odp,
                 pop: pop,
@@ -231,12 +239,16 @@
       const tbody = document.getElementById('table-body');
 
       if (matchedRows.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="12" class="p-8 text-center text-gray-400">Data tidak ditemukan pada kategori ini.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="11" class="p-8 text-center text-gray-400">Data tidak ditemukan pada kategori ini.</td></tr>`;
         return;
       }
 
       let html = "";
       matchedRows.forEach((item) => {
+        let renderSherlok = item.sherlok && item.sherlok.startsWith('http') ? 
+          `<a href="${item.sherlok}" target="_blank" class="text-blue-600 underline font-mono text-[11px]">Buka Map</a>` : 
+          `<span class="text-blue-600 font-mono text-[11px]">${item.sherlok}</span>`;
+
         let renderFotoRumah = item.fotoRumah && item.fotoRumah.startsWith('http') ? 
           `<img src="${item.fotoRumah}" class="w-10 h-10 object-cover rounded cursor-pointer mx-auto border shadow-sm hover:scale-110 transition" onclick="openModal('${item.fotoRumah}')">` : 
           `<span class="text-gray-400 text-[10px]">Tidak ada</span>`;
@@ -248,12 +260,11 @@
         html += `
           <tr class="hover:bg-gray-50 transition">
             <td class="p-3 text-center"><input type="checkbox" class="row-checkbox" onchange="updateCheckedCount()"></td>
-            <td class="p-3 font-semibold text-indigo-600 bg-indigo-50/50 rounded">${item.sheetAsli}</td>
             <td class="p-3 text-gray-500">${item.waktu}</td>
             <td class="p-3 font-medium">${item.odp}</td>
             <td class="p-3">${item.pop}</td>
             <td class="p-3"><b>${item.cid}</b> / ${item.nama}</td>
-            <td class="p-3 text-blue-600 font-mono text-[11px]">${item.sherlok}</td>
+            <td class="p-3">${renderSherlok}</td>
             <td class="p-3 font-mono">${item.snUnit}</td>
             <td class="p-3 font-mono">${item.psn}</td>
             <td class="p-3 text-center">${renderFotoRumah}</td>
