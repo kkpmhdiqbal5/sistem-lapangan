@@ -8,17 +8,16 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Pustaka Pemindai Barcode / QR Code -->
+  <!-- Pustaka Barcode/QR Code Scanner Direct Web -->
   <script src="https://unpkg.com/html5-qrcode"></script>
 
   <style>
-    #map { height: 200px; width: 100%; border-radius: 8px; }
+    #map { height: 180px; width: 100%; border-radius: 8px; }
     .camera-preview { width: 100%; max-height: 250px; object-fit: cover; border-radius: 8px; background: #000; }
   </style>
 </head>
 <body class="bg-gray-100 font-sans">
 
-  <!-- NAVBAR -->
   <nav class="bg-white shadow-sm border-b px-6 py-3 flex justify-between items-center">
     <div class="font-bold text-gray-800 text-lg flex items-center gap-2">
       <i class="fa-solid fa-satellite-dish text-sky-600"></i> Sistem Lapangan
@@ -36,7 +35,6 @@
     <div class="bg-white p-6 rounded-b-xl shadow-md border border-t-0 space-y-4">
       <div id="map"></div>
 
-      <!-- IFRAME TERSEMBUNYI UNTUK MENEMBUS CORS -->
       <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(submitted) { onSuccessSubmit(); }"></iframe>
 
       <form id="form-lapangan" action="https://script.google.com/macros/s/AKfycbyHOXnA4YsBeNdPDUxXwPhsJHPJo7k7E4IqItpNOKLjfsYeQce7a9Gda8p-3p-Ys6tJkg/exec" method="POST" target="hidden_iframe" onsubmit="onFormSubmit(event)" class="space-y-4">
@@ -51,9 +49,14 @@
           <input type="text" id="odp" name="odp" required placeholder="Pilih ODP atau ketik baru" class="w-full border border-gray-300 p-2.5 rounded-md text-sm outline-none focus:ring-2 focus:ring-indigo-500">
         </div>
 
+        <!-- DROPDOWN OPTION POP -->
         <div>
           <label class="block text-xs font-bold text-gray-600 uppercase mb-1">POP *</label>
-          <input type="text" id="pop" name="pop" required placeholder="Masukkan data nama POP" class="w-full border border-gray-300 p-2.5 rounded-md text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+          <select id="pop" name="pop" required class="w-full border border-gray-300 p-2.5 rounded-md text-sm outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+            <option value="" disabled selected>-- Pilih POP --</option>
+            <option value="PERBAUNGAN">PERBAUNGAN</option>
+            <option value="PANTAI CERMIN">PANTAI CERMIN</option>
+          </select>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -67,7 +70,7 @@
           </div>
         </div>
 
-        <!-- AMBIL FOTO RUMAH (LIVE KAMERA / GALERI) -->
+        <!-- FOTO RUMAH -->
         <div class="border p-4 rounded-lg bg-gray-50 space-y-3">
           <label class="block text-xs font-bold text-gray-700 uppercase flex justify-between items-center">
             <span>FOTO RUMAH *</span>
@@ -79,7 +82,7 @@
           
           <div class="flex flex-wrap gap-2">
             <button type="button" onclick="startCamera('rumah')" class="bg-indigo-600 text-white px-3 py-1.5 rounded text-xs font-medium hover:bg-indigo-700">
-              <i class="fa-solid fa-camera"></i> Buka Kamera
+              <i class="fa-solid fa-camera"></i> Buka Kamera Web
             </button>
             <button type="button" id="btn-snap-rumah" onclick="takeSnapshot('rumah')" class="bg-emerald-600 text-white px-3 py-1.5 rounded text-xs font-medium hover:bg-emerald-700 hidden">
               <i class="fa-solid fa-circle-dot"></i> Ambil Foto
@@ -92,7 +95,7 @@
           <input type="hidden" name="foto_rumah_url" id="foto_rumah_url">
         </div>
 
-        <!-- AMBIL FOTO ALAT (LIVE KAMERA / GALERI) -->
+        <!-- FOTO ALAT -->
         <div class="border p-4 rounded-lg bg-gray-50 space-y-3">
           <label class="block text-xs font-bold text-gray-700 uppercase flex justify-between items-center">
             <span>FOTO ALAT *</span>
@@ -104,7 +107,7 @@
           
           <div class="flex flex-wrap gap-2">
             <button type="button" onclick="startCamera('alat')" class="bg-indigo-600 text-white px-3 py-1.5 rounded text-xs font-medium hover:bg-indigo-700">
-              <i class="fa-solid fa-camera"></i> Buka Kamera
+              <i class="fa-solid fa-camera"></i> Buka Kamera Web
             </button>
             <button type="button" id="btn-snap-alat" onclick="takeSnapshot('alat')" class="bg-emerald-600 text-white px-3 py-1.5 rounded text-xs font-medium hover:bg-emerald-700 hidden">
               <i class="fa-solid fa-circle-dot"></i> Ambil Foto
@@ -117,14 +120,14 @@
           <input type="hidden" name="foto_alat_url" id="foto_alat_url">
         </div>
 
-        <!-- INPUT SERIAL NUMBER & SCANNER -->
+        <!-- INPUT SERIAL NUMBER DENGAN PEMINDAI BARCODE DIRECT -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label class="block text-xs font-bold text-gray-600 uppercase mb-1">SERIAL NUMBER (SN) UNIT *</label>
             <div class="flex gap-2">
               <input type="text" id="sn" name="sn" required placeholder="Ketik atau Scan SN" class="w-full border border-gray-300 p-2.5 rounded-md text-sm outline-none focus:ring-2 focus:ring-indigo-500">
-              <button type="button" onclick="openScanner('sn')" class="bg-sky-600 text-white px-3 py-2 rounded-md hover:bg-sky-700 transition title='Scan Barcode/QR'">
-                <i class="fa-solid fa-barcode"></i>
+              <button type="button" onclick="openScanner('sn')" class="bg-sky-600 text-white px-4 py-2 rounded-md hover:bg-sky-700 transition font-bold flex items-center gap-1 text-xs">
+                <i class="fa-solid fa-barcode text-base"></i> SCAN
               </button>
             </div>
           </div>
@@ -132,8 +135,8 @@
             <label class="block text-xs font-bold text-gray-600 uppercase mb-1">P-SN (PORT SERIAL NUMBER) *</label>
             <div class="flex gap-2">
               <input type="text" id="psn" name="psn" required placeholder="Ketik atau Scan P-SN" class="w-full border border-gray-300 p-2.5 rounded-md text-sm outline-none focus:ring-2 focus:ring-indigo-500">
-              <button type="button" onclick="openScanner('psn')" class="bg-sky-600 text-white px-3 py-2 rounded-md hover:bg-sky-700 transition title='Scan Barcode/QR'">
-                <i class="fa-solid fa-barcode"></i>
+              <button type="button" onclick="openScanner('psn')" class="bg-sky-600 text-white px-4 py-2 rounded-md hover:bg-sky-700 transition font-bold flex items-center gap-1 text-xs">
+                <i class="fa-solid fa-barcode text-base"></i> SCAN
               </button>
             </div>
           </div>
@@ -153,15 +156,15 @@
     </div>
   </div>
 
-  <!-- MODAL PEMINDAI BARCODE/QR CODE -->
-  <div id="scanner-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-    <div class="bg-white p-5 rounded-xl max-w-md w-full text-center space-y-4 shadow-xl">
+  <!-- MODAL LIVE CAMERA BARCODE SCANNER -->
+  <div id="scanner-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+    <div class="bg-white p-5 rounded-xl max-w-md w-full text-center space-y-4 shadow-2xl">
       <div class="flex justify-between items-center border-b pb-2">
-        <h3 class="font-bold text-gray-800 text-base">Pindai Barcode / QR Code</h3>
+        <h3 class="font-bold text-gray-800 text-sm">Pindai Barcode / QR Code</h3>
         <button onclick="closeScanner()" class="text-gray-500 hover:text-red-500 text-lg"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <div id="reader" class="w-full rounded-lg overflow-hidden border"></div>
-      <button onclick="closeScanner()" class="w-full bg-gray-200 text-gray-700 py-2 rounded-md font-medium text-sm">Batal</button>
+      <div id="reader" class="w-full rounded-lg overflow-hidden border bg-black"></div>
+      <button onclick="closeScanner()" class="w-full bg-gray-200 text-gray-800 py-2 rounded-md font-medium text-sm hover:bg-gray-300">Batal Scan</button>
     </div>
   </div>
 
@@ -173,10 +176,10 @@
     let submitted = false;
     let cameraStreams = { rumah: null, alat: null };
     let capturedBlobs = { rumah: null, alat: null };
-    let html5QrcodeScanner = null;
+    let html5QrCode = null;
     let activeScanTarget = null;
 
-    // 1. LOKASI MAPS LEAFLET
+    // 1. PETA LOKASI
     let map;
     window.onload = function() {
       map = L.map('map').setView([2.883793, 99.184753], 13);
@@ -196,7 +199,7 @@
       }
     };
 
-    // 2. LOGIKA KAMERA LIVE WEB
+    // 2. KAMERA WEB UNTUK FOTO
     async function startCamera(type) {
       stopCamera(type);
       const video = document.getElementById(`video-${type}`);
@@ -215,7 +218,7 @@
         cameraStreams[type] = stream;
         video.srcObject = stream;
       } catch (err) {
-        alert("Gagal membuka kamera. Pastikan izin kamera diberikan.");
+        alert("Gagal membuka kamera. Izinkan akses kamera di browser Anda.");
       }
     }
 
@@ -271,26 +274,39 @@
       }
     }
 
-    // 3. LOGIKA SCANNER BARCODE & QR CODE
+    // 3. FITUR SCANNER BARCODE DIRECT WEB
     function openScanner(targetId) {
       activeScanTarget = targetId;
       document.getElementById('scanner-modal').classList.remove('hidden');
-      
-      html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: { width: 250, height: 150 } });
-      html5QrcodeScanner.render((decodedText) => {
-        document.getElementById(activeScanTarget).value = decodedText;
+
+      if (!html5QrCode) {
+        html5QrCode = new Html5Qrcode("reader");
+      }
+
+      html5QrCode.start(
+        { facingMode: "environment" },
+        { fps: 15, qrbox: { width: 250, height: 150 } },
+        (decodedText) => {
+          document.getElementById(activeScanTarget).value = decodedText;
+          closeScanner();
+        },
+        (errorMessage) => {
+          // Frame error diproses diam-diam
+        }
+      ).catch(err => {
+        alert("Kamera scanner tidak dapat diakses.");
         closeScanner();
-      }, (error) => {
-        // Ignore frame error scan
       });
     }
 
     function closeScanner() {
-      if (html5QrcodeScanner) {
-        html5QrcodeScanner.clear().catch(e => console.error(e));
-        html5QrcodeScanner = null;
+      if (html5QrCode && html5QrCode.isScanning) {
+        html5QrCode.stop().then(() => {
+          document.getElementById('scanner-modal').classList.add('hidden');
+        }).catch(err => console.error(err));
+      } else {
+        document.getElementById('scanner-modal').classList.add('hidden');
       }
-      document.getElementById('scanner-modal').classList.add('hidden');
     }
 
     // 4. UPLOAD FOTO KE TELEGRAM
@@ -313,7 +329,7 @@
             return `https://api.telegram.org/file/bot${botToken}/${pathData.result.file_path}`;
           }
         }
-        return `Error Telegram: ${data.description || 'Gagal'}`;
+        return `Error Telegram`;
       } catch (err) {
         return "Error Telegram";
       }
@@ -324,7 +340,7 @@
       e.preventDefault();
 
       if (!capturedBlobs.rumah || !capturedBlobs.alat) {
-        alert("Harap ambil atau pilih Foto Rumah dan Foto Alat terlebih dahulu!");
+        alert("Harap ambil/pilih Foto Rumah dan Foto Alat terlebih dahulu!");
         return;
       }
 
