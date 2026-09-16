@@ -12,12 +12,8 @@
 </head>
 <body class="bg-gray-100 font-sans">
 
-  <!-- NAVBAR -->
   <nav class="bg-white shadow-sm border-b px-6 py-3 flex justify-between items-center">
     <div class="font-bold text-gray-800 text-lg">Sistem Lapangan</div>
-    <a href="admin.html" class="bg-slate-800 text-white hover:bg-slate-900 px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition">
-      <i class="fa-solid fa-user-lock"></i> Dashboard Admin
-    </a>
   </nav>
 
   <div class="max-w-4xl mx-auto my-6 px-4">
@@ -30,7 +26,7 @@
 
       <form id="form-lapangan" onsubmit="submitForm(event)" class="space-y-4">
         <div>
-          <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Koordinat Terdeteksi Otomatis</label>
+          <label class="block text-xs font-bold text-gray-600 uppercase mb-1">KOORDINAT TERDETEKSI OTOMATIS (SHERLOK)</label>
           <input type="text" id="koordinat" readonly required placeholder="Mendapatkan lokasi..." class="w-full bg-gray-50 border border-gray-300 p-2.5 rounded-md text-sm">
         </div>
 
@@ -83,19 +79,17 @@
         </div>
 
         <button type="submit" id="btn-submit" class="w-full bg-slate-900 text-white font-bold py-3 rounded-md hover:bg-slate-800 transition">
-          Kirim Data Lapangan
+          Kirim Data & Mengunggah Foto...
         </button>
       </form>
     </div>
   </div>
 
   <script>
-    // Ganti dengan ID Grup dari @userinfobot (Wajib ada tanda minus dan -100 di depan)
-  const TELEGRAM_CHAT_ID = "-5503649230"; 
-
-  const BOT_TOKEN_RUMAH = "8782461297:AAF86N2WvKmbbhbQEnQ7rzfaHmPhxmVf5Xg";
-  const BOT_TOKEN_ALAT = "8903234783:AAEw2CyDfh_hNyVTEUxgF-h0XTiNvL01u14";
-  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHOXnA4YsBeNdPDUxXwPhsJHPJo7k7E4IqItpNOKLjfsYeQce7a9Gda8p-3p-Ys6tJkg/exec";
+    const TELEGRAM_CHAT_ID = "-5503649230"; 
+    const BOT_TOKEN_RUMAH = "8782461297:AAF86N2WvKmbbhbQEnQ7rzfaHmPhxmVf5Xg";
+    const BOT_TOKEN_ALAT = "8903234783:AAEw2CyDfh_hNyVTEUxgF-h0XTiNvL01u14";
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHOXnA4YsBeNdPDUxXwPlsJHPJo7k7E4IqItpNOKLjfsYeQce7a9Gda8p-3p-Ys6tJkg/exec";
 
     let map;
     window.onload = function() {
@@ -114,81 +108,76 @@
       }
     };
 
+    async function uploadToTelegram(fileInputId, botToken, caption) {
+      const fileInput = document.getElementById(fileInputId);
+      if (!fileInput || !fileInput.files[0]) return "Tidak Ada Foto";
 
-  async function uploadToTelegram(fileInputId, botToken) {
-    const fileInput = document.getElementById(fileInputId);
-    if (!fileInput || !fileInput.files[0]) return "";
+      const formData = new FormData();
+      formData.append("chat_id", TELEGRAM_CHAT_ID);
+      formData.append("photo", fileInput.files[0]);
+      formData.append("caption", caption);
 
-    const formData = new FormData();
-    formData.append("chat_id", TELEGRAM_CHAT_ID);
-    formData.append("photo", fileInput.files[0]);
+      try {
+        const res = await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, { 
+          method: 'POST', 
+          body: formData 
+        });
+        const data = await res.json();
 
-    try {
-      const res = await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, { 
-        method: 'POST', 
-        body: formData 
-      });
-      const data = await res.json();
+        if (data.ok) {
+          const fileId = data.result.photo[data.result.photo.length - 1].file_id;
+          const pathRes = await fetch(`https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}`);
+          const pathData = await pathRes.json();
 
-      if (data.ok) {
-        const fileId = data.result.photo[data.result.photo.length - 1].file_id;
-        const pathRes = await fetch(`https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}`);
-        const pathData = await pathRes.json();
-
-        if (pathData.ok) {
-          return `https://api.telegram.org/file/bot${botToken}/${pathData.result.file_path}`;
+          if (pathData.ok) {
+            return `https://api.telegram.org/file/bot${botToken}/${pathData.result.file_path}`;
+          }
         }
-      } else {
-        console.error("Error Telegram:", data);
-        alert(`Gagal Kirim (${fileInputId}): ${data.description}`);
-        return "Gagal Upload";
+        return `Gagal Telegram: ${data.description || 'Error'}`;
+      } catch (err) {
+        return "Error Telegram";
       }
-    } catch (err) {
-      console.error("Network Error:", err);
-      alert("Gagal koneksi ke Telegram");
-      return "Gagal Upload";
     }
-  }
+
     async function submitForm(e) {
       e.preventDefault();
       const btn = document.getElementById('btn-submit');
       btn.innerText = "Mengirim Data & Mengunggah Foto...";
       btn.disabled = true;
 
-      const urlFotoRumah = await uploadToTelegram('foto_rumah', BOT_TOKEN_RUMAH);
-      const urlFotoAlat = await uploadToTelegram('foto_alat', BOT_TOKEN_ALAT);
-
       const koordinat = document.getElementById('koordinat').value;
       const linkMaps = `https://www.google.com/maps?q=${koordinat.replace(/\s+/g, '')}`;
 
-      const payload = {
-        action: 'submit',
-        koordinat: koordinat,
-        odp: document.getElementById('odp').value,
-        pop: document.getElementById('pop').value,
-        cid_lama: document.getElementById('cid_lama').value,
-        nama_lama: document.getElementById('nama_lama').value,
-        sn: document.getElementById('sn').value,
-        keterangan: document.getElementById('keterangan').value,
-        foto_rumah: urlFotoRumah,
-        foto_alat: urlFotoAlat,
-        link_maps: linkMaps,
-        psn: document.getElementById('psn').value
-      };
+      const [urlFotoRumah, urlFotoAlat] = await Promise.all([
+        uploadToTelegram('foto_rumah', BOT_TOKEN_RUMAH, `Foto Rumah\nODP: ${document.getElementById('odp').value}`),
+        uploadToTelegram('foto_alat', BOT_TOKEN_ALAT, `Foto Alat\nSN: ${document.getElementById('sn').value}`)
+      ]);
+
+      const payload = new URLSearchParams();
+      payload.append('koordinat', koordinat);
+      payload.append('odp', document.getElementById('odp').value);
+      payload.append('pop', document.getElementById('pop').value);
+      payload.append('cid_lama', document.getElementById('cid_lama').value);
+      payload.append('nama_lama', document.getElementById('nama_lama').value);
+      payload.append('sn', document.getElementById('sn').value);
+      payload.append('keterangan', document.getElementById('keterangan').value);
+      payload.append('foto_rumah', urlFotoRumah);
+      payload.append('foto_alat', urlFotoAlat);
+      payload.append('link_maps', linkMaps);
+      payload.append('psn', document.getElementById('psn').value);
 
       try {
         await fetch(GOOGLE_SCRIPT_URL, {
           method: 'POST',
           mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: payload.toString()
         });
 
-        alert("Data Lapangan Berhasil Disimpan & Foto Masuk ke Telegram!");
+        alert("Data Lapangan Berhasil Disimpan Lengkap ke Google Sheet!");
         document.getElementById('form-lapangan').reset();
       } catch (err) {
         alert("Gagal menyimpan data ke Google Sheet.");
-        console.error(err);
       } finally {
         btn.innerText = "Kirim Data Lapangan";
         btn.disabled = false;
