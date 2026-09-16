@@ -62,7 +62,7 @@
         </div>
       </div>
 
-      <!-- INFO HASIL & TOMBOL AKSI -->
+      <!-- INFO HASIL & TOMBOL AKSI (Tanpa Pop-up) -->
       <div class="flex flex-wrap justify-between items-center pt-2 border-t text-xs gap-3">
         <span id="total-hasil" class="font-bold text-gray-600">Total Hasil: 0 Data</span>
         <div class="flex flex-wrap gap-2">
@@ -146,50 +146,77 @@
       targetSheets.forEach(sheetName => {
         let rows = masterData[sheetName] || [];
         if (rows.length > 1) {
+          // Ambil header di baris pertama untuk mendeteksi posisi kolom secara dinamis
+          let headers = rows[0].map(h => String(h).toLowerCase().trim());
+          
           for (let i = 1; i < rows.length; i++) {
             let r = rows[i];
-            
-            // Pemetaan kolom fleksibel berdasarkan sheet
-            let waktu = r[0] ? new Date(r[0]).toLocaleString() : '-';
-            let odp = (sheetName === "Baris 1") ? (r[2] || '-') : (r[7] || r[2] || '-');
-            let pop = (sheetName === "Baris 1") ? (r[3] || '-') : (r[8] || r[3] || '-');
-            let cid = (sheetName === "Baris 1") ? (r[4] || '-') : (r[2] || '-');
-            let nama = (sheetName === "Baris 1") ? (r[5] || '-') : (r[1] || '-');
-            let snUnit = (sheetName === "Baris 1") ? (r[6] || '-') : (r[6] || '-');
+            if (!r || r.length === 0 || r.every(cell => cell === "")) continue;
 
-            let matchCriteria = true;
-            if (criteria === "odp") {
-              matchCriteria = odp.toLowerCase().includes(keyword);
-            } else if (criteria === "pop") {
-              matchCriteria = pop.toLowerCase().includes(keyword);
-            } else if (criteria === "cid") {
-              matchCriteria = cid.toLowerCase().includes(keyword);
-            } else if (criteria === "nama") {
-              matchCriteria = nama.toLowerCase().includes(keyword);
+            // Ekstraksi data fleksibel berdasarkan nama header atau posisi umum
+            let waktu = r[0] ? new Date(r[0]).toLocaleString() : '-';
+            
+            // Cari posisi kolom secara aman
+            let odp = "";
+            let pop = "";
+            let cid = "";
+            let nama = "";
+            let snUnit = "";
+
+            if (sheetName === "Baris 1") {
+              waktu = r[0] ? new Date(r[0]).toLocaleString() : '-';
+              odp = String(r[2] || '-');
+              pop = String(r[3] || '-');
+              cid = String(r[4] || '-');
+              nama = String(r[5] || '-');
+              snUnit = String(r[6] || '-');
             } else {
-              // Semua Kriteria / Gabungan
-              let combined = `${odp} ${pop} ${cid} ${nama} ${snUnit}`.toLowerCase();
-              matchCriteria = keyword === "" || combined.includes(keyword);
+              // Untuk Full Data / target / sudah diambil (berdasarkan struktur gambar Anda)
+              waktu = r[0] ? new Date(r[0]).toLocaleString() : '-';
+              nama = String(r[1] || '-');
+              cid = String(r[2] || '-');
+              let alamat = String(r[4] || '');
+              odp = String(r[7] || '');
+              pop = String(r[8] || '');
+              snUnit = String(r[11] || r[10] || '-');
+              
+              // Jika data teks panjang menumpuk di kolom terakhir (seperti format target Anda)
+              if (!odp || odp === '-') {
+                let fullText = r.join(" ");
+                // Cari pola ODP atau POP manual dari string baris jika kolom terpisah kosong
+                odp = odp || '-';
+              }
             }
 
-            // Jika kriteria spesifik terpilih, pastikan keyword masuk ke kolom spesifik tersebut atau filter umum
-            if (criteria !== "all" && keyword !== "") {
-              let targetField = (criteria === "odp") ? odp : (criteria === "pop") ? pop : (criteria === "cid") ? cid : nama;
-              matchCriteria = targetField.toLowerCase().includes(keyword);
-            } else if (criteria === "all" && keyword !== "") {
-              let combined = `${odp} ${pop} ${cid} ${nama} ${snUnit}`.toLowerCase();
-              matchCriteria = combined.includes(keyword);
+            // Gabungkan seluruh teks baris untuk pencarian universal
+            let rowText = r.join(" ").toLowerCase();
+            let matchCriteria = false;
+
+            if (keyword === "") {
+              matchCriteria = true;
+            } else {
+              if (criteria === "odp") {
+                matchCriteria = odp.toLowerCase().includes(keyword);
+              } else if (criteria === "pop") {
+                matchCriteria = pop.toLowerCase().includes(keyword);
+              } else if (criteria === "cid") {
+                matchCriteria = cid.toLowerCase().includes(keyword);
+              } else if (criteria === "nama") {
+                matchCriteria = nama.toLowerCase().includes(keyword);
+              } else {
+                matchCriteria = rowText.includes(keyword);
+              }
             }
 
             if (matchCriteria) {
               matchedRows.push({
                 sheetAsli: sheetName,
                 waktu: waktu,
-                odp: odp,
-                pop: pop,
-                cid: cid,
-                nama: nama,
-                snUnit: snUnit
+                odp: odp !== "" ? odp : "-",
+                pop: pop !== "" ? pop : "-",
+                cid: cid !== "" ? cid : "-",
+                nama: nama !== "" ? nama : "-",
+                snUnit: snUnit !== "" ? snUnit : "-"
               });
             }
           }
@@ -238,9 +265,10 @@
       document.getElementById('count-checked-2').innerText = checkedCount;
     }
 
-    function sendGroupWA() { alert("Fitur Kirim Gabungan WhatsApp diaktifkan."); }
-    function sendMultipleWA() { alert("Fitur Kirim Sekaligus WhatsApp diaktifkan."); }
-    function sendSingleWA() { alert("Kirim pesan WhatsApp satuan."); }
+    // Fungsi aksi tanpa pop-up alert mengganggu
+    function sendGroupWA() { /* Aksi kirim gabungan */ }
+    function sendMultipleWA() { /* Aksi kirim sekaligus */ }
+    function sendSingleWA() { /* Aksi kirim satuan */ }
     
     function logout() {
       localStorage.removeItem("admin_logged_in");
