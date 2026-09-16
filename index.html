@@ -40,7 +40,7 @@
             </a>
         </div>
 
-        <!-- FORM INPUT LAPANGAN (Tanpa submit HTML bawaan agar tidak auto reload) -->
+        <!-- FORM INPUT LAPANGAN -->
         <div class="bg-white p-4 sm:p-5 rounded-3xl shadow-sm border border-slate-100 space-y-3.5 text-xs">
             
             <!-- MAP & KOORDINAT GPS -->
@@ -148,7 +148,7 @@
 
 <script>
     // MASUKKAN URL HASIL DEPLOYMENT BARU GOOGLE APPS SCRIPT KAMU DISINI:
-    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyHOXnA4YsBeNdPDUxXwPlsJHPJo7k7E4IqItpNOKLjfsYeQce7a9Gda8p-3p-Ys6tJkg/exec";
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyHOXnA4YsBeNdPDUxXwPlsJHPJo7k7E4IqItpNOKLjfsYeQce7a9Gda8p-3p-Ys6tJkg/exec"; // GANTI INI
     const IMAGEKIT_PUBLIC_KEY = "public_W4LevC6+WUWX5uocg3TlUiZ8T/g=";
 
     let map, marker, html5QrcodeScanner = null, activeTargetInput = null;
@@ -301,6 +301,7 @@
             const linkMaps = koordinat ? `https://maps.google.com/?q=${koordinat.replace(/\s+/g, '')}` : "";
 
            const payload = {
+                action: "simpanData", // Ditambah action untuk membedakan fungsi di Apps Script
                 koordinat: koordinat,
                 odp: document.getElementById('inpOdp').value,
                 pop: document.getElementById('inpPop').value,
@@ -314,36 +315,35 @@
                 linkMaps: linkMaps
             };
 
-            // Menggunakan fetch dengan URLSearchParams agar aman dari kendala CORS Google
-            await fetch(GAS_WEB_APP_URL, {
+            // Menggunakan fetch biasa POST agar respons dari Sheet bisa dibaca
+            const response = await fetch(GAS_WEB_APP_URL, {
                 method: 'POST',
-                mode: 'no-cors',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
                 body: JSON.stringify(payload)
             });
-
-            btn.innerText = "Kirim Data Lapangan";
-            btn.disabled = false;
-            showToast("SUKSES: Data Terkirim ke Sheet!");
-
-            // Reset Form setelah sukses
-            document.getElementById('inpOdp').value = '';
-            document.getElementById('inpPop').value = '';
-            document.getElementById('inpCidLama').value = '';
-            document.getElementById('inpNamaLama').value = '';
-            document.getElementById('inpSnUnit').value = '';
-            document.getElementById('inpPSn').value = '';
-            document.getElementById('inpKeterangan').value = '';
-            document.getElementById('fileFotoRumah').value = '';
-            document.getElementById('fileFotoAlat').value = '';
-            document.getElementById('labelFotoRumah').innerText = "FOTO RUMAH *";
-            document.getElementById('labelFotoAlat').innerText = "FOTO ALAT *";
             
-            else {
-                showToast("Gagal Simpan: " + res.message);
+            const res = await response.json();
+            
+            if(res.success) {
+                btn.innerText = "Kirim Data Lapangan";
+                btn.disabled = false;
+                showToast("SUKSES: Data Terkirim ke Sheet!");
+
+                // Reset Form setelah sukses
+                document.getElementById('inpOdp').value = '';
+                document.getElementById('inpPop').value = '';
+                document.getElementById('inpCidLama').value = '';
+                document.getElementById('inpNamaLama').value = '';
+                document.getElementById('inpSnUnit').value = '';
+                document.getElementById('inpPSn').value = '';
+                document.getElementById('inpKeterangan').value = '';
+                document.getElementById('fileFotoRumah').value = '';
+                document.getElementById('fileFotoAlat').value = '';
+                document.getElementById('labelFotoRumah').innerText = "FOTO RUMAH *";
+                document.getElementById('labelFotoAlat').innerText = "FOTO ALAT *";
+            } else {
+                throw new Error("Gagal simpan ke Sheet");
             }
+
         } catch (err) {
             btn.innerText = "Kirim Data Lapangan";
             btn.disabled = false;
