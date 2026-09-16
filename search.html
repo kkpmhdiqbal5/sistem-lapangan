@@ -119,6 +119,7 @@
   <script>
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHOXnA4YsBeNdPDUxXwPlsJHPJo7k7E4IqItpNOKLjfsYeQce7a9Gda8p-3p-Ys6tJkg/exec";
     let masterData = {};
+    let currentFilteredRows = [];
 
     if (localStorage.getItem("admin_logged_in") !== "true") {
       window.location.href = "login.html";
@@ -132,6 +133,10 @@
         const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getAllData`);
         if (!res.ok) throw new Error("Gagal terhubung ke server");
         masterData = await res.json();
+        
+        if (masterData["Laporan"]) delete masterData["Laporan"];
+        if (masterData["laporan"]) delete masterData["laporan"];
+
         filterData();
       } catch (err) {
         console.error(err);
@@ -146,7 +151,7 @@
 
       let targetSheets = [];
       if (selectedCategory === "semua") {
-        targetSheets = Object.keys(masterData);
+        targetSheets = Object.keys(masterData).filter(s => s.toLowerCase() !== "laporan");
       } else if (selectedCategory === "PERANGKAT_BELOM_DI_AMBIL") {
         if (masterData["Full Data"]) targetSheets.push("Full Data");
         if (masterData["target"]) targetSheets.push("target");
@@ -155,12 +160,16 @@
       } else if (selectedCategory === "INFO_PERANGKAT") {
         if (masterData["Baris 1"]) targetSheets.push("Baris 1");
       } else {
-        targetSheets = [selectedCategory];
+        if (selectedCategory.toLowerCase() !== "laporan") {
+          targetSheets = [selectedCategory];
+        }
       }
 
-      let matchedRows = [];
+      currentFilteredRows = [];
 
       targetSheets.forEach(sheetName => {
+        if (sheetName.toLowerCase() === "laporan") return;
+
         let rows = masterData[sheetName] || [];
         if (rows.length > 0) {
           
@@ -179,8 +188,9 @@
             let sherlok = '-';
             let snUnit = '-';
             let psn = '-';
-            let fotoRumah = '';
-            let fotoAlat = '';
+            let fotoRumah = '-';
+            let fotoAlat = '-';
+            let ket = '-';
 
             if (isSudahDiambil) {
               nama = r[0] ? String(r[0]) : '-';
@@ -196,10 +206,11 @@
               let idxODP = headers.findIndex(h => h === "ODP" || h.includes("ODP"));
               let idxPOP = headers.findIndex(h => h === "POP" || h.includes("POP"));
               let idxSherlok = headers.findIndex(h => h.includes("SHERLOK") || h.includes("SHERLOCK") || h.includes("MAP"));
-              let idxSN = headers.findIndex(h => h.includes("SN"));
+              let idxSN = headers.findIndex(h => h.includes("SN") && !h.includes("P-SN") && !h.includes("PSN"));
               let idxPSN = headers.findIndex(h => h.includes("P-SN") || h.includes("PSN"));
               let idxFotoRumah = headers.findIndex(h => h.includes("FOTO RUMAH") || h.includes("RUMAH"));
               let idxFotoAlat = headers.findIndex(h => h.includes("FOTO ALAT") || h.includes("ALAT"));
+              let idxKet = headers.findIndex(h => h.includes("KET") || h.includes("KETERANGAN"));
 
               waktu = (idxTime !== -1 && r[idxTime]) ? String(r[idxTime]) : '-';
               nama = (idxNama !== -1 && r[idxNama]) ? String(r[idxNama]) : '-';
@@ -209,8 +220,9 @@
               sherlok = (idxSherlok !== -1 && r[idxSherlok]) ? String(r[idxSherlok]) : '-';
               snUnit = (idxSN !== -1 && r[idxSN]) ? String(r[idxSN]) : '-';
               psn = (idxPSN !== -1 && r[idxPSN]) ? String(r[idxPSN]) : '-';
-              fotoRumah = (idxFotoRumah !== -1 && r[idxFotoRumah]) ? String(r[idxFotoRumah]) : '';
-              fotoAlat = (idxFotoAlat !== -1 && r[idxFotoAlat]) ? String(r[idxFotoAlat]) : '';
+              fotoRumah = (idxFotoRumah !== -1 && r[idxFotoRumah]) ? String(r[idxFotoRumah]) : '-';
+              fotoAlat = (idxFotoAlat !== -1 && r[idxFotoAlat]) ? String(r[idxFotoAlat]) : '-';
+              ket = (idxKet !== -1 && r[idxKet]) ? String(r[idxKet]) : '-';
             }
 
             let rowText = r.join(" ").toLowerCase();
@@ -233,7 +245,7 @@
             }
 
             if (matchCriteria) {
-              matchedRows.push({
+              currentFilteredRows.push({
                 sheetAsli: sheetName,
                 waktu: waktu,
                 odp: odp,
@@ -244,38 +256,39 @@
                 snUnit: snUnit,
                 psn: psn,
                 fotoRumah: fotoRumah,
-                fotoAlat: fotoAlat
+                fotoAlat: fotoAlat,
+                ket: ket
               });
             }
           }
         }
       });
 
-      document.getElementById('total-hasil').innerText = `Total Hasil: ${matchedRows.length} Data`;
+      document.getElementById('total-hasil').innerText = `Total Hasil: ${currentFilteredRows.length} Data`;
       const tbody = document.getElementById('table-body');
 
-      if (matchedRows.length === 0) {
+      if (currentFilteredRows.length === 0) {
         tbody.innerHTML = `<tr><td colspan="12" class="p-8 text-center text-gray-400">Data tidak ditemukan pada kategori ini.</td></tr>`;
         return;
       }
 
       let html = "";
-      matchedRows.forEach((item) => {
-        let renderSherlok = item.sherlok && item.sherlok.startsWith('http') ? 
+      currentFilteredRows.forEach((item, idx) => {
+        let renderSherlok = (item.sherlok && item.sherlok.startsWith('http')) ? 
           `<a href="${item.sherlok}" target="_blank" class="text-blue-600 underline font-mono text-[11px] font-semibold"><i class="fa-solid fa-map-location-dot mr-1"></i> Buka Map</a>` : 
           `<span class="text-gray-600 font-mono text-[11px]">${item.sherlok}</span>`;
 
-        let renderFotoRumah = item.fotoRumah && item.fotoRumah.startsWith('http') ? 
+        let renderFotoRumah = (item.fotoRumah && item.fotoRumah.startsWith('http')) ? 
           `<img src="${item.fotoRumah}" class="w-10 h-10 object-cover rounded cursor-pointer mx-auto border shadow-sm hover:scale-110 transition" onclick="openModal('${item.fotoRumah}')">` : 
           `<span class="text-gray-400 text-[10px]">Tidak ada</span>`;
 
-        let renderFotoAlat = item.fotoAlat && item.fotoAlat.startsWith('http') ? 
+        let renderFotoAlat = (item.fotoAlat && item.fotoAlat.startsWith('http')) ? 
           `<img src="${item.fotoAlat}" class="w-10 h-10 object-cover rounded cursor-pointer mx-auto border shadow-sm hover:scale-110 transition" onclick="openModal('${item.fotoAlat}')">` : 
           `<span class="text-gray-400 text-[10px]">Tidak ada</span>`;
 
         html += `
           <tr class="hover:bg-gray-50 transition">
-            <td class="p-3 text-center"><input type="checkbox" class="row-checkbox" onchange="updateCheckedCount()"></td>
+            <td class="p-3 text-center"><input type="checkbox" class="row-checkbox" data-index="${idx}" onchange="updateCheckedCount()"></td>
             <td class="p-3 font-semibold text-indigo-600 bg-indigo-50/50 rounded">${item.sheetAsli}</td>
             <td class="p-3 text-gray-500 whitespace-nowrap">${item.waktu}</td>
             <td class="p-3 font-medium">${item.odp}</td>
@@ -287,13 +300,14 @@
             <td class="p-3 text-center">${renderFotoRumah}</td>
             <td class="p-3 text-center">${renderFotoAlat}</td>
             <td class="p-3 text-center">
-              <button onclick="sendSingleWA()" class="bg-emerald-600 text-white p-1.5 rounded hover:bg-emerald-700 transition" title="Kirim WA"><i class="fa-brands fa-whatsapp"></i></button>
+              <button onclick="sendSingleWA(${idx})" class="bg-emerald-600 text-white p-1.5 rounded hover:bg-emerald-700 transition" title="Kirim WA"><i class="fa-brands fa-whatsapp"></i></button>
             </td>
           </tr>
         `;
       });
 
       tbody.innerHTML = html;
+      document.getElementById('select-all').checked = false;
       updateCheckedCount();
     }
 
@@ -318,9 +332,66 @@
       document.getElementById('count-checked-2').innerText = checkedCount;
     }
 
-    function sendGroupWA() {}
-    function sendMultipleWA() {}
-    function sendSingleWA() {}
+    function formatSingleText(item, indexNumber) {
+      let prefix = indexNumber ? `*${indexNumber}. ${item.nama}*\n` : `*${item.nama}*\n`;
+      return `${prefix}` +
+        `• ODP: ${item.odp}\n` +
+        `• POP: ${item.pop}\n` +
+        `• CID: ${item.cid}\n` +
+        `• SN: ${item.snUnit}\n` +
+        `• Sheet: ${item.sheetAsli}\n` +
+        `• Ket: ${item.ket}\n` +
+        `📍 Sherlock: ${item.sherlok}\n` +
+        `🖼️ Foto Rumah: ${item.fotoRumah}\n` +
+        `🖼️ Foto Alat: ${item.fotoAlat}`;
+    }
+
+    // 1. KIRIM GABUNGAN (SATU PESAN WA BERISI SEMUA DATA YANG DICENTANG)
+    function sendGroupWA() {
+      const checkedBoxes = document.querySelectorAll('.row-checkbox:checked');
+      if (checkedBoxes.length === 0) {
+        alert("Pilih/centang minimal satu data terlebih dahulu!");
+        return;
+      }
+
+      let text = `*📋 REKAP GABUNGAN (${checkedBoxes.length} DATA LAPANGAN)*\n`;
+      text += `====================================\n\n`;
+
+      checkedBoxes.forEach((cb, i) => {
+        let idx = cb.getAttribute('data-index');
+        let item = currentFilteredRows[idx];
+        text += formatSingleText(item, i + 1);
+        text += `\n------------------------------------\n`;
+      });
+
+      let waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+      window.open(waUrl, '_blank');
+    }
+
+    // 2. KIRIM SEKALIGUS (BUKA TAB WA SATU PER SATU UNTUK SETIAP DATA DICENTANG)
+    function sendMultipleWA() {
+      const checkedBoxes = document.querySelectorAll('.row-checkbox:checked');
+      if (checkedBoxes.length === 0) {
+        alert("Pilih/centang minimal satu data terlebih dahulu!");
+        return;
+      }
+
+      checkedBoxes.forEach((cb) => {
+        let idx = cb.getAttribute('data-index');
+        let item = currentFilteredRows[idx];
+        let text = formatSingleText(item, null);
+        let waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+        window.open(waUrl, '_blank');
+      });
+    }
+
+    // 3. KIRIM PER BARIS DATA (TOMBOL AKSI WA DI TABEL)
+    function sendSingleWA(idx) {
+      let item = currentFilteredRows[idx];
+      let text = formatSingleText(item, null);
+      let waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+      window.open(waUrl, '_blank');
+    }
     
     function logout() {
       localStorage.removeItem("admin_logged_in");
