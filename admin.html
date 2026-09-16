@@ -9,191 +9,96 @@
 </head>
 <body class="bg-gray-100 font-sans">
 
-  <!-- MODAL LOGIN ADMIN -->
-  <div id="login-modal" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
-    <div class="bg-white p-6 rounded-xl shadow-xl w-full max-w-sm space-y-4">
-      <h2 class="text-xl font-bold text-center text-gray-800">Login Admin</h2>
-      <p class="text-xs text-gray-500 text-center">Akses terbatas hanya untuk admin terverifikasi</p>
+  <!-- NAVBAR -->
+  <nav class="bg-white shadow-sm border-b px-6 py-3 flex justify-between items-center">
+    <div class="font-bold text-gray-800 text-lg flex items-center gap-2">
+      <i class="fa-solid fa-gauge text-indigo-600"></i> Dashboard Admin
+    </div>
+    <div class="flex items-center gap-2">
+      <a href="index.html" class="bg-sky-600 text-white hover:bg-sky-700 px-3 py-2 rounded-md text-sm font-medium flex items-center gap-1.5 transition">
+        <i class="fa-solid fa-satellite-dish"></i> Sistem Lapangan
+      </a>
+      <a href="search.html" class="bg-emerald-600 text-white hover:bg-emerald-700 px-3 py-2 rounded-md text-sm font-medium flex items-center gap-1.5 transition">
+        <i class="fa-solid fa-magnifying-glass"></i> Sistem Cari
+      </a>
+      <button onclick="logout()" class="bg-rose-600 text-white hover:bg-rose-700 px-3 py-2 rounded-md text-sm font-medium flex items-center gap-1.5 transition">
+        <i class="fa-solid fa-right-from-bracket"></i> Logout
+      </button>
+    </div>
+  </nav>
+
+  <div class="max-w-6xl mx-auto my-8 px-4 space-y-6">
+    
+    <!-- KARTU STATISTIK (3 KOTAK) -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       
-      <div>
-        <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Username</label>
-        <input type="text" id="username" placeholder="Masukkan username" class="w-full border p-2.5 rounded-md text-sm outline-none focus:ring-2 focus:ring-indigo-500">
-      </div>
-      <div>
-        <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Password</label>
-        <input type="password" id="password" placeholder="Masukkan password" class="w-full border p-2.5 rounded-md text-sm outline-none focus:ring-2 focus:ring-indigo-500">
-      </div>
-      <p id="login-error" class="text-red-500 text-xs hidden">Username atau password salah!</p>
-
-      <div class="flex gap-2">
-        <a href="index.html" class="w-1/2 bg-gray-200 text-gray-700 text-center py-2.5 rounded-md text-sm font-semibold">Kembali</a>
-        <button onclick="checkLogin()" class="w-1/2 bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-md text-sm font-semibold">Masuk</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- DASHBOARD CONTENT -->
-  <div id="admin-content" class="hidden">
-    <!-- NAVBAR -->
-    <nav class="bg-white shadow-sm border-b px-6 py-3 flex justify-between items-center">
-      <div class="font-bold text-gray-800 text-lg">Dashboard Admin</div>
-      <div class="flex items-center space-x-3">
-        <a href="index.html" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2">
-          <i class="fa-solid fa-pen-to-square"></i> Sistem Lapangan
-        </a>
-        <button onclick="logout()" class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-md text-sm font-medium">
-          <i class="fa-solid fa-right-from-bracket"></i> Logout
-        </button>
-      </div>
-    </nav>
-
-    <div class="max-w-6xl mx-auto my-6 px-4 space-y-6">
-
-      <!-- STATISTIK PERANGKAT -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- Belum Diambil -->
-        <div class="bg-white p-5 rounded-xl border shadow-sm border-l-4 border-l-amber-500 flex justify-between items-center">
-          <div>
-            <p class="text-xs text-gray-500 uppercase font-bold">Perangkat Belum Diambil</p>
-            <h3 id="stat-belum" class="text-3xl font-extrabold text-gray-800 mt-1">0</h3>
-            <p class="text-xs text-gray-400 mt-1">Sumber: Sheet "Full Data"</p>
-          </div>
-          <div class="bg-amber-100 text-amber-600 p-4 rounded-full">
-            <i class="fa-solid fa-boxes-packing text-2xl"></i>
-          </div>
+      <!-- Box 1: Perangkat Belum Diambil -->
+      <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-amber-500 flex justify-between items-center">
+        <div>
+          <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">Perangkat Belum Diambil</p>
+          <h2 id="count-belum" class="text-3xl font-extrabold text-gray-800 mt-1">...</h2>
+          <span class="text-xs text-gray-400">Sumber: Sheet "Full Data"</span>
         </div>
-
-        <!-- Sudah Diambil -->
-        <div class="bg-white p-5 rounded-xl border shadow-sm border-l-4 border-l-emerald-500 flex justify-between items-center">
-          <div>
-            <p class="text-xs text-gray-500 uppercase font-bold">Perangkat Sudah Diambil</p>
-            <h3 id="stat-sudah" class="text-3xl font-extrabold text-gray-800 mt-1">0</h3>
-            <p class="text-xs text-gray-400 mt-1">Sumber: Sheet "sudah diambil"</p>
-          </div>
-          <div class="bg-emerald-100 text-emerald-600 p-4 rounded-full">
-            <i class="fa-solid fa-circle-check text-2xl"></i>
-          </div>
+        <div class="bg-amber-100 p-4 rounded-full text-amber-600 text-2xl">
+          <i class="fa-solid fa-box-open"></i>
         </div>
       </div>
 
-      <!-- SISTEM CARI & TABEL PERANGKAT (BARIS 1) -->
-      <div class="bg-white p-6 rounded-xl shadow-sm border space-y-4">
-        <div class="flex flex-col md:flex-row justify-between items-md-center gap-4 border-b pb-4">
-          <h2 class="text-lg font-bold text-gray-800">Info Perangkat Lapangan (Baris 1)</h2>
-          
-          <!-- SEARCH SYSTEM -->
-          <div class="relative w-full md:w-80">
-            <input type="text" id="search-input" onkeyup="filterTable()" placeholder="Cari CID, Nama, ODP, SN, P-SN..." class="w-full border p-2 pl-8 rounded-md text-sm outline-none focus:ring-2 focus:ring-indigo-500">
-            <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-3 text-gray-400 text-xs"></i>
-          </div>
+      <!-- Box 2: Perangkat Sudah Diambil -->
+      <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-emerald-500 flex justify-between items-center">
+        <div>
+          <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">Perangkat Sudah Diambil</p>
+          <h2 id="count-sudah" class="text-3xl font-extrabold text-gray-800 mt-1">...</h2>
+          <span class="text-xs text-gray-400">Sumber: Sheet "sudah diambil"</span>
         </div>
+        <div class="bg-emerald-100 p-4 rounded-full text-emerald-600 text-2xl">
+          <i class="fa-solid fa-box-archive"></i>
+        </div>
+      </div>
 
-        <button onclick="loadAdminData()" class="bg-indigo-600 text-white text-xs px-3 py-2 rounded font-medium">
-          <i class="fa-solid fa-rotate-right"></i> Refresh Data
-        </button>
-
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-xs text-gray-600 border-collapse">
-            <thead class="bg-gray-100 uppercase text-gray-700">
-              <tr>
-                <th class="p-2 border">Waktu</th>
-                <th class="p-2 border">Koordinat</th>
-                <th class="p-2 border">ODP / POP</th>
-                <th class="p-2 border">CID / Nama</th>
-                <th class="p-2 border">SN / P-SN</th>
-                <th class="p-2 border">Foto Rumah</th>
-                <th class="p-2 border">Foto Alat</th>
-                <th class="p-2 border">Ket</th>
-              </tr>
-            </thead>
-            <tbody id="table-body">
-              <tr>
-                <td colspan="8" class="text-center p-4">Memuat Data...</td>
-              </tr>
-            </tbody>
-          </table>
+      <!-- Box 3: Info Perangkat / Input Lapangan -->
+      <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-sky-500 flex justify-between items-center">
+        <div>
+          <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">Total Info Perangkat Lapangan</p>
+          <h2 id="count-info" class="text-3xl font-extrabold text-gray-800 mt-1">...</h2>
+          <span class="text-xs text-gray-400">Sumber: Sheet "Baris 1"</span>
+        </div>
+        <div class="bg-sky-100 p-4 rounded-full text-sky-600 text-2xl">
+          <i class="fa-solid fa-clipboard-list"></i>
         </div>
       </div>
 
     </div>
+
   </div>
 
   <script>
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHOXnA4YsBeNdPDUxXwPhsJHPJo7k7E4IqItpNOKLjfsYeQce7a9Gda8p-3p-Ys6tJkg/exec";
 
-    function checkLogin() {
-      const user = document.getElementById('username').value;
-      const pass = document.getElementById('password').value;
-      if (user === "admin" && pass === "admin123") {
-        sessionStorage.setItem("adminLoggedIn", "true");
-        document.getElementById('login-modal').classList.add('hidden');
-        document.getElementById('admin-content').classList.remove('hidden');
-        loadAdminData();
-      } else {
-        document.getElementById('login-error').classList.remove('hidden');
+    // Cek Sesi Login Admin
+    if (localStorage.getItem("admin_logged_in") !== "true") {
+      window.location.href = "login.html";
+    }
+
+    async function loadDashboardStats() {
+      try {
+        const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getDashboard`);
+        const data = await res.json();
+        
+        document.getElementById('count-belum').innerText = data.countBelum;
+        document.getElementById('count-sudah').innerText = data.countSudah;
+        document.getElementById('count-info').innerText = data.countInfoPerangkat;
+      } catch (err) {
+        console.error(err);
       }
     }
 
     function logout() {
-      sessionStorage.removeItem("adminLoggedIn");
-      window.location.reload();
+      localStorage.removeItem("admin_logged_in");
+      window.location.href = "login.html";
     }
 
-    window.onload = function() {
-      if (sessionStorage.getItem("adminLoggedIn") === "true") {
-        document.getElementById('login-modal').classList.add('hidden');
-        document.getElementById('admin-content').classList.remove('hidden');
-        loadAdminData();
-      }
-    }
-
-    async function loadAdminData() {
-      const tbody = document.getElementById('table-body');
-      tbody.innerHTML = '<tr><td colspan="8" class="text-center p-4">Memuat data dari server...</td></tr>';
-
-      try {
-        const res = await fetch(GOOGLE_SCRIPT_URL + "?action=getDashboard");
-        const json = await res.json();
-
-        // Update Statistik
-        document.getElementById('stat-belum').innerText = json.countBelum || 0;
-        document.getElementById('stat-sudah').innerText = json.countSudah || 0;
-
-        // Render Tabel Baris 1
-        tbody.innerHTML = '';
-        if(json.baris1Data && json.baris1Data.length > 1) {
-          json.baris1Data.slice(1).reverse().forEach(row => {
-            tbody.innerHTML += `
-              <tr class="border-b hover:bg-gray-50 search-row">
-                <td class="p-2 border">${row[0] || '-'}</td>
-                <td class="p-2 border">${row[1] || '-'}</td>
-                <td class="p-2 border">${row[2]} / ${row[3]}</td>
-                <td class="p-2 border">${row[4]} / ${row[5]}</td>
-                <td class="p-2 border"><b>SN:</b> ${row[6]}<br><b>P-SN:</b> ${row[7]}</td>
-                <td class="p-2 border">${row[8] ? `<a href="${row[8]}" target="_blank" class="text-blue-600 underline">Rumah</a>` : '-'}</td>
-                <td class="p-2 border">${row[9] ? `<a href="${row[9]}" target="_blank" class="text-blue-600 underline">Alat</a>` : '-'}</td>
-                <td class="p-2 border">${row[10] || '-'}</td>
-              </tr>
-            `;
-          });
-        } else {
-          tbody.innerHTML = '<tr><td colspan="8" class="text-center p-4">Data Baris 1 kosong.</td></tr>';
-        }
-
-      } catch (e) {
-        tbody.innerHTML = '<tr><td colspan="8" class="text-center p-4 text-red-500">Gagal memuat data Admin.</td></tr>';
-      }
-    }
-
-    // Fitur Pencarian Admin
-    function filterTable() {
-      const query = document.getElementById('search-input').value.toLowerCase();
-      const rows = document.querySelectorAll('.search-row');
-      rows.forEach(row => {
-        const text = row.innerText.toLowerCase();
-        row.style.display = text.includes(query) ? '' : 'none';
-      });
-    }
+    window.onload = loadDashboardStats;
   </script>
 </body>
 </html>
