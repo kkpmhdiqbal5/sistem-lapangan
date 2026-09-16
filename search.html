@@ -181,11 +181,6 @@
             let fotoAlat = '';
 
             if (isSudahDiambil) {
-              // Mapping khusus sheet "sudah diambil":
-              // Kolom A (index 0) = Nama (Siti hadijah)
-              // Kolom B (index 1) = CID (25916574996)
-              // Kolom C (index 2) = ODP (JL.TERATAI 01)
-              // Kolom D (index 3) = SN Unit (DF1D-2503016924)
               nama = r[0] ? String(r[0]) : '-';
               cid = r[1] ? String(r[1]) : '-';
               odp = r[2] ? String(r[2]) : '-';
@@ -193,26 +188,21 @@
             } else {
               let headers = rows[0].map(h => String(h).toUpperCase().trim());
 
-              let idxTime = headers.findIndex(h => h.includes("TIME") || h.includes("TIMESTAMP"));
-              let idxNama = headers.findIndex(h => h === "NAMA" || h.includes("NAMA LAMA"));
-              let idxCID = headers.findIndex(h => h === "CID" || h.includes("CID LAMA"));
+              let idxTime = headers.findIndex(h => h === "TIME" || h.includes("TIME"));
+              let idxNama = headers.findIndex(h === "NAMA" || h.includes("NAMA LAMA"));
+              let idxCID = headers.findIndex(h === "CID" || h.includes("CID LAMA"));
               let idxODP = headers.findIndex(h => h === "ODP");
               let idxPOP = headers.findIndex(h => h === "POP");
               
-              let idxSherlok = -1;
-              if (sheetName === "Baris 1") {
-                idxSherlok = headers.findIndex(h => h.includes("LINK MAP") || h.includes("MAPS"));
-              }
-              if (idxSherlok === -1) {
-                idxSherlok = headers.findIndex(h => h.includes("SHERLOK") || h.includes("KOORDINAT") || h.includes("LINK MAP"));
-              }
+              // Memastikan pencarian kolom Sherlok mendeteksi teks 'SHERLOCK' atau 'SHERLOK'
+              let idxSherlok = headers.findIndex(h => h === "SHERLOK" || h.includes("SHERLOK") || h.includes("SHERLOCK") || h.includes("MAP"));
 
               let idxSN = headers.findIndex(h => h.includes("SN"));
               let idxPSN = headers.findIndex(h => h.includes("P-SN"));
               let idxFotoRumah = headers.findIndex(h => h.includes("FOTO RUMAH"));
               let idxFotoAlat = headers.findIndex(h => h.includes("FOTO ALAT"));
 
-              waktu = (idxTime !== -1 && r[idxTime]) ? new Date(r[idxTime]).toLocaleString() : '-';
+              waktu = (idxTime !== -1 && r[idxTime]) ? String(r[idxTime]) : '-';
               nama = (idxNama !== -1 && r[idxNama]) ? String(r[idxNama]) : '-';
               cid = (idxCID !== -1 && r[idxCID]) ? String(r[idxCID]) : '-';
               odp = (idxODP !== -1 && r[idxODP]) ? String(r[idxODP]) : '-';
@@ -246,7 +236,7 @@
             if (matchCriteria) {
               matchedRows.push({
                 sheetAsli: sheetName,
-                waktu: waktu !== "Invalid Date" ? waktu : '-',
+                waktu: waktu,
                 odp: odp,
                 pop: pop,
                 cid: cid,
@@ -288,7 +278,7 @@
           <tr class="hover:bg-gray-50 transition">
             <td class="p-3 text-center"><input type="checkbox" class="row-checkbox" onchange="updateCheckedCount()"></td>
             <td class="p-3 font-semibold text-indigo-600 bg-indigo-50/50 rounded">${item.sheetAsli}</td>
-            <td class="p-3 text-gray-500">${item.waktu}</td>
+            <td class="p-3 text-gray-500 whitespace-nowrap">${item.waktu}</td>
             <td class="p-3 font-medium">${item.odp}</td>
             <td class="p-3">${item.pop}</td>
             <td class="p-3"><b>${item.cid}</b> / ${item.nama}</td>
@@ -306,6 +296,10 @@
 
       tbody.innerHTML = html;
       updateCheckedCount();
+    }
+
+    function openLink(url) {
+      if(url && url.startsWith('http')) window.open(url, '_blank');
     }
 
     function openModal(url) {
