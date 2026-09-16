@@ -38,10 +38,9 @@
           <label class="block font-bold text-gray-500 uppercase mb-1">PILIH SUMBER KATEGORI</label>
           <select id="filter-sheet" onchange="filterData()" class="w-full border p-2.5 rounded bg-white outline-none focus:ring-1 focus:ring-indigo-500 font-medium">
             <option value="semua">Semua Sumber Sheet Gabungan</option>
-            <option value="Full Data">Full Data</option>
-            <option value="target">Target</option>
-            <option value="sudah diambil">Sudah Diambil</option>
-            <option value="Baris 1">Baris 1 (Input Lapangan)</option>
+            <option value="PERANGKAT_BELOM_DI_AMBIL">PERANGKAT BELOM DI AMBIL (Full Data & Target)</option>
+            <option value="sudah diambil">sudah diambil</option>
+            <option value="INFO_PERANGKAT">INFO PERANGKAT (Baris 1)</option>
           </select>
         </div>
         <div>
@@ -118,7 +117,7 @@
   </div>
 
   <script>
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHOXnA4YsBeNdPDUxXwPlsJHPJo7k7E4IqItpNOKLjfsYeQce7a9Gda8p-3p-Ys6tJkg/exec";
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHOXnA4YsBeNdPDUxXwPhsJHPJo7k7E4IqItpNOKLjfsYeQce7a9Gda8p-3p-Ys6tJkg/exec";
     let masterData = {};
 
     if (localStorage.getItem("admin_logged_in") !== "true") {
@@ -146,6 +145,13 @@
       let targetSheets = [];
       if (selectedCategory === "semua") {
         targetSheets = Object.keys(masterData);
+      } else if (selectedCategory === "PERANGKAT_BELOM_DI_AMBIL") {
+        // Menggabungkan sheet Full Data dan target
+        if (masterData["Full Data"]) targetSheets.push("Full Data");
+        if (masterData["target"]) targetSheets.push("target");
+      } else if (selectedCategory === "INFO_PERANGKAT") {
+        // Memetakan ke nama sheet asli "Baris 1"
+        if (masterData["Baris 1"]) targetSheets.push("Baris 1");
       } else {
         targetSheets = [selectedCategory];
       }
@@ -157,7 +163,6 @@
         if (rows.length > 1) {
           let headers = rows[0].map(h => String(h).toUpperCase().trim());
 
-          // Mapping kolom secara cerdas berdasarkan nama header
           let idxTime = headers.findIndex(h => h.includes("TIME") || h.includes("TIMESTAMP"));
           let idxNama = headers.findIndex(h => h === "NAMA" || h.includes("NAMA LAMA"));
           let idxCID = headers.findIndex(h => h === "CID" || h.includes("CID LAMA"));
@@ -183,12 +188,6 @@
             let psn = (idxPSN !== -1 && r[idxPSN]) ? String(r[idxPSN]) : '-';
             let fotoRumah = (idxFotoRumah !== -1 && r[idxFotoRumah]) ? String(r[idxFotoRumah]) : '';
             let fotoAlat = (idxFotoAlat !== -1 && r[idxFotoAlat]) ? String(r[idxFotoAlat]) : '';
-
-            // Fallback jika berupa data teks gabungan di sheet tertentu (seperti format target)
-            if (nama === '-' || cid === '-') {
-              let fullRowString = r.join(" ");
-              // Coba ekstrak informasi jika berformat teks panjang
-            }
 
             let rowText = r.join(" ").toLowerCase();
             let matchCriteria = false;
@@ -232,7 +231,7 @@
       const tbody = document.getElementById('table-body');
 
       if (matchedRows.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="12" class="p-8 text-center text-gray-400">Data tidak ditemukan pada sheet ini.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="12" class="p-8 text-center text-gray-400">Data tidak ditemukan pada kategori ini.</td></tr>`;
         return;
       }
 
