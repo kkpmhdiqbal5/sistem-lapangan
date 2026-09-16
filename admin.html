@@ -29,7 +29,12 @@
 
   <!-- KONTROL DASHBOARD -->
   <div class="max-w-7xl mx-auto my-8 px-4 space-y-6">
-    <h1 class="text-xl font-bold text-gray-800">Ringkasan Data Sistem</h1>
+    <div class="flex justify-between items-center">
+      <h1 class="text-xl font-bold text-gray-800">Ringkasan Data Sistem</h1>
+      <button onclick="fetchDashboardStats()" class="text-xs bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-3 py-1.5 rounded shadow-sm font-medium flex items-center gap-1.5">
+        <i class="fa-solid fa-arrows-rotate"></i> Refresh
+      </button>
+    </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       
@@ -37,7 +42,7 @@
       <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-amber-500 flex justify-between items-center">
         <div>
           <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Perangkat Belum Diambil</p>
-          <h2 id="count-belum" class="text-3xl font-extrabold text-gray-800 mt-1">0</h2>
+          <h2 id="count-belum" class="text-3xl font-extrabold text-gray-800 mt-1"><i class="fa-solid fa-spinner fa-spin text-gray-300 text-2xl"></i></h2>
           <p class="text-[11px] text-gray-500 mt-1">Sumber: Sheet "Full Data" + "target" (Kolom I terisi)</p>
         </div>
         <div class="bg-amber-100 text-amber-600 w-12 h-12 rounded-xl flex items-center justify-center text-xl">
@@ -49,7 +54,7 @@
       <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-emerald-500 flex justify-between items-center">
         <div>
           <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Perangkat Sudah Diambil</p>
-          <h2 id="count-sudah" class="text-3xl font-extrabold text-gray-800 mt-1">0</h2>
+          <h2 id="count-sudah" class="text-3xl font-extrabold text-gray-800 mt-1"><i class="fa-solid fa-spinner fa-spin text-gray-300 text-2xl"></i></h2>
           <p class="text-[11px] text-gray-500 mt-1">Sumber: Sheet "sudah diambil"</p>
         </div>
         <div class="bg-emerald-100 text-emerald-600 w-12 h-12 rounded-xl flex items-center justify-center text-xl">
@@ -61,7 +66,7 @@
       <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-blue-500 flex justify-between items-center">
         <div>
           <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Info Perangkat Lapangan</p>
-          <h2 id="count-info" class="text-3xl font-extrabold text-gray-800 mt-1">0</h2>
+          <h2 id="count-info" class="text-3xl font-extrabold text-gray-800 mt-1"><i class="fa-solid fa-spinner fa-spin text-gray-300 text-2xl"></i></h2>
           <p class="text-[11px] text-gray-500 mt-1">Sumber: Sheet "Baris 1"</p>
         </div>
         <div class="bg-blue-100 text-blue-600 w-12 h-12 rounded-xl flex items-center justify-center text-xl">
@@ -80,57 +85,61 @@
     }
 
     async function fetchDashboardStats() {
+      // Tampilkan indikator loading ringan
+      document.getElementById('count-belum').innerHTML = `<i class="fa-solid fa-spinner fa-spin text-gray-300 text-2xl"></i>`;
+      document.getElementById('count-sudah').innerHTML = `<i class="fa-solid fa-spinner fa-spin text-gray-300 text-2xl"></i>`;
+      document.getElementById('count-info').innerHTML = `<i class="fa-solid fa-spinner fa-spin text-gray-300 text-2xl"></i>`;
+
       try {
         const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getAllData`);
+        if (!res.ok) throw new Error("Koneksi gagal");
+        
         const data = await res.json();
 
-        // 1. Hitung "Full Data" (biasanya dikurangi 1 untuk header jika ada baris pertama)
+        // --- OPTIMASI 1: Hitung Full Data secara efisien ---
         let countFullData = 0;
-        if (data["Full Data"]) {
-          let rows = data["Full Data"].filter(r => r && r.length > 0 && r.some(cell => cell !== ""));
-          // Cek apakah baris pertama header atau data murni
-          countFullData = rows.length > 0 ? rows.length - 1 : 0;
-          if (countFullData < 0) countFullData = 0;
+        if (data["Full Data"] && Array.isArray(data["Full Data"])) {
+          const len = data["Full Data"].length;
+          countFullData = len > 1 ? len - 1 : 0; // Langsung kurangi header tanpa looping berat
         }
 
-        // 2. Hitung "target" HANYA yang kolom I (index 8) ada isinya / tidak kosong
+        // --- OPTIMASI 2: Hitung target (Hanya Kolom I terisi) ---
         let countTargetValid = 0;
-        if (data["target"]) {
-          let targetRows = data["target"];
-          // Mulai dari baris ke-1 (indeks 1) mengasumsikan baris 0 adalah header
-          for (let i = 1; i < targetRows.length; i++) {
-            let r = targetRows[i];
-            if (r && r.length > 8) {
-              let kolomI = r[8]; // Indeks 8 adalah Kolom I
-              if (kolomI !== undefined && kolomI !== null && String(kolomI).trim() !== "") {
-                countTargetValid++;
-              }
+        if (data["target"] && Array.isArray(data["target"])) {
+          const targetRows = data["target"];
+          const len = targetRows.length;
+          // Gunakan for loop biasa (paling cepat di JS)
+          for (let i = 1; i < len; i++) {
+            const r = targetRows[i];
+            if (r && r.length > 8 && r[8] !== undefined && r[8] !== null && String(r[8]).trim() !== "") {
+              countTargetValid++;
             }
           }
         }
 
-        let totalBelumDiambil = countFullData + countTargetValid;
-        document.getElementById('count-belum').innerText = totalBelumDiambil;
+        // Render Angka Kartu 1
+        document.getElementById('count-belum').innerText = countFullData + countTargetValid;
 
-        // 3. Hitung "sudah diambil"
+        // --- OPTIMASI 3: Hitung "sudah diambil" ---
         let countSudah = 0;
-        if (data["sudah diambil"]) {
-          let rows = data["sudah diambil"].filter(r => r && r.length > 0 && r.some(cell => cell !== ""));
-          countSudah = rows.length; // Sheet sudah diambil langsung dihitung baris datanya
+        if (data["sudah diambil"] && Array.isArray(data["sudah diambil"])) {
+          countSudah = data["sudah diambil"].length;
         }
         document.getElementById('count-sudah').innerText = countSudah;
 
-        // 4. Hitung "Baris 1" (Info Perangkat)
+        // --- OPTIMASI 4: Hitung "Baris 1" ---
         let countInfo = 0;
-        if (data["Baris 1"]) {
-          let rows = data["Baris 1"].filter(r => r && r.length > 0 && r.some(cell => cell !== ""));
-          countInfo = rows.length > 0 ? rows.length - 1 : 0;
-          if (countInfo < 0) countInfo = 0;
+        if (data["Baris 1"] && Array.isArray(data["Baris 1"])) {
+          const len = data["Baris 1"].length;
+          countInfo = len > 1 ? len - 1 : 0;
         }
         document.getElementById('count-info').innerText = countInfo;
 
       } catch (err) {
         console.error("Gagal memuat statistik dashboard:", err);
+        document.getElementById('count-belum').innerText = "0";
+        document.getElementById('count-sudah').innerText = "0";
+        document.getElementById('count-info').innerText = "0";
       }
     }
 
@@ -139,6 +148,7 @@
       window.location.href = "login.html";
     }
 
+    // Jalankan penghitungan cepat saat halaman dibuka
     window.onload = fetchDashboardStats;
   </script>
 </body>
