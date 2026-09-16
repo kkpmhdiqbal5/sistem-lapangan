@@ -90,12 +90,12 @@
   </div>
 
   <script>
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHOXnA4YsBeNdPDUxXwPhsJHPJo7k7E4IqItpNOKLjfsYeQce7a9Gda8p-3p-Ys6tJkg/exec";
-    const BOT_TOKEN_RUMAH = "8782461297:AAF86N2WvKmbbhbQEnQ7rzfaHmPhxmVf5Xg";
-    const BOT_TOKEN_ALAT = "8903234783:AAEw2CyDfh_hNyVTEUxgF-h0XTiNvL01u14";
-    
-    // ⚠️ MASUKKAN ID GROUP TELEGRAM ANDA DI SINI (Contoh: "-100234567890" atau "-5503649230")
-    const TELEGRAM_CHAT_ID = "-1005503649230"; 
+    // Ganti dengan ID Grup dari @userinfobot (Wajib ada tanda minus dan -100 di depan)
+  const TELEGRAM_CHAT_ID = "-1005503649230"; 
+
+  const BOT_TOKEN_RUMAH = "8782461297:AAF86N2WvKmbbhbQEnQ7rzfaHmPhxmVf5Xg";
+  const BOT_TOKEN_ALAT = "8903234783:AAEw2CyDfh_hNyVTEUxgF-h0XTiNvL01u14";
+  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHOXnA4YsBeNdPDUxXwPhsJHPJo7k7E4IqItpNOKLjfsYeQce7a9Gda8p-3p-Ys6tJkg/exec";
 
     let map;
     window.onload = function() {
@@ -114,41 +114,41 @@
       }
     };
 
-    async function uploadToTelegram(fileInputId, botToken) {
-      const fileInput = document.getElementById(fileInputId);
-      if (!fileInput || !fileInput.files[0]) return "";
 
-      const formData = new FormData();
-      formData.append("chat_id", TELEGRAM_CHAT_ID);
-      formData.append("photo", fileInput.files[0]);
+  async function uploadToTelegram(fileInputId, botToken) {
+    const fileInput = document.getElementById(fileInputId);
+    if (!fileInput || !fileInput.files[0]) return "";
 
-      try {
-        const res = await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, { 
-          method: 'POST', 
-          body: formData 
-        });
-        const data = await res.json();
-        
-        if (data.ok) {
-          const fileId = data.result.photo[data.result.photo.length - 1].file_id;
-          const pathRes = await fetch(`https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}`);
-          const pathData = await pathRes.json();
-          
-          if (pathData.ok) {
-            return `https://api.telegram.org/file/bot${botToken}/${pathData.result.file_path}`;
-          }
-        } else {
-          console.error("Detail Error Telegram:", data);
-          alert(`Gagal Upload (${fileInputId}): ` + data.description);
-          return "";
+    const formData = new FormData();
+    formData.append("chat_id", TELEGRAM_CHAT_ID);
+    formData.append("photo", fileInput.files[0]);
+
+    try {
+      const res = await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, { 
+        method: 'POST', 
+        body: formData 
+      });
+      const data = await res.json();
+
+      if (data.ok) {
+        const fileId = data.result.photo[data.result.photo.length - 1].file_id;
+        const pathRes = await fetch(`https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}`);
+        const pathData = await pathRes.json();
+
+        if (pathData.ok) {
+          return `https://api.telegram.org/file/bot${botToken}/${pathData.result.file_path}`;
         }
-      } catch (e) {
-        console.error("Upload Error:", e);
-        alert("Terjadi kesalahan koneksi saat unggah foto.");
+      } else {
+        console.error("Error Telegram:", data);
+        alert(`Gagal Kirim (${fileInputId}): ${data.description}`);
+        return "Gagal Upload";
       }
-      return "";
+    } catch (err) {
+      console.error("Network Error:", err);
+      alert("Gagal koneksi ke Telegram");
+      return "Gagal Upload";
     }
-
+  }
     async function submitForm(e) {
       e.preventDefault();
       const btn = document.getElementById('btn-submit');
