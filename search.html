@@ -38,9 +38,9 @@
           <label class="block font-bold text-gray-500 uppercase mb-1">PILIH SUMBER KATEGORI</label>
           <select id="filter-sheet" onchange="filterData()" class="w-full border p-2.5 rounded bg-white outline-none focus:ring-1 focus:ring-indigo-500 font-medium">
             <option value="semua">Semua Sumber Sheet Gabungan</option>
-            <option value="PERANGKAT_BELOM_DI_AMBIL">PERANGKAT BELOM DI AMBIL (Full Data & Target)</option>
+            <option value="PERANGKAT_BELOM_DI_AMBIL">PERANGKAT BELOM DI AMBIL</option>
             <option value="SUDAH_DI_AMBIL">SUDAH DI AMBIL</option>
-            <option value="INFO_PERANGKAT">INFO PERANGKAT (Baris 1)</option>
+            <option value="INFO_PERANGKAT">INFO PERANGKAT</option>
           </select>
         </div>
         <div>
@@ -168,7 +168,7 @@
           let idxODP = headers.findIndex(h => h === "ODP");
           let idxPOP = headers.findIndex(h => h === "POP");
           
-          // Khusus Baris 1, ambil sherlok dari kolom "LINK MAPS" atau "LINK MAP"
+          // Logika Sherlok: Khusus Baris 1 ambil dari kolom "LINK MAPS" atau "LINK MAP"
           let idxSherlok = -1;
           if (sheetName === "Baris 1") {
             idxSherlok = headers.findIndex(h => h.includes("LINK MAP") || h.includes("MAPS"));
@@ -246,8 +246,8 @@
       let html = "";
       matchedRows.forEach((item) => {
         let renderSherlok = item.sherlok && item.sherlok.startsWith('http') ? 
-          `<a href="${item.sherlok}" target="_blank" class="text-blue-600 underline font-mono text-[11px]">Buka Map</a>` : 
-          `<span class="text-blue-600 font-mono text-[11px]">${item.sherlok}</span>`;
+          `<a href="${item.sherlok}" target="_blank" class="text-blue-600 underline font-mono text-[11px] font-semibold"><i class="fa-solid fa-map-location-dot mr-1"></i> Buka Map</a>` : 
+          `<span class="text-gray-600 font-mono text-[11px]">${item.sherlok}</span>`;
 
         let renderFotoRumah = item.fotoRumah && item.fotoRumah.startsWith('http') ? 
           `<img src="${item.fotoRumah}" class="w-10 h-10 object-cover rounded cursor-pointer mx-auto border shadow-sm hover:scale-110 transition" onclick="openModal('${item.fotoRumah}')">` : 
