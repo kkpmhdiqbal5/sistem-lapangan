@@ -8,12 +8,12 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <!-- Pustaka Barcode/QR Code Scanner Direct Web -->
+  <!-- Barcode & QR Code Scanner -->
   <script src="https://unpkg.com/html5-qrcode"></script>
 
   <style>
-    #map { height: 180px; width: 100%; border-radius: 8px; }
-    .camera-preview { width: 100%; max-height: 250px; object-fit: cover; border-radius: 8px; background: #000; }
+    #map { height: 190px; width: 100%; border-radius: 8px; }
+    .camera-preview { width: 100%; max-height: 240px; object-fit: cover; border-radius: 8px; background: #000; }
   </style>
 </head>
 <body class="bg-gray-100 font-sans">
@@ -35,6 +35,7 @@
     <div class="bg-white p-6 rounded-b-xl shadow-md border border-t-0 space-y-4">
       <div id="map"></div>
 
+      <!-- Hidden Iframe untuk pengiriman Form direct -->
       <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(submitted) { onSuccessSubmit(); }"></iframe>
 
       <form id="form-lapangan" action="https://script.google.com/macros/s/AKfycbyHOXnA4YsBeNdPDUxXwPhsJHPJo7k7E4IqItpNOKLjfsYeQce7a9Gda8p-3p-Ys6tJkg/exec" method="POST" target="hidden_iframe" onsubmit="onFormSubmit(event)" class="space-y-4">
@@ -49,7 +50,7 @@
           <input type="text" id="odp" name="odp" required placeholder="Pilih ODP atau ketik baru" class="w-full border border-gray-300 p-2.5 rounded-md text-sm outline-none focus:ring-2 focus:ring-indigo-500">
         </div>
 
-        <!-- DROPDOWN OPTION POP -->
+        <!-- DROPDOWN POP -->
         <div>
           <label class="block text-xs font-bold text-gray-600 uppercase mb-1">POP *</label>
           <select id="pop" name="pop" required class="w-full border border-gray-300 p-2.5 rounded-md text-sm outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
@@ -120,7 +121,7 @@
           <input type="hidden" name="foto_alat_url" id="foto_alat_url">
         </div>
 
-        <!-- INPUT SERIAL NUMBER DENGAN PEMINDAI BARCODE DIRECT -->
+        <!-- SERIAL NUMBER (SN & PSN) WITH DIRECT SCANNER -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label class="block text-xs font-bold text-gray-600 uppercase mb-1">SERIAL NUMBER (SN) UNIT *</label>
@@ -156,7 +157,7 @@
     </div>
   </div>
 
-  <!-- MODAL LIVE CAMERA BARCODE SCANNER -->
+  <!-- MODAL SCANNER BARCODE -->
   <div id="scanner-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
     <div class="bg-white p-5 rounded-xl max-w-md w-full text-center space-y-4 shadow-2xl">
       <div class="flex justify-between items-center border-b pb-2">
@@ -172,7 +173,8 @@
     const TELEGRAM_CHAT_ID = "8476745358"; 
     const BOT_TOKEN_RUMAH = "8782461297:AAF86N2WvKmbbhbQEnQ7rzfaHmPhxmVf5Xg";
     const BOT_TOKEN_ALAT = "8903234783:AAEw2CyDfh_hNyVTEUxgF-h0XTiNvL01u14";
-    
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHOXnA4YsBeNdPDUxXwPlsJHPJo7k7E4IqItpNOKLjfsYeQce7a9Gda8p-3p-Ys6tJkg/exec";
+
     let submitted = false;
     let cameraStreams = { rumah: null, alat: null };
     let capturedBlobs = { rumah: null, alat: null };
@@ -199,7 +201,7 @@
       }
     };
 
-    // 2. KAMERA WEB UNTUK FOTO
+    // 2. KAMERA LIVE WEB FOTO
     async function startCamera(type) {
       stopCamera(type);
       const video = document.getElementById(`video-${type}`);
@@ -218,7 +220,7 @@
         cameraStreams[type] = stream;
         video.srcObject = stream;
       } catch (err) {
-        alert("Gagal membuka kamera. Izinkan akses kamera di browser Anda.");
+        alert("Izinkan akses kamera pada browser Anda.");
       }
     }
 
@@ -274,7 +276,7 @@
       }
     }
 
-    // 3. FITUR SCANNER BARCODE DIRECT WEB
+    // 3. SCANNER BARCODE LIVE WEB
     function openScanner(targetId) {
       activeScanTarget = targetId;
       document.getElementById('scanner-modal').classList.remove('hidden');
@@ -290,11 +292,9 @@
           document.getElementById(activeScanTarget).value = decodedText;
           closeScanner();
         },
-        (errorMessage) => {
-          // Frame error diproses diam-diam
-        }
+        () => {}
       ).catch(err => {
-        alert("Kamera scanner tidak dapat diakses.");
+        alert("Kamera pemindai tidak dapat diakses.");
         closeScanner();
       });
     }
@@ -335,7 +335,7 @@
       }
     }
 
-    // 5. SUBMIT FORM
+    // 5. SUBMIT FORM (DUAL METHOD FALLBACK)
     async function onFormSubmit(e) {
       e.preventDefault();
 
@@ -356,12 +356,35 @@
       document.getElementById('foto_rumah_url').value = urlFotoRumah;
       document.getElementById('foto_alat_url').value = urlFotoAlat;
 
+      // Jalankan kirim via URLSearchParams paralel sebagai backup penulisan pasti
+      const payload = new URLSearchParams();
+      payload.append('koordinat', document.getElementById('koordinat').value);
+      payload.append('odp', document.getElementById('odp').value);
+      payload.append('pop', document.getElementById('pop').value);
+      payload.append('cid_lama', document.getElementById('cid_lama').value);
+      payload.append('nama_lama', document.getElementById('nama_lama').value);
+      payload.append('sn', document.getElementById('sn').value);
+      payload.append('keterangan', document.getElementById('keterangan').value);
+      payload.append('foto_rumah_url', urlFotoRumah);
+      payload.append('foto_alat_url', urlFotoAlat);
+      payload.append('link_maps', document.getElementById('link_maps').value);
+      payload.append('psn', document.getElementById('psn').value);
+
+      try {
+        await fetch(GOOGLE_SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: payload.toString()
+        });
+      } catch(e) {}
+
       submitted = true;
       document.getElementById('form-lapangan').submit();
     }
 
     function onSuccessSubmit() {
-      alert("Data Lapangan Berhasil Disimpan di Tabel Google Sheet & Telegram!");
+      alert("Data Lapangan Berhasil Disimpan ke Sheet 'Baris 1' & Foto Terkirim ke Telegram!");
       
       stopCamera('rumah');
       stopCamera('alat');
