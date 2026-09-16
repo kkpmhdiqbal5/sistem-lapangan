@@ -117,6 +117,7 @@
   </div>
 
   <script>
+    // URL Web App terbaru Anda
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHOXnA4YsBeNdPDUxXwPlsJHPJo7k7E4IqItpNOKLjfsYeQce7a9Gda8p-3p-Ys6tJkg/exec";
     let masterData = {};
 
@@ -126,14 +127,16 @@
 
     async function loadAllData() {
       const tbody = document.getElementById('table-body');
-      tbody.innerHTML = `<tr><td colspan="12" class="p-8 text-center text-gray-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Mengambil data...</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="12" class="p-8 text-center text-gray-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Mengambil data dari server...</td></tr>`;
       
       try {
         const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getAllData`);
+        if (!res.ok) throw new Error("Gagal terhubung ke server");
         masterData = await res.json();
         filterData();
       } catch (err) {
-        tbody.innerHTML = `<tr><td colspan="12" class="p-8 text-center text-rose-500">Gagal memuat data dari spreadsheet.</td></tr>`;
+        console.error(err);
+        tbody.innerHTML = `<tr><td colspan="12" class="p-8 text-center text-rose-500 font-semibold">Gagal memuat data dari spreadsheet. Pastikan izin akses Web App sudah diatur ke 'Anyone'.</td></tr>`;
       }
     }
 
@@ -193,10 +196,7 @@
               let idxCID = headers.findIndex(h === "CID" || h.includes("CID LAMA"));
               let idxODP = headers.findIndex(h => h === "ODP");
               let idxPOP = headers.findIndex(h => h === "POP");
-              
-              // Memastikan pencarian kolom Sherlok mendeteksi teks 'SHERLOCK' atau 'SHERLOK'
               let idxSherlok = headers.findIndex(h => h === "SHERLOK" || h.includes("SHERLOK") || h.includes("SHERLOCK") || h.includes("MAP"));
-
               let idxSN = headers.findIndex(h => h.includes("SN"));
               let idxPSN = headers.findIndex(h => h.includes("P-SN"));
               let idxFotoRumah = headers.findIndex(h => h.includes("FOTO RUMAH"));
@@ -296,10 +296,6 @@
 
       tbody.innerHTML = html;
       updateCheckedCount();
-    }
-
-    function openLink(url) {
-      if(url && url.startsWith('http')) window.open(url, '_blank');
     }
 
     function openModal(url) {
