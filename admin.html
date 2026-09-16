@@ -3,104 +3,143 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard Admin</title>
+  <title>Dashboard Admin - Sistem Cari</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="bg-gray-100 font-sans">
 
-  <!-- NAVBAR -->
+  <!-- NAVBAR ATAS -->
   <nav class="bg-white shadow-sm border-b px-6 py-3 flex justify-between items-center">
-    <div class="font-bold text-gray-800 text-lg flex items-center gap-2">
-      <i class="fa-solid fa-gauge text-indigo-600"></i> Dashboard Admin
+    <div class="font-bold text-gray-800 text-base flex items-center gap-2">
+      Dashboard Admin
     </div>
     <div class="flex items-center gap-2">
-      <a href="index.html" class="bg-sky-600 text-white hover:bg-sky-700 px-3 py-2 rounded-md text-sm font-medium flex items-center gap-1.5 transition">
+      <a href="index.html" class="bg-white border text-gray-700 hover:bg-gray-50 px-3 py-1.5 rounded text-xs font-medium flex items-center gap-1.5 shadow-sm">
         <i class="fa-solid fa-satellite-dish"></i> Sistem Lapangan
       </a>
-      <a href="search.html" class="bg-emerald-600 text-white hover:bg-emerald-700 px-3 py-2 rounded-md text-sm font-medium flex items-center gap-1.5 transition">
-        <i class="fa-solid fa-magnifying-glass"></i> Sistem Cari
+      <a href="search.html" class="bg-emerald-600 text-white hover:bg-emerald-700 px-3 py-1.5 rounded text-xs font-medium flex items-center gap-1.5 shadow-sm">
+        <i class="fa-solid fa-search"></i> Sistem Cari
       </a>
-      <button onclick="logout()" class="bg-rose-600 text-white hover:bg-rose-700 px-3 py-2 rounded-md text-sm font-medium flex items-center gap-1.5 transition">
+      <button onclick="logout()" class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded text-xs font-medium flex items-center gap-1.5 shadow-sm">
         <i class="fa-solid fa-right-from-bracket"></i> Logout
       </button>
     </div>
   </nav>
 
-  <div class="max-w-6xl mx-auto my-8 px-4 space-y-6">
-    
-    <!-- KARTU STATISTIK (3 KOTAK) -->
+  <!-- KONTROL DASHBOARD -->
+  <div class="max-w-7xl mx-auto my-8 px-4 space-y-6">
+    <h1 class="text-xl font-bold text-gray-800">Ringkasan Data Sistem</h1>
+
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       
-      <!-- Box 1: Perangkat Belum Diambil -->
-      <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-amber-500 flex justify-between items-center">
+      <!-- KARTU 1: PERANGKAT BELUM DIAMBIL (Full Data + Target Kolom I Terisi) -->
+      <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-amber-500 flex justify-between items-center">
         <div>
-          <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">Perangkat Belum Diambil</p>
-          <h2 id="count-belum" class="text-3xl font-extrabold text-gray-800 mt-1">...</h2>
-          <span class="text-xs text-gray-400">Sumber: Sheet "Full Data"</span>
+          <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Perangkat Belum Diambil</p>
+          <h2 id="count-belum" class="text-3xl font-extrabold text-gray-800 mt-1">0</h2>
+          <p class="text-[11px] text-gray-500 mt-1">Sumber: Sheet "Full Data" + "target" (Kolom I terisi)</p>
         </div>
-        <div class="bg-amber-100 p-4 rounded-full text-amber-600 text-2xl">
-          <i class="fa-solid fa-box-open"></i>
-        </div>
-      </div>
-
-      <!-- Box 2: Perangkat Sudah Diambil -->
-      <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-emerald-500 flex justify-between items-center">
-        <div>
-          <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">Perangkat Sudah Diambil</p>
-          <h2 id="count-sudah" class="text-3xl font-extrabold text-gray-800 mt-1">...</h2>
-          <span class="text-xs text-gray-400">Sumber: Sheet "sudah diambil"</span>
-        </div>
-        <div class="bg-emerald-100 p-4 rounded-full text-emerald-600 text-2xl">
+        <div class="bg-amber-100 text-amber-600 w-12 h-12 rounded-xl flex items-center justify-center text-xl">
           <i class="fa-solid fa-box-archive"></i>
         </div>
       </div>
 
-      <!-- Box 3: Info Perangkat / Input Lapangan -->
-      <div class="bg-white p-6 rounded-xl shadow-md border-l-4 border-sky-500 flex justify-between items-center">
+      <!-- KARTU 2: PERANGKAT SUDAH DIAMBIL -->
+      <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-emerald-500 flex justify-between items-center">
         <div>
-          <p class="text-xs font-bold text-gray-500 uppercase tracking-wider">Total Info Perangkat Lapangan</p>
-          <h2 id="count-info" class="text-3xl font-extrabold text-gray-800 mt-1">...</h2>
-          <span class="text-xs text-gray-400">Sumber: Sheet "Baris 1"</span>
+          <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Perangkat Sudah Diambil</p>
+          <h2 id="count-sudah" class="text-3xl font-extrabold text-gray-800 mt-1">0</h2>
+          <p class="text-[11px] text-gray-500 mt-1">Sumber: Sheet "sudah diambil"</p>
         </div>
-        <div class="bg-sky-100 p-4 rounded-full text-sky-600 text-2xl">
+        <div class="bg-emerald-100 text-emerald-600 w-12 h-12 rounded-xl flex items-center justify-center text-xl">
+          <i class="fa-solid fa-box-open"></i>
+        </div>
+      </div>
+
+      <!-- KARTU 3: INFO PERANGKAT LAPANGAN -->
+      <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-blue-500 flex justify-between items-center">
+        <div>
+          <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Info Perangkat Lapangan</p>
+          <h2 id="count-info" class="text-3xl font-extrabold text-gray-800 mt-1">0</h2>
+          <p class="text-[11px] text-gray-500 mt-1">Sumber: Sheet "Baris 1"</p>
+        </div>
+        <div class="bg-blue-100 text-blue-600 w-12 h-12 rounded-xl flex items-center justify-center text-xl">
           <i class="fa-solid fa-clipboard-list"></i>
         </div>
       </div>
 
     </div>
-
   </div>
 
   <script>
-  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHOXnA4YsBeNdPDUxXwPlsJHPJo7k7E4IqItpNOKLjfsYeQce7a9Gda8p-3p-Ys6tJkg/exec";
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHOXnA4YsBeNdPDUxXwPlsJHPJo7k7E4IqItpNOKLjfsYeQce7a9Gda8p-3p-Ys6tJkg/exec";
 
-  // Cek Sesi Login Admin
-  if (localStorage.getItem("admin_logged_in") !== "true") {
-    window.location.href = "login.html";
-  }
-
-  async function loadDashboardStats() {
-    try {
-      const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getDashboard`);
-      const data = await res.json();
-      
-      document.getElementById('count-belum').innerText = data.countBelum ?? 0;
-      document.getElementById('count-sudah').innerText = data.countSudah ?? 0;
-      
-      // Menangkap variabel jumlah data info perangkat
-      document.getElementById('count-info').innerText = data.countInfoPerangkat ?? data.countInfo ?? 0;
-    } catch (err) {
-      console.error(err);
+    if (localStorage.getItem("admin_logged_in") !== "true") {
+      window.location.href = "login.html";
     }
-  }
 
-  function logout() {
-    localStorage.removeItem("admin_logged_in");
-    window.location.href = "login.html";
-  }
+    async function fetchDashboardStats() {
+      try {
+        const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getAllData`);
+        const data = await res.json();
 
-  window.onload = loadDashboardStats;
-</script>
+        // 1. Hitung "Full Data" (biasanya dikurangi 1 untuk header jika ada baris pertama)
+        let countFullData = 0;
+        if (data["Full Data"]) {
+          let rows = data["Full Data"].filter(r => r && r.length > 0 && r.some(cell => cell !== ""));
+          // Cek apakah baris pertama header atau data murni
+          countFullData = rows.length > 0 ? rows.length - 1 : 0;
+          if (countFullData < 0) countFullData = 0;
+        }
+
+        // 2. Hitung "target" HANYA yang kolom I (index 8) ada isinya / tidak kosong
+        let countTargetValid = 0;
+        if (data["target"]) {
+          let targetRows = data["target"];
+          // Mulai dari baris ke-1 (indeks 1) mengasumsikan baris 0 adalah header
+          for (let i = 1; i < targetRows.length; i++) {
+            let r = targetRows[i];
+            if (r && r.length > 8) {
+              let kolomI = r[8]; // Indeks 8 adalah Kolom I
+              if (kolomI !== undefined && kolomI !== null && String(kolomI).trim() !== "") {
+                countTargetValid++;
+              }
+            }
+          }
+        }
+
+        let totalBelumDiambil = countFullData + countTargetValid;
+        document.getElementById('count-belum').innerText = totalBelumDiambil;
+
+        // 3. Hitung "sudah diambil"
+        let countSudah = 0;
+        if (data["sudah diambil"]) {
+          let rows = data["sudah diambil"].filter(r => r && r.length > 0 && r.some(cell => cell !== ""));
+          countSudah = rows.length; // Sheet sudah diambil langsung dihitung baris datanya
+        }
+        document.getElementById('count-sudah').innerText = countSudah;
+
+        // 4. Hitung "Baris 1" (Info Perangkat)
+        let countInfo = 0;
+        if (data["Baris 1"]) {
+          let rows = data["Baris 1"].filter(r => r && r.length > 0 && r.some(cell => cell !== ""));
+          countInfo = rows.length > 0 ? rows.length - 1 : 0;
+          if (countInfo < 0) countInfo = 0;
+        }
+        document.getElementById('count-info').innerText = countInfo;
+
+      } catch (err) {
+        console.error("Gagal memuat statistik dashboard:", err);
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem("admin_logged_in");
+      window.location.href = "login.html";
+    }
+
+    window.onload = fetchDashboardStats;
+  </script>
 </body>
 </html>
