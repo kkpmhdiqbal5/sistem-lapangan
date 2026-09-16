@@ -117,7 +117,6 @@
   </div>
 
   <script>
-    // URL Web App terbaru Anda
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHOXnA4YsBeNdPDUxXwPlsJHPJo7k7E4IqItpNOKLjfsYeQce7a9Gda8p-3p-Ys6tJkg/exec";
     let masterData = {};
 
@@ -136,7 +135,7 @@
         filterData();
       } catch (err) {
         console.error(err);
-        tbody.innerHTML = `<tr><td colspan="12" class="p-8 text-center text-rose-500 font-semibold">Gagal memuat data dari spreadsheet. Pastikan izin akses Web App sudah diatur ke 'Anyone'.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="12" class="p-8 text-center text-rose-500 font-semibold">Gagal memuat data dari spreadsheet. Silakan periksa koneksi atau coba Refresh.</td></tr>`;
       }
     }
 
@@ -191,16 +190,16 @@
             } else {
               let headers = rows[0].map(h => String(h).toUpperCase().trim());
 
-              let idxTime = headers.findIndex(h => h === "TIME" || h.includes("TIME"));
-              let idxNama = headers.findIndex(h === "NAMA" || h.includes("NAMA LAMA"));
-              let idxCID = headers.findIndex(h === "CID" || h.includes("CID LAMA"));
-              let idxODP = headers.findIndex(h => h === "ODP");
-              let idxPOP = headers.findIndex(h => h === "POP");
-              let idxSherlok = headers.findIndex(h => h === "SHERLOK" || h.includes("SHERLOK") || h.includes("SHERLOCK") || h.includes("MAP"));
+              let idxTime = headers.findIndex(h => h === "TIME" || h.includes("TIME") || h.includes("WAKTU"));
+              let idxNama = headers.findIndex(h => h === "NAMA" || h.includes("NAMA"));
+              let idxCID = headers.findIndex(h => h === "CID" || h.includes("CID"));
+              let idxODP = headers.findIndex(h => h === "ODP" || h.includes("ODP"));
+              let idxPOP = headers.findIndex(h => h === "POP" || h.includes("POP"));
+              let idxSherlok = headers.findIndex(h => h.includes("SHERLOK") || h.includes("SHERLOCK") || h.includes("MAP"));
               let idxSN = headers.findIndex(h => h.includes("SN"));
-              let idxPSN = headers.findIndex(h => h.includes("P-SN"));
-              let idxFotoRumah = headers.findIndex(h => h.includes("FOTO RUMAH"));
-              let idxFotoAlat = headers.findIndex(h => h.includes("FOTO ALAT"));
+              let idxPSN = headers.findIndex(h => h.includes("P-SN") || h.includes("PSN"));
+              let idxFotoRumah = headers.findIndex(h => h.includes("FOTO RUMAH") || h.includes("RUMAH"));
+              let idxFotoAlat = headers.findIndex(h => h.includes("FOTO ALAT") || h.includes("ALAT"));
 
               waktu = (idxTime !== -1 && r[idxTime]) ? String(r[idxTime]) : '-';
               nama = (idxNama !== -1 && r[idxNama]) ? String(r[idxNama]) : '-';
