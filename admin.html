@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -39,7 +38,7 @@
         <!-- HEADER ADMIN -->
         <div class="flex justify-between items-center bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
             <div class="flex items-center gap-3">
-                <a href="lapangan.html" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1">
+                <a href="index.html" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1">
                     <i class="fas fa-arrow-left"></i> Input Form
                 </a>
                 <h2 class="text-base font-extrabold text-gray-800"><i class="fas fa-chart-line text-indigo-600 mr-1"></i> Dashboard Admin</h2>
@@ -159,7 +158,9 @@
     <div id="toast" class="toast-msg">Notifikasi</div>
 
 <script>
-    const GAS_WEB_APP_URL = "MASUKKAN_URL_GOOGLE_APPS_SCRIPT_DI_SINI";
+    // MASUKKAN URL GOOGLE APPS SCRIPT YANG SAMA DENGAN INDEX.HTML
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycb.../exec"; // GANTI INI
+
     let globalAdminData = [], filteredAdminData = [];
 
     window.addEventListener('load', () => {
@@ -380,5 +381,3 @@
 </script>
 </body>
 </html>
-
-```
