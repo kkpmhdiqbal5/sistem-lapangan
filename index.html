@@ -139,44 +139,47 @@
       }
     }
 
-    async function submitForm(e) {
+async function submitForm(e) {
       e.preventDefault();
       const btn = document.getElementById('btn-submit');
       btn.innerText = "Mengirim Data & Mengunggah Foto...";
       btn.disabled = true;
 
-      const koordinat = document.getElementById('koordinat').value;
-      const linkMaps = `https://www.google.com/maps?q=${koordinat.replace(/\s+/g, '')}`;
-
-      const [urlFotoRumah, urlFotoAlat] = await Promise.all([
-        uploadToTelegram('foto_rumah', BOT_TOKEN_RUMAH, `Foto Rumah\nODP: ${document.getElementById('odp').value}`),
-        uploadToTelegram('foto_alat', BOT_TOKEN_ALAT, `Foto Alat\nSN: ${document.getElementById('sn').value}`)
-      ]);
-
-      const payload = new URLSearchParams();
-      payload.append('koordinat', koordinat);
-      payload.append('odp', document.getElementById('odp').value);
-      payload.append('pop', document.getElementById('pop').value);
-      payload.append('cid_lama', document.getElementById('cid_lama').value);
-      payload.append('nama_lama', document.getElementById('nama_lama').value);
-      payload.append('sn', document.getElementById('sn').value);
-      payload.append('keterangan', document.getElementById('keterangan').value);
-      payload.append('foto_rumah', urlFotoRumah);
-      payload.append('foto_alat', urlFotoAlat);
-      payload.append('link_maps', linkMaps);
-      payload.append('psn', document.getElementById('psn').value);
-
       try {
+        const koordinat = document.getElementById('koordinat').value;
+        const linkMaps = `https://www.google.com/maps?q=${koordinat.replace(/\s+/g, '')}`;
+
+        // 1. Upload Foto ke Telegram
+        const [urlFotoRumah, urlFotoAlat] = await Promise.all([
+          uploadToTelegram('foto_rumah', BOT_TOKEN_RUMAH, `Foto Rumah\nODP: ${document.getElementById('odp').value}`),
+          uploadToTelegram('foto_alat', BOT_TOKEN_ALAT, `Foto Alat\nSN: ${document.getElementById('sn').value}`)
+        ]);
+
+        // 2. Buat FormData untuk dikirim ke Google Sheet
+        const formData = new FormData();
+        formData.append('koordinat', koordinat);
+        formData.append('odp', document.getElementById('odp').value);
+        formData.append('pop', document.getElementById('pop').value);
+        formData.append('cid_lama', document.getElementById('cid_lama').value);
+        formData.append('nama_lama', document.getElementById('nama_lama').value);
+        formData.append('sn', document.getElementById('sn').value);
+        formData.append('keterangan', document.getElementById('keterangan').value);
+        formData.append('foto_rumah', urlFotoRumah);
+        formData.append('foto_alat', urlFotoAlat);
+        formData.append('link_maps', linkMaps);
+        formData.append('psn', document.getElementById('psn').value);
+
+        // 3. Kirim data ke Google Apps Script
         await fetch(GOOGLE_SCRIPT_URL, {
           method: 'POST',
           mode: 'no-cors',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          body: payload.toString()
+          body: formData
         });
 
         alert("Data Lapangan Berhasil Disimpan Lengkap ke Google Sheet!");
         document.getElementById('form-lapangan').reset();
       } catch (err) {
+        console.error(err);
         alert("Gagal menyimpan data ke Google Sheet.");
       } finally {
         btn.innerText = "Kirim Data Lapangan";
