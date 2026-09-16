@@ -93,8 +93,6 @@
   const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHOXnA4YsBeNdPDUxXwPlsJHPJo7k7E4IqItpNOKLjfsYeQce7a9Gda8p-3p-Ys6tJkg/exec";
   const BOT_TOKEN_RUMAH = "8782461297:AAF86N2WvKmbbhbQEnQ7rzfaHmPhxmVf5Xg";
   const BOT_TOKEN_ALAT = "8903234783:AAEw2CyDfh_hNyVTEUxgF-h0XTiNvL01u14";
-  
-  // Chat ID dari Telegram Anda
   const TELEGRAM_CHAT_ID = "8475745358"; 
 
   let map;
@@ -114,7 +112,6 @@
     }
   };
 
-  // Fungsi Upload Foto ke Telegram Bot
   async function uploadToTelegram(fileInputId, botToken) {
     const fileInput = document.getElementById(fileInputId);
     if (!fileInput || !fileInput.files[0]) return "";
@@ -137,13 +134,18 @@
           return `https://api.telegram.org/file/bot${botToken}/${pathData.result.file_path}`;
         }
       } else {
-        console.error("Telegram API Error:", data.description);
-        alert("Gagal kirim foto ke Telegram: " + data.description);
+        console.error("Telegram Error:", data.description);
+        // Jika error chat not found, berikan petunjuk jelas ke user
+        if (data.description.includes("chat not found")) {
+          alert("PERHATIAN: Buka Telegram Anda dan tekan START pada kedua Bot terlebih dahulu!");
+        } else {
+          alert("Gagal kirim foto: " + data.description);
+        }
       }
     } catch (e) {
-      console.error("Upload Telegram Error:", e);
+      console.error("Upload Error:", e);
     }
-    return "";
+    return "Gagal Upload";
   }
 
   async function submitForm(e) {
@@ -152,7 +154,6 @@
     btn.innerText = "Mengirim Data & Mengunggah Foto...";
     btn.disabled = true;
 
-    // Upload Foto
     const urlFotoRumah = await uploadToTelegram('foto_rumah', BOT_TOKEN_RUMAH);
     const urlFotoAlat = await uploadToTelegram('foto_alat', BOT_TOKEN_ALAT);
 
