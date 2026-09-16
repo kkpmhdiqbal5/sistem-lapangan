@@ -62,7 +62,7 @@
         </div>
       </div>
 
-      <!-- INFO HASIL & TOMBOL AKSI (Tanpa Pop-up) -->
+      <!-- INFO HASIL & TOMBOL AKSI -->
       <div class="flex flex-wrap justify-between items-center pt-2 border-t text-xs gap-3">
         <span id="total-hasil" class="font-bold text-gray-600">Total Hasil: 0 Data</span>
         <div class="flex flex-wrap gap-2">
@@ -105,7 +105,7 @@
   </div>
 
   <script>
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHOXnA4YsBeNdPDUxXwPlsJHPJo7k7E4IqItpNOKLjfsYeQce7a9Gda8p-3p-Ys6tJkg/exec";
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHOXnA4YsBeNdPDUxXwPhsJHPJo7k7E4IqItpNOKLjfsYeQce7a9Gda8p-3p-Ys6tJkg/exec";
     let masterData = {};
 
     if (localStorage.getItem("admin_logged_in") !== "true") {
@@ -130,6 +130,7 @@
       const criteria = document.getElementById('filter-criteria').value;
       const keyword = document.getElementById('filter-keyword').value.toLowerCase().trim();
 
+      // Tentukan sheet mana saja yang akan dibaca berdasarkan kategori
       let targetSheets = [];
       if (category === "belum_diambil") {
         targetSheets = ["Full Data", "target"];
@@ -138,7 +139,8 @@
       } else if (category === "info_perangkat") {
         targetSheets = ["Baris 1"];
       } else {
-        targetSheets = ["Full Data", "target", "sudah diambil", "Baris 1"];
+        // Ambil semua sheet yang ada di masterData kecuali sheet sistem/kontrol jika ada
+        targetSheets = Object.keys(masterData);
       }
 
       let matchedRows = [];
@@ -146,49 +148,27 @@
       targetSheets.forEach(sheetName => {
         let rows = masterData[sheetName] || [];
         if (rows.length > 1) {
-          // Ambil header di baris pertama untuk mendeteksi posisi kolom secara dinamis
-          let headers = rows[0].map(h => String(h).toLowerCase().trim());
+          // Cari indeks kolom berdasarkan nama header baris pertama secara otomatis
+          let headers = rows[0].map(h => String(h).toUpperCase().trim());
           
+          let idxTime = headers.indexOf("TIME") !== -1 ? headers.indexOf("TIME") : (headers.indexOf("TIMESTAMP") !== -1 ? headers.indexOf("TIMESTAMP") : 0);
+          let idxNama = headers.indexOf("NAMA") !== -1 ? headers.indexOf("NAMA") : (headers.indexOf("NAMA LAMA") !== -1 ? headers.indexOf("NAMA LAMA") : 1);
+          let idxCID = headers.indexOf("CID") !== -1 ? headers.indexOf("CID") : (headers.indexOf("CID LAMA") !== -1 ? headers.indexOf("CID LAMA") : 2);
+          let idxODP = headers.indexOf("ODP") !== -1 ? headers.indexOf("ODP") : 7;
+          let idxPOP = headers.indexOf("POP") !== -1 ? headers.indexOf("POP") : 8;
+          let idxSN = headers.indexOf("SN UNIT") !== -1 ? headers.indexOf("SN UNIT") : (headers.indexOf("SN") !== -1 ? headers.indexOf("SN") : 6);
+
           for (let i = 1; i < rows.length; i++) {
             let r = rows[i];
             if (!r || r.length === 0 || r.every(cell => cell === "")) continue;
 
-            // Ekstraksi data fleksibel berdasarkan nama header atau posisi umum
-            let waktu = r[0] ? new Date(r[0]).toLocaleString() : '-';
-            
-            // Cari posisi kolom secara aman
-            let odp = "";
-            let pop = "";
-            let cid = "";
-            let nama = "";
-            let snUnit = "";
+            let waktu = r[idxTime] ? new Date(r[idxTime]).toLocaleString() : (r[0] ? new Date(r[0]).toLocaleString() : '-');
+            let odp = String(r[idxODP] || r[7] || r[2] || '-');
+            let pop = String(r[idxPOP] || r[8] || r[3] || '-');
+            let cid = String(r[idxCID] || r[2] || '-');
+            let nama = String(r[idxNama] || r[1] || '-');
+            let snUnit = String(r[idxSN] || r[6] || '-');
 
-            if (sheetName === "Baris 1") {
-              waktu = r[0] ? new Date(r[0]).toLocaleString() : '-';
-              odp = String(r[2] || '-');
-              pop = String(r[3] || '-');
-              cid = String(r[4] || '-');
-              nama = String(r[5] || '-');
-              snUnit = String(r[6] || '-');
-            } else {
-              // Untuk Full Data / target / sudah diambil (berdasarkan struktur gambar Anda)
-              waktu = r[0] ? new Date(r[0]).toLocaleString() : '-';
-              nama = String(r[1] || '-');
-              cid = String(r[2] || '-');
-              let alamat = String(r[4] || '');
-              odp = String(r[7] || '');
-              pop = String(r[8] || '');
-              snUnit = String(r[11] || r[10] || '-');
-              
-              // Jika data teks panjang menumpuk di kolom terakhir (seperti format target Anda)
-              if (!odp || odp === '-') {
-                let fullText = r.join(" ");
-                // Cari pola ODP atau POP manual dari string baris jika kolom terpisah kosong
-                odp = odp || '-';
-              }
-            }
-
-            // Gabungkan seluruh teks baris untuk pencarian universal
             let rowText = r.join(" ").toLowerCase();
             let matchCriteria = false;
 
@@ -211,12 +191,12 @@
             if (matchCriteria) {
               matchedRows.push({
                 sheetAsli: sheetName,
-                waktu: waktu,
-                odp: odp !== "" ? odp : "-",
-                pop: pop !== "" ? pop : "-",
-                cid: cid !== "" ? cid : "-",
-                nama: nama !== "" ? nama : "-",
-                snUnit: snUnit !== "" ? snUnit : "-"
+                waktu: waktu !== "Invalid Date" ? waktu : '-',
+                odp: odp,
+                pop: pop,
+                cid: cid,
+                nama: nama,
+                snUnit: snUnit
               });
             }
           }
@@ -227,7 +207,7 @@
       const tbody = document.getElementById('table-body');
 
       if (matchedRows.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-gray-400">Data tidak ditemukan.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-gray-400">Data tidak ditemukan pada kategori ini.</td></tr>`;
         return;
       }
 
@@ -265,10 +245,9 @@
       document.getElementById('count-checked-2').innerText = checkedCount;
     }
 
-    // Fungsi aksi tanpa pop-up alert mengganggu
-    function sendGroupWA() { /* Aksi kirim gabungan */ }
-    function sendMultipleWA() { /* Aksi kirim sekaligus */ }
-    function sendSingleWA() { /* Aksi kirim satuan */ }
+    function sendGroupWA() {}
+    function sendMultipleWA() {}
+    function sendSingleWA() {}
     
     function logout() {
       localStorage.removeItem("admin_logged_in");
