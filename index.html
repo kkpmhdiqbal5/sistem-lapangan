@@ -86,106 +86,108 @@
   </div>
 
   <script>
-    const TELEGRAM_CHAT_ID = "8476745358"; 
-    const BOT_TOKEN_RUMAH = "8782461297:AAF86N2WvKmbbhbQEnQ7rzfaHmPhxmVf5Xg";
-    const BOT_TOKEN_ALAT = "8903234783:AAEw2CyDfh_hNyVTEUxgF-h0XTiNvL01u14";
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHOXnA4YsBeNdPDUxXwPlsJHPJo7k7E4IqItpNOKLjfsYeQce7a9Gda8p-3p-Ys6tJkg/exec";
+  const TELEGRAM_CHAT_ID = "8476745358"; 
+  const BOT_TOKEN_RUMAH = "8782461297:AAF86N2WvKmbbhbQEnQ7rzfaHmPhxmVf5Xg";
+  const BOT_TOKEN_ALAT = "8903234783:AAEw2CyDfh_hNyVTEUxgF-h0XTiNvL01u14";
+  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHOXnA4YsBeNdPDUxXwPlsJHPJo7k7E4IqItpNOKLjfsYeQce7a9Gda8p-3p-Ys6tJkg/exec";
 
-    let map;
-    window.onload = function() {
-      map = L.map('map').setView([2.883793, 99.184753], 13);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+  let map;
+  window.onload = function() {
+    map = L.map('map').setView([2.883793, 99.184753], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(pos => {
-          const lat = pos.coords.latitude, lng = pos.coords.longitude;
-          document.getElementById('koordinat').value = `${lat}, ${lng}`;
-          map.setView([lat, lng], 16);
-          L.marker([lat, lng]).addTo(map).bindPopup("Lokasi Anda").openPopup();
-        }, () => {
-          document.getElementById('koordinat').value = "2.883793, 99.184753";
-        });
-      }
-    };
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(pos => {
+        const lat = pos.coords.latitude, lng = pos.coords.longitude;
+        document.getElementById('koordinat').value = `${lat}, ${lng}`;
+        map.setView([lat, lng], 16);
+        L.marker([lat, lng]).addTo(map).bindPopup("Lokasi Anda").openPopup();
+      }, () => {
+        document.getElementById('koordinat').value = "2.883793, 99.184753";
+      });
+    }
+  };
 
-    async function uploadToTelegram(fileInputId, botToken, caption) {
-      const fileInput = document.getElementById(fileInputId);
-      if (!fileInput || !fileInput.files[0]) return "Tidak Ada Foto";
+  async function uploadToTelegram(fileInputId, botToken, caption) {
+    const fileInput = document.getElementById(fileInputId);
+    if (!fileInput || !fileInput.files[0]) return "Tidak Ada Foto";
 
-      const formData = new FormData();
-      formData.append("chat_id", TELEGRAM_CHAT_ID);
-      formData.append("photo", fileInput.files[0]);
-      formData.append("caption", caption);
+    const formData = new FormData();
+    formData.append("chat_id", TELEGRAM_CHAT_ID);
+    formData.append("photo", fileInput.files[0]);
+    formData.append("caption", caption);
 
-      try {
-        const res = await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, { 
-          method: 'POST', 
-          body: formData 
-        });
-        const data = await res.json();
+    try {
+      const res = await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, { 
+        method: 'POST', 
+        body: formData 
+      });
+      const data = await res.json();
 
-        if (data.ok) {
-          const fileId = data.result.photo[data.result.photo.length - 1].file_id;
-          const pathRes = await fetch(`https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}`);
-          const pathData = await pathRes.json();
+      if (data.ok) {
+        const fileId = data.result.photo[data.result.photo.length - 1].file_id;
+        const pathRes = await fetch(`https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}`);
+        const pathData = await pathRes.json();
 
-          if (pathData.ok) {
-            return `https://api.telegram.org/file/bot${botToken}/${pathData.result.file_path}`;
-          }
+        if (pathData.ok) {
+          return `https://api.telegram.org/file/bot${botToken}/${pathData.result.file_path}`;
         }
-        return `Gagal Telegram: ${data.description || 'Error'}`;
-      } catch (err) {
-        return "Error Telegram";
       }
+      return `Gagal Telegram: ${data.description || 'Error'}`;
+    } catch (err) {
+      return "Error Telegram";
     }
+  }
 
-async function submitForm(e) {
-      e.preventDefault();
-      const btn = document.getElementById('btn-submit');
-      btn.innerText = "Mengirim Data & Mengunggah Foto...";
-      btn.disabled = true;
+  async function submitForm(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btn-submit');
+    btn.innerText = "Mengirim Data & Mengunggah Foto...";
+    btn.disabled = true;
 
-      try {
-        const koordinat = document.getElementById('koordinat').value;
-        const linkMaps = `https://www.google.com/maps?q=${koordinat.replace(/\s+/g, '')}`;
+    try {
+      const koordinat = document.getElementById('koordinat').value;
+      const linkMaps = `https://www.google.com/maps?q=${koordinat.replace(/\s+/g, '')}`;
 
-        // 1. Upload Foto ke Telegram
-        const [urlFotoRumah, urlFotoAlat] = await Promise.all([
-          uploadToTelegram('foto_rumah', BOT_TOKEN_RUMAH, `Foto Rumah\nODP: ${document.getElementById('odp').value}`),
-          uploadToTelegram('foto_alat', BOT_TOKEN_ALAT, `Foto Alat\nSN: ${document.getElementById('sn').value}`)
-        ]);
+      // Upload Foto
+      const [urlFotoRumah, urlFotoAlat] = await Promise.all([
+        uploadToTelegram('foto_rumah', BOT_TOKEN_RUMAH, `Foto Rumah\nODP: ${document.getElementById('odp').value}`),
+        uploadToTelegram('foto_alat', BOT_TOKEN_ALAT, `Foto Alat\nSN: ${document.getElementById('sn').value}`)
+      ]);
 
-        // 2. Buat FormData untuk dikirim ke Google Sheet
-        const formData = new FormData();
-        formData.append('koordinat', koordinat);
-        formData.append('odp', document.getElementById('odp').value);
-        formData.append('pop', document.getElementById('pop').value);
-        formData.append('cid_lama', document.getElementById('cid_lama').value);
-        formData.append('nama_lama', document.getElementById('nama_lama').value);
-        formData.append('sn', document.getElementById('sn').value);
-        formData.append('keterangan', document.getElementById('keterangan').value);
-        formData.append('foto_rumah', urlFotoRumah);
-        formData.append('foto_alat', urlFotoAlat);
-        formData.append('link_maps', linkMaps);
-        formData.append('psn', document.getElementById('psn').value);
+      // Buat Object Data JSON
+      const payloadData = {
+        koordinat: koordinat,
+        odp: document.getElementById('odp').value,
+        pop: document.getElementById('pop').value,
+        cid_lama: document.getElementById('cid_lama').value,
+        nama_lama: document.getElementById('nama_lama').value,
+        sn: document.getElementById('sn').value,
+        keterangan: document.getElementById('keterangan').value,
+        foto_rumah: urlFotoRumah,
+        foto_alat: urlFotoAlat,
+        link_maps: linkMaps,
+        psn: document.getElementById('psn').value
+      };
 
-        // 3. Kirim data ke Google Apps Script
-        await fetch(GOOGLE_SCRIPT_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          body: formData
-        });
+      // Trik Penting: Gunakan text/plain + JSON.stringify agar tidak kena CORS error di Apps Script
+      await fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify(payloadData)
+      });
 
-        alert("Data Lapangan Berhasil Disimpan Lengkap ke Google Sheet!");
-        document.getElementById('form-lapangan').reset();
-      } catch (err) {
-        console.error(err);
-        alert("Gagal menyimpan data ke Google Sheet.");
-      } finally {
-        btn.innerText = "Kirim Data Lapangan";
-        btn.disabled = false;
-      }
+      alert("Data Lapangan Berhasil Disimpan ke Google Sheet!");
+      document.getElementById('form-lapangan').reset();
+    } catch (err) {
+      console.error(err);
+      alert("Gagal menyimpan data.");
+    } finally {
+      btn.innerText = "Kirim Data Lapangan";
+      btn.disabled = false;
     }
-  </script>
+  }
+</script>
 </body>
 </html>
