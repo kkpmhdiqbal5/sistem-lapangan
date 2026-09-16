@@ -160,43 +160,69 @@
 
       targetSheets.forEach(sheetName => {
         let rows = masterData[sheetName] || [];
-        if (rows.length > 1) {
-          let headers = rows[0].map(h => String(h).toUpperCase().trim());
-
-          let idxTime = headers.findIndex(h => h.includes("TIME") || h.includes("TIMESTAMP"));
-          let idxNama = headers.findIndex(h => h === "NAMA" || h.includes("NAMA LAMA"));
-          let idxCID = headers.findIndex(h => h === "CID" || h.includes("CID LAMA"));
-          let idxODP = headers.findIndex(h => h === "ODP");
-          let idxPOP = headers.findIndex(h => h === "POP");
+        if (rows.length > 0) {
           
-          let idxSherlok = -1;
-          if (sheetName === "Baris 1") {
-            idxSherlok = headers.findIndex(h => h.includes("LINK MAP") || h.includes("MAPS"));
-          }
-          if (idxSherlok === -1) {
-            idxSherlok = headers.findIndex(h => h.includes("SHERLOK") || h.includes("KOORDINAT") || h.includes("LINK MAP"));
-          }
+          let isSudahDiambil = (sheetName.toLowerCase() === "sudah diambil");
+          let startIndex = isSudahDiambil ? 0 : 1;
 
-          let idxSN = headers.findIndex(h => h.includes("SN"));
-          let idxPSN = headers.findIndex(h => h.includes("P-SN"));
-          let idxFotoRumah = headers.findIndex(h => h.includes("FOTO RUMAH"));
-          let idxFotoAlat = headers.findIndex(h => h.includes("FOTO ALAT"));
-
-          for (let i = 1; i < rows.length; i++) {
+          for (let i = startIndex; i < rows.length; i++) {
             let r = rows[i];
             if (!r || r.length === 0 || r.every(cell => cell === "")) continue;
 
-            let waktu = (idxTime !== -1 && r[idxTime]) ? new Date(r[idxTime]).toLocaleString() : (r[0] ? new Date(r[0]).toLocaleString() : '-');
-            let nama = (idxNama !== -1 && r[idxNama]) ? String(r[idxNama]) : (r[1] ? String(r[1]) : '-');
-            let cid = (idxCID !== -1 && r[idxCID]) ? String(r[idxCID]) : (r[2] ? String(r[2]) : '-');
-            let odp = (idxODP !== -1 && r[idxODP]) ? String(r[idxODP]) : '-';
-            let pop = (idxPOP !== -1 && r[idxPOP]) ? String(r[idxPOP]) : '-';
-            
-            let sherlok = (idxSherlok !== -1 && r[idxSherlok]) ? String(r[idxSherlok]) : '-';
-            let snUnit = (idxSN !== -1 && r[idxSN]) ? String(r[idxSN]) : '-';
-            let psn = (idxPSN !== -1 && r[idxPSN]) ? String(r[idxPSN]) : '-';
-            let fotoRumah = (idxFotoRumah !== -1 && r[idxFotoRumah]) ? String(r[idxFotoRumah]) : '';
-            let fotoAlat = (idxFotoAlat !== -1 && r[idxFotoAlat]) ? String(r[idxFotoAlat]) : '';
+            let waktu = '-';
+            let nama = '-';
+            let cid = '-';
+            let odp = '-';
+            let pop = '-';
+            let sherlok = '-';
+            let snUnit = '-';
+            let psn = '-';
+            let fotoRumah = '';
+            let fotoAlat = '';
+
+            if (isSudahDiambil) {
+              // Mapping khusus sheet "sudah diambil":
+              // Kolom A (index 0) = Nama (Siti hadijah)
+              // Kolom B (index 1) = CID (25916574996)
+              // Kolom C (index 2) = ODP (JL.TERATAI 01)
+              // Kolom D (index 3) = SN Unit (DF1D-2503016924)
+              nama = r[0] ? String(r[0]) : '-';
+              cid = r[1] ? String(r[1]) : '-';
+              odp = r[2] ? String(r[2]) : '-';
+              snUnit = r[3] ? String(r[3]) : '-';
+            } else {
+              let headers = rows[0].map(h => String(h).toUpperCase().trim());
+
+              let idxTime = headers.findIndex(h => h.includes("TIME") || h.includes("TIMESTAMP"));
+              let idxNama = headers.findIndex(h => h === "NAMA" || h.includes("NAMA LAMA"));
+              let idxCID = headers.findIndex(h => h === "CID" || h.includes("CID LAMA"));
+              let idxODP = headers.findIndex(h => h === "ODP");
+              let idxPOP = headers.findIndex(h => h === "POP");
+              
+              let idxSherlok = -1;
+              if (sheetName === "Baris 1") {
+                idxSherlok = headers.findIndex(h => h.includes("LINK MAP") || h.includes("MAPS"));
+              }
+              if (idxSherlok === -1) {
+                idxSherlok = headers.findIndex(h => h.includes("SHERLOK") || h.includes("KOORDINAT") || h.includes("LINK MAP"));
+              }
+
+              let idxSN = headers.findIndex(h => h.includes("SN"));
+              let idxPSN = headers.findIndex(h => h.includes("P-SN"));
+              let idxFotoRumah = headers.findIndex(h => h.includes("FOTO RUMAH"));
+              let idxFotoAlat = headers.findIndex(h => h.includes("FOTO ALAT"));
+
+              waktu = (idxTime !== -1 && r[idxTime]) ? new Date(r[idxTime]).toLocaleString() : '-';
+              nama = (idxNama !== -1 && r[idxNama]) ? String(r[idxNama]) : '-';
+              cid = (idxCID !== -1 && r[idxCID]) ? String(r[idxCID]) : '-';
+              odp = (idxODP !== -1 && r[idxODP]) ? String(r[idxODP]) : '-';
+              pop = (idxPOP !== -1 && r[idxPOP]) ? String(r[idxPOP]) : '-';
+              sherlok = (idxSherlok !== -1 && r[idxSherlok]) ? String(r[idxSherlok]) : '-';
+              snUnit = (idxSN !== -1 && r[idxSN]) ? String(r[idxSN]) : '-';
+              psn = (idxPSN !== -1 && r[idxPSN]) ? String(r[idxPSN]) : '-';
+              fotoRumah = (idxFotoRumah !== -1 && r[idxFotoRumah]) ? String(r[idxFotoRumah]) : '';
+              fotoAlat = (idxFotoAlat !== -1 && r[idxFotoAlat]) ? String(r[idxFotoAlat]) : '';
+            }
 
             let rowText = r.join(" ").toLowerCase();
             let matchCriteria = false;
