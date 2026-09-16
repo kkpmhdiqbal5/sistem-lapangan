@@ -37,10 +37,11 @@
         <div>
           <label class="block font-bold text-gray-500 uppercase mb-1">PILIH SUMBER KATEGORI</label>
           <select id="filter-sheet" onchange="filterData()" class="w-full border p-2.5 rounded bg-white outline-none focus:ring-1 focus:ring-indigo-500 font-medium">
-            <option value="belum_diambil">Perangkat Belum Diambil (Full Data & Target)</option>
-            <option value="sudah_diambil">Perangkat Sudah Diambil (sudah diambil)</option>
-            <option value="info_perangkat">Info Perangkat Lapangan (Baris 1)</option>
             <option value="semua">Semua Sumber Sheet Gabungan</option>
+            <option value="Full Data">Full Data</option>
+            <option value="target">Target</option>
+            <option value="sudah diambil">Sudah Diambil</option>
+            <option value="Baris 1">Baris 1 (Input Lapangan)</option>
           </select>
         </div>
         <div>
@@ -85,18 +86,22 @@
         <thead>
           <tr class="bg-slate-900 text-white uppercase text-[11px]">
             <th class="p-3 text-center w-10"><input type="checkbox" id="select-all" onclick="toggleSelectAll(this)"></th>
-            <th class="p-3">Sumber Sheet Asli</th>
+            <th class="p-3">Sumber Sheet</th>
             <th class="p-3">Waktu</th>
             <th class="p-3">ODP</th>
             <th class="p-3">POP</th>
             <th class="p-3">CID / Nama</th>
-            <th class="p-3">SN Unit</th>
+            <th class="p-3">Sherlok</th>
+            <th class="p-3">SN</th>
+            <th class="p-3">P-SN</th>
+            <th class="p-3 text-center">Foto Rumah</th>
+            <th class="p-3 text-center">Foto Alat</th>
             <th class="p-3 text-center">Aksi</th>
           </tr>
         </thead>
         <tbody id="table-body" class="divide-y divide-gray-100 text-gray-700">
           <tr>
-            <td colspan="8" class="p-8 text-center text-gray-400">Memuat data dari server...</td>
+            <td colspan="12" class="p-8 text-center text-gray-400">Memuat data dari server...</td>
           </tr>
         </tbody>
       </table>
@@ -104,8 +109,16 @@
 
   </div>
 
+  <!-- MODAL PREVIEW GAMBAR -->
+  <div id="imageModal" class="fixed inset-0 bg-black/70 hidden z-50 flex items-center justify-center p-4" onclick="closeModal()">
+    <div class="bg-white p-2 rounded-lg max-w-lg w-full text-center relative" onclick="event.stopPropagation()">
+      <button onclick="closeModal()" class="absolute top-2 right-2 bg-rose-600 text-white w-7 h-7 rounded-full text-xs font-bold">&times;</button>
+      <img id="modalImg" src="" class="max-h-[80vh] mx-auto rounded object-contain">
+    </div>
+  </div>
+
   <script>
-    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHOXnA4YsBeNdPDUxXwPlsJHPJo7k7E4IqItpNOKLjfsYeQce7a9Gda8p-3p-Ys6tJkg/exec";
+    const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHOXnA4YsBeNdPDUxXwPhsJHPJo7k7E4IqItpNOKLjfsYeQce7a9Gda8p-3p-Ys6tJkg/exec";
     let masterData = {};
 
     if (localStorage.getItem("admin_logged_in") !== "true") {
@@ -114,33 +127,27 @@
 
     async function loadAllData() {
       const tbody = document.getElementById('table-body');
-      tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-gray-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Mengambil data...</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="12" class="p-8 text-center text-gray-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Mengambil data...</td></tr>`;
       
       try {
         const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getAllData`);
         masterData = await res.json();
         filterData();
       } catch (err) {
-        tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-rose-500">Gagal memuat data dari spreadsheet.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="12" class="p-8 text-center text-rose-500">Gagal memuat data dari spreadsheet.</td></tr>`;
       }
     }
 
     function filterData() {
-      const category = document.getElementById('filter-sheet').value;
+      const selectedCategory = document.getElementById('filter-sheet').value;
       const criteria = document.getElementById('filter-criteria').value;
       const keyword = document.getElementById('filter-keyword').value.toLowerCase().trim();
 
-      // Tentukan sheet mana saja yang akan dibaca berdasarkan kategori
       let targetSheets = [];
-      if (category === "belum_diambil") {
-        targetSheets = ["Full Data", "target"];
-      } else if (category === "sudah_diambil") {
-        targetSheets = ["sudah diambil"];
-      } else if (category === "info_perangkat") {
-        targetSheets = ["Baris 1"];
-      } else {
-        // Ambil semua sheet yang ada di masterData kecuali sheet sistem/kontrol jika ada
+      if (selectedCategory === "semua") {
         targetSheets = Object.keys(masterData);
+      } else {
+        targetSheets = [selectedCategory];
       }
 
       let matchedRows = [];
@@ -148,26 +155,40 @@
       targetSheets.forEach(sheetName => {
         let rows = masterData[sheetName] || [];
         if (rows.length > 1) {
-          // Cari indeks kolom berdasarkan nama header baris pertama secara otomatis
           let headers = rows[0].map(h => String(h).toUpperCase().trim());
-          
-          let idxTime = headers.indexOf("TIME") !== -1 ? headers.indexOf("TIME") : (headers.indexOf("TIMESTAMP") !== -1 ? headers.indexOf("TIMESTAMP") : 0);
-          let idxNama = headers.indexOf("NAMA") !== -1 ? headers.indexOf("NAMA") : (headers.indexOf("NAMA LAMA") !== -1 ? headers.indexOf("NAMA LAMA") : 1);
-          let idxCID = headers.indexOf("CID") !== -1 ? headers.indexOf("CID") : (headers.indexOf("CID LAMA") !== -1 ? headers.indexOf("CID LAMA") : 2);
-          let idxODP = headers.indexOf("ODP") !== -1 ? headers.indexOf("ODP") : 7;
-          let idxPOP = headers.indexOf("POP") !== -1 ? headers.indexOf("POP") : 8;
-          let idxSN = headers.indexOf("SN UNIT") !== -1 ? headers.indexOf("SN UNIT") : (headers.indexOf("SN") !== -1 ? headers.indexOf("SN") : 6);
+
+          // Mapping kolom secara cerdas berdasarkan nama header
+          let idxTime = headers.findIndex(h => h.includes("TIME") || h.includes("TIMESTAMP"));
+          let idxNama = headers.findIndex(h => h === "NAMA" || h.includes("NAMA LAMA"));
+          let idxCID = headers.findIndex(h => h === "CID" || h.includes("CID LAMA"));
+          let idxODP = headers.findIndex(h => h === "ODP");
+          let idxPOP = headers.findIndex(h => h === "POP");
+          let idxSherlok = headers.findIndex(h => h.includes("SHERLOK") || h.includes("KOORDINAT"));
+          let idxSN = headers.findIndex(h => h.includes("SN"));
+          let idxPSN = headers.findIndex(h => h.includes("P-SN"));
+          let idxFotoRumah = headers.findIndex(h => h.includes("FOTO RUMAH"));
+          let idxFotoAlat = headers.findIndex(h => h.includes("FOTO ALAT"));
 
           for (let i = 1; i < rows.length; i++) {
             let r = rows[i];
             if (!r || r.length === 0 || r.every(cell => cell === "")) continue;
 
-            let waktu = r[idxTime] ? new Date(r[idxTime]).toLocaleString() : (r[0] ? new Date(r[0]).toLocaleString() : '-');
-            let odp = String(r[idxODP] || r[7] || r[2] || '-');
-            let pop = String(r[idxPOP] || r[8] || r[3] || '-');
-            let cid = String(r[idxCID] || r[2] || '-');
-            let nama = String(r[idxNama] || r[1] || '-');
-            let snUnit = String(r[idxSN] || r[6] || '-');
+            let waktu = (idxTime !== -1 && r[idxTime]) ? new Date(r[idxTime]).toLocaleString() : (r[0] ? new Date(r[0]).toLocaleString() : '-');
+            let nama = (idxNama !== -1 && r[idxNama]) ? String(r[idxNama]) : (r[1] ? String(r[1]) : '-');
+            let cid = (idxCID !== -1 && r[idxCID]) ? String(r[idxCID]) : (r[2] ? String(r[2]) : '-');
+            let odp = (idxODP !== -1 && r[idxODP]) ? String(r[idxODP]) : '-';
+            let pop = (idxPOP !== -1 && r[idxPOP]) ? String(r[idxPOP]) : '-';
+            let sherlok = (idxSherlok !== -1 && r[idxSherlok]) ? String(r[idxSherlok]) : '-';
+            let snUnit = (idxSN !== -1 && r[idxSN]) ? String(r[idxSN]) : '-';
+            let psn = (idxPSN !== -1 && r[idxPSN]) ? String(r[idxPSN]) : '-';
+            let fotoRumah = (idxFotoRumah !== -1 && r[idxFotoRumah]) ? String(r[idxFotoRumah]) : '';
+            let fotoAlat = (idxFotoAlat !== -1 && r[idxFotoAlat]) ? String(r[idxFotoAlat]) : '';
+
+            // Fallback jika berupa data teks gabungan di sheet tertentu (seperti format target)
+            if (nama === '-' || cid === '-') {
+              let fullRowString = r.join(" ");
+              // Coba ekstrak informasi jika berformat teks panjang
+            }
 
             let rowText = r.join(" ").toLowerCase();
             let matchCriteria = false;
@@ -196,7 +217,11 @@
                 pop: pop,
                 cid: cid,
                 nama: nama,
-                snUnit: snUnit
+                sherlok: sherlok,
+                snUnit: snUnit,
+                psn: psn,
+                fotoRumah: fotoRumah,
+                fotoAlat: fotoAlat
               });
             }
           }
@@ -207,12 +232,20 @@
       const tbody = document.getElementById('table-body');
 
       if (matchedRows.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="p-8 text-center text-gray-400">Data tidak ditemukan pada kategori ini.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="12" class="p-8 text-center text-gray-400">Data tidak ditemukan pada sheet ini.</td></tr>`;
         return;
       }
 
       let html = "";
       matchedRows.forEach((item) => {
+        let renderFotoRumah = item.fotoRumah && item.fotoRumah.startsWith('http') ? 
+          `<img src="${item.fotoRumah}" class="w-10 h-10 object-cover rounded cursor-pointer mx-auto border shadow-sm hover:scale-110 transition" onclick="openModal('${item.fotoRumah}')">` : 
+          `<span class="text-gray-400 text-[10px]">Tidak ada</span>`;
+
+        let renderFotoAlat = item.fotoAlat && item.fotoAlat.startsWith('http') ? 
+          `<img src="${item.fotoAlat}" class="w-10 h-10 object-cover rounded cursor-pointer mx-auto border shadow-sm hover:scale-110 transition" onclick="openModal('${item.fotoAlat}')">` : 
+          `<span class="text-gray-400 text-[10px]">Tidak ada</span>`;
+
         html += `
           <tr class="hover:bg-gray-50 transition">
             <td class="p-3 text-center"><input type="checkbox" class="row-checkbox" onchange="updateCheckedCount()"></td>
@@ -221,7 +254,11 @@
             <td class="p-3 font-medium">${item.odp}</td>
             <td class="p-3">${item.pop}</td>
             <td class="p-3"><b>${item.cid}</b> / ${item.nama}</td>
+            <td class="p-3 text-blue-600 font-mono text-[11px]">${item.sherlok}</td>
             <td class="p-3 font-mono">${item.snUnit}</td>
+            <td class="p-3 font-mono">${item.psn}</td>
+            <td class="p-3 text-center">${renderFotoRumah}</td>
+            <td class="p-3 text-center">${renderFotoAlat}</td>
             <td class="p-3 text-center">
               <button onclick="sendSingleWA()" class="bg-emerald-600 text-white p-1.5 rounded hover:bg-emerald-700 transition" title="Kirim WA"><i class="fa-brands fa-whatsapp"></i></button>
             </td>
@@ -231,6 +268,15 @@
 
       tbody.innerHTML = html;
       updateCheckedCount();
+    }
+
+    function openModal(url) {
+      document.getElementById('modalImg').src = url;
+      document.getElementById('imageModal').classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('imageModal').classList.add('hidden');
     }
 
     function toggleSelectAll(master) {
