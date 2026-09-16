@@ -8,12 +8,24 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style> #map { height: 220px; width: 100%; border-radius: 8px; } </style>
+  <!-- Pustaka Pemindai Barcode / QR Code -->
+  <script src="https://unpkg.com/html5-qrcode"></script>
+
+  <style>
+    #map { height: 200px; width: 100%; border-radius: 8px; }
+    .camera-preview { width: 100%; max-height: 250px; object-fit: cover; border-radius: 8px; background: #000; }
+  </style>
 </head>
 <body class="bg-gray-100 font-sans">
 
+  <!-- NAVBAR -->
   <nav class="bg-white shadow-sm border-b px-6 py-3 flex justify-between items-center">
-    <div class="font-bold text-gray-800 text-lg">Sistem Lapangan</div>
+    <div class="font-bold text-gray-800 text-lg flex items-center gap-2">
+      <i class="fa-solid fa-satellite-dish text-sky-600"></i> Sistem Lapangan
+    </div>
+    <a href="admin.html" class="bg-slate-800 text-white hover:bg-slate-900 px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition">
+      <i class="fa-solid fa-user-lock"></i> Dashboard Admin
+    </a>
   </nav>
 
   <div class="max-w-4xl mx-auto my-6 px-4">
@@ -24,170 +36,333 @@
     <div class="bg-white p-6 rounded-b-xl shadow-md border border-t-0 space-y-4">
       <div id="map"></div>
 
-      <form id="form-lapangan" onsubmit="submitForm(event)" class="space-y-4">
+      <!-- IFRAME TERSEMBUNYI UNTUK MENEMBUS CORS -->
+      <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;" onload="if(submitted) { onSuccessSubmit(); }"></iframe>
+
+      <form id="form-lapangan" action="https://script.google.com/macros/s/AKfycbyHOXnA4YsBeNdPDUxXwPhsJHPJo7k7E4IqItpNOKLjfsYeQce7a9Gda8p-3p-Ys6tJkg/exec" method="POST" target="hidden_iframe" onsubmit="onFormSubmit(event)" class="space-y-4">
+        
         <div>
           <label class="block text-xs font-bold text-gray-600 uppercase mb-1">KOORDINAT TERDETEKSI OTOMATIS (SHERLOK)</label>
-          <input type="text" id="koordinat" readonly required placeholder="Mendapatkan lokasi..." class="w-full bg-gray-50 border border-gray-300 p-2.5 rounded-md text-sm">
+          <input type="text" id="koordinat" name="koordinat" readonly required placeholder="Mendapatkan lokasi..." class="w-full bg-gray-50 border border-gray-300 p-2.5 rounded-md text-sm">
         </div>
 
         <div>
           <label class="block text-xs font-bold text-gray-600 uppercase mb-1">ODP TERDAFTAR / BARU *</label>
-          <input type="text" id="odp" required placeholder="Pilih ODP atau ketik baru" class="w-full border border-gray-300 p-2.5 rounded-md text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+          <input type="text" id="odp" name="odp" required placeholder="Pilih ODP atau ketik baru" class="w-full border border-gray-300 p-2.5 rounded-md text-sm outline-none focus:ring-2 focus:ring-indigo-500">
         </div>
 
         <div>
           <label class="block text-xs font-bold text-gray-600 uppercase mb-1">POP *</label>
-          <input type="text" id="pop" required placeholder="Masukkan data nama POP" class="w-full border border-gray-300 p-2.5 rounded-md text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+          <input type="text" id="pop" name="pop" required placeholder="Masukkan data nama POP" class="w-full border border-gray-300 p-2.5 rounded-md text-sm outline-none focus:ring-2 focus:ring-indigo-500">
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label class="block text-xs font-bold text-gray-600 uppercase mb-1">CID LAMA *</label>
-            <input type="text" id="cid_lama" required placeholder="Ex: CID10" class="w-full border border-gray-300 p-2.5 rounded-md text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+            <input type="text" id="cid_lama" name="cid_lama" required placeholder="Ex: CID10" class="w-full border border-gray-300 p-2.5 rounded-md text-sm outline-none focus:ring-2 focus:ring-indigo-500">
           </div>
           <div>
             <label class="block text-xs font-bold text-gray-600 uppercase mb-1">NAMA LAMA *</label>
-            <input type="text" id="nama_lama" required placeholder="Ex: Budiman" class="w-full border border-gray-300 p-2.5 rounded-md text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+            <input type="text" id="nama_lama" name="nama_lama" required placeholder="Ex: Budiman" class="w-full border border-gray-300 p-2.5 rounded-md text-sm outline-none focus:ring-2 focus:ring-indigo-500">
           </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">FOTO RUMAH *</label>
-            <input type="file" id="foto_rumah" accept="image/*" required class="w-full border border-gray-300 p-2 rounded-md text-sm bg-gray-50">
+        <!-- AMBIL FOTO RUMAH (LIVE KAMERA / GALERI) -->
+        <div class="border p-4 rounded-lg bg-gray-50 space-y-3">
+          <label class="block text-xs font-bold text-gray-700 uppercase flex justify-between items-center">
+            <span>FOTO RUMAH *</span>
+            <span id="status-rumah" class="text-xs font-normal text-amber-600">Belum ada foto</span>
+          </label>
+          
+          <video id="video-rumah" class="camera-preview hidden" autoplay playsinline></video>
+          <img id="preview-rumah" class="camera-preview hidden" />
+          
+          <div class="flex flex-wrap gap-2">
+            <button type="button" onclick="startCamera('rumah')" class="bg-indigo-600 text-white px-3 py-1.5 rounded text-xs font-medium hover:bg-indigo-700">
+              <i class="fa-solid fa-camera"></i> Buka Kamera
+            </button>
+            <button type="button" id="btn-snap-rumah" onclick="takeSnapshot('rumah')" class="bg-emerald-600 text-white px-3 py-1.5 rounded text-xs font-medium hover:bg-emerald-700 hidden">
+              <i class="fa-solid fa-circle-dot"></i> Ambil Foto
+            </button>
+            <label class="bg-slate-700 text-white px-3 py-1.5 rounded text-xs font-medium hover:bg-slate-800 cursor-pointer">
+              <i class="fa-solid fa-image"></i> Pilih dari Galeri
+              <input type="file" accept="image/*" onchange="handleFileSelect(event, 'rumah')" class="hidden">
+            </label>
           </div>
-          <div>
-            <label class="block text-xs font-bold text-gray-600 uppercase mb-1">FOTO ALAT *</label>
-            <input type="file" id="foto_alat" accept="image/*" required class="w-full border border-gray-300 p-2 rounded-md text-sm bg-gray-50">
-          </div>
+          <input type="hidden" name="foto_rumah_url" id="foto_rumah_url">
         </div>
 
+        <!-- AMBIL FOTO ALAT (LIVE KAMERA / GALERI) -->
+        <div class="border p-4 rounded-lg bg-gray-50 space-y-3">
+          <label class="block text-xs font-bold text-gray-700 uppercase flex justify-between items-center">
+            <span>FOTO ALAT *</span>
+            <span id="status-alat" class="text-xs font-normal text-amber-600">Belum ada foto</span>
+          </label>
+          
+          <video id="video-alat" class="camera-preview hidden" autoplay playsinline></video>
+          <img id="preview-alat" class="camera-preview hidden" />
+          
+          <div class="flex flex-wrap gap-2">
+            <button type="button" onclick="startCamera('alat')" class="bg-indigo-600 text-white px-3 py-1.5 rounded text-xs font-medium hover:bg-indigo-700">
+              <i class="fa-solid fa-camera"></i> Buka Kamera
+            </button>
+            <button type="button" id="btn-snap-alat" onclick="takeSnapshot('alat')" class="bg-emerald-600 text-white px-3 py-1.5 rounded text-xs font-medium hover:bg-emerald-700 hidden">
+              <i class="fa-solid fa-circle-dot"></i> Ambil Foto
+            </button>
+            <label class="bg-slate-700 text-white px-3 py-1.5 rounded text-xs font-medium hover:bg-slate-800 cursor-pointer">
+              <i class="fa-solid fa-image"></i> Pilih dari Galeri
+              <input type="file" accept="image/*" onchange="handleFileSelect(event, 'alat')" class="hidden">
+            </label>
+          </div>
+          <input type="hidden" name="foto_alat_url" id="foto_alat_url">
+        </div>
+
+        <!-- INPUT SERIAL NUMBER & SCANNER -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label class="block text-xs font-bold text-gray-600 uppercase mb-1">SERIAL NUMBER (SN) UNIT *</label>
-            <input type="text" id="sn" required placeholder="Ketik atau Scan SN" class="w-full border border-gray-300 p-2.5 rounded-md text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+            <div class="flex gap-2">
+              <input type="text" id="sn" name="sn" required placeholder="Ketik atau Scan SN" class="w-full border border-gray-300 p-2.5 rounded-md text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+              <button type="button" onclick="openScanner('sn')" class="bg-sky-600 text-white px-3 py-2 rounded-md hover:bg-sky-700 transition title='Scan Barcode/QR'">
+                <i class="fa-solid fa-barcode"></i>
+              </button>
+            </div>
           </div>
           <div>
             <label class="block text-xs font-bold text-gray-600 uppercase mb-1">P-SN (PORT SERIAL NUMBER) *</label>
-            <input type="text" id="psn" required placeholder="Ketik atau Scan P-SN" class="w-full border border-gray-300 p-2.5 rounded-md text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+            <div class="flex gap-2">
+              <input type="text" id="psn" name="psn" required placeholder="Ketik atau Scan P-SN" class="w-full border border-gray-300 p-2.5 rounded-md text-sm outline-none focus:ring-2 focus:ring-indigo-500">
+              <button type="button" onclick="openScanner('psn')" class="bg-sky-600 text-white px-3 py-2 rounded-md hover:bg-sky-700 transition title='Scan Barcode/QR'">
+                <i class="fa-solid fa-barcode"></i>
+              </button>
+            </div>
           </div>
         </div>
 
         <div>
           <label class="block text-xs font-bold text-gray-600 uppercase mb-1">KETERANGAN (OPSIONAL)</label>
-          <textarea id="keterangan" rows="3" placeholder="Catatan kendala lapangan jika ada..." class="w-full border border-gray-300 p-2.5 rounded-md text-sm outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+          <textarea id="keterangan" name="keterangan" rows="3" placeholder="Catatan kendala lapangan jika ada..." class="w-full border border-gray-300 p-2.5 rounded-md text-sm outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
         </div>
 
+        <input type="hidden" name="link_maps" id="link_maps">
+
         <button type="submit" id="btn-submit" class="w-full bg-slate-900 text-white font-bold py-3 rounded-md hover:bg-slate-800 transition">
-          Kirim Data & Mengunggah Foto...
+          Kirim Data Lapangan
         </button>
       </form>
     </div>
   </div>
 
+  <!-- MODAL PEMINDAI BARCODE/QR CODE -->
+  <div id="scanner-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+    <div class="bg-white p-5 rounded-xl max-w-md w-full text-center space-y-4 shadow-xl">
+      <div class="flex justify-between items-center border-b pb-2">
+        <h3 class="font-bold text-gray-800 text-base">Pindai Barcode / QR Code</h3>
+        <button onclick="closeScanner()" class="text-gray-500 hover:text-red-500 text-lg"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div id="reader" class="w-full rounded-lg overflow-hidden border"></div>
+      <button onclick="closeScanner()" class="w-full bg-gray-200 text-gray-700 py-2 rounded-md font-medium text-sm">Batal</button>
+    </div>
+  </div>
+
   <script>
-  const TELEGRAM_CHAT_ID = "8476745358"; 
-  const BOT_TOKEN_RUMAH = "8782461297:AAF86N2WvKmbbhbQEnQ7rzfaHmPhxmVf5Xg";
-  const BOT_TOKEN_ALAT = "8903234783:AAEw2CyDfh_hNyVTEUxgF-h0XTiNvL01u14";
-  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHOXnA4YsBeNdPDUxXwPlsJHPJo7k7E4IqItpNOKLjfsYeQce7a9Gda8p-3p-Ys6tJkg/exec";
+    const TELEGRAM_CHAT_ID = "8476745358"; 
+    const BOT_TOKEN_RUMAH = "8782461297:AAF86N2WvKmbbhbQEnQ7rzfaHmPhxmVf5Xg";
+    const BOT_TOKEN_ALAT = "8903234783:AAEw2CyDfh_hNyVTEUxgF-h0XTiNvL01u14";
+    
+    let submitted = false;
+    let cameraStreams = { rumah: null, alat: null };
+    let capturedBlobs = { rumah: null, alat: null };
+    let html5QrcodeScanner = null;
+    let activeScanTarget = null;
 
-  let map;
-  window.onload = function() {
-    map = L.map('map').setView([2.883793, 99.184753], 13);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    // 1. LOKASI MAPS LEAFLET
+    let map;
+    window.onload = function() {
+      map = L.map('map').setView([2.883793, 99.184753], 13);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(pos => {
-        const lat = pos.coords.latitude, lng = pos.coords.longitude;
-        document.getElementById('koordinat').value = `${lat}, ${lng}`;
-        map.setView([lat, lng], 16);
-        L.marker([lat, lng]).addTo(map).bindPopup("Lokasi Anda").openPopup();
-      }, () => {
-        document.getElementById('koordinat').value = "2.883793, 99.184753";
-      });
-    }
-  };
-
-  async function uploadToTelegram(fileInputId, botToken, caption) {
-    const fileInput = document.getElementById(fileInputId);
-    if (!fileInput || !fileInput.files[0]) return "Tidak Ada Foto";
-
-    const formData = new FormData();
-    formData.append("chat_id", TELEGRAM_CHAT_ID);
-    formData.append("photo", fileInput.files[0]);
-    formData.append("caption", caption);
-
-    try {
-      const res = await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, { 
-        method: 'POST', 
-        body: formData 
-      });
-      const data = await res.json();
-
-      if (data.ok) {
-        const fileId = data.result.photo[data.result.photo.length - 1].file_id;
-        const pathRes = await fetch(`https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}`);
-        const pathData = await pathRes.json();
-
-        if (pathData.ok) {
-          return `https://api.telegram.org/file/bot${botToken}/${pathData.result.file_path}`;
-        }
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(pos => {
+          const lat = pos.coords.latitude, lng = pos.coords.longitude;
+          document.getElementById('koordinat').value = `${lat}, ${lng}`;
+          document.getElementById('link_maps').value = `https://www.google.com/maps?q=${lat},${lng}`;
+          map.setView([lat, lng], 16);
+          L.marker([lat, lng]).addTo(map).bindPopup("Lokasi Anda").openPopup();
+        }, () => {
+          document.getElementById('koordinat').value = "2.883793, 99.184753";
+          document.getElementById('link_maps').value = "https://www.google.com/maps?q=2.883793,99.184753";
+        });
       }
-      return `Gagal Telegram: ${data.description || 'Error'}`;
-    } catch (err) {
-      return "Error Telegram";
+    };
+
+    // 2. LOGIKA KAMERA LIVE WEB
+    async function startCamera(type) {
+      stopCamera(type);
+      const video = document.getElementById(`video-${type}`);
+      const btnSnap = document.getElementById(`btn-snap-${type}`);
+      const preview = document.getElementById(`preview-${type}`);
+      
+      preview.classList.add('hidden');
+      video.classList.remove('hidden');
+      btnSnap.classList.remove('hidden');
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "environment" },
+          audio: false
+        });
+        cameraStreams[type] = stream;
+        video.srcObject = stream;
+      } catch (err) {
+        alert("Gagal membuka kamera. Pastikan izin kamera diberikan.");
+      }
     }
-  }
 
-  async function submitForm(e) {
-    e.preventDefault();
-    const btn = document.getElementById('btn-submit');
-    btn.innerText = "Mengirim Data & Mengunggah Foto...";
-    btn.disabled = true;
+    function stopCamera(type) {
+      if (cameraStreams[type]) {
+        cameraStreams[type].getTracks().forEach(track => track.stop());
+        cameraStreams[type] = null;
+      }
+    }
 
-    try {
-      const koordinat = document.getElementById('koordinat').value;
-      const linkMaps = `https://www.google.com/maps?q=${koordinat.replace(/\s+/g, '')}`;
+    function takeSnapshot(type) {
+      const video = document.getElementById(`video-${type}`);
+      const preview = document.getElementById(`preview-${type}`);
+      const btnSnap = document.getElementById(`btn-snap-${type}`);
+      const status = document.getElementById(`status-${type}`);
 
-      // Upload Foto
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth || 640;
+      canvas.height = video.videoHeight || 480;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      canvas.toBlob(blob => {
+        capturedBlobs[type] = blob;
+        preview.src = URL.createObjectURL(blob);
+        preview.classList.remove('hidden');
+        video.classList.add('hidden');
+        btnSnap.classList.add('hidden');
+        
+        status.innerText = "Foto Berhasil Diambil";
+        status.className = "text-xs font-semibold text-emerald-600";
+        stopCamera(type);
+      }, 'image/jpeg', 0.85);
+    }
+
+    function handleFileSelect(event, type) {
+      const file = event.target.files[0];
+      if (file) {
+        capturedBlobs[type] = file;
+        const preview = document.getElementById(`preview-${type}`);
+        const video = document.getElementById(`video-${type}`);
+        const btnSnap = document.getElementById(`btn-snap-${type}`);
+        const status = document.getElementById(`status-${type}`);
+
+        stopCamera(type);
+        preview.src = URL.createObjectURL(file);
+        preview.classList.remove('hidden');
+        video.classList.add('hidden');
+        btnSnap.classList.add('hidden');
+
+        status.innerText = "Foto Dipilih dari Galeri";
+        status.className = "text-xs font-semibold text-emerald-600";
+      }
+    }
+
+    // 3. LOGIKA SCANNER BARCODE & QR CODE
+    function openScanner(targetId) {
+      activeScanTarget = targetId;
+      document.getElementById('scanner-modal').classList.remove('hidden');
+      
+      html5QrcodeScanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: { width: 250, height: 150 } });
+      html5QrcodeScanner.render((decodedText) => {
+        document.getElementById(activeScanTarget).value = decodedText;
+        closeScanner();
+      }, (error) => {
+        // Ignore frame error scan
+      });
+    }
+
+    function closeScanner() {
+      if (html5QrcodeScanner) {
+        html5QrcodeScanner.clear().catch(e => console.error(e));
+        html5QrcodeScanner = null;
+      }
+      document.getElementById('scanner-modal').classList.add('hidden');
+    }
+
+    // 4. UPLOAD FOTO KE TELEGRAM
+    async function uploadBlobToTelegram(blob, botToken, caption) {
+      if (!blob) return "Tidak Ada Foto";
+
+      const formData = new FormData();
+      formData.append("chat_id", TELEGRAM_CHAT_ID);
+      formData.append("photo", blob, "photo.jpg");
+      formData.append("caption", caption);
+
+      try {
+        const res = await fetch(`https://api.telegram.org/bot${botToken}/sendPhoto`, { method: 'POST', body: formData });
+        const data = await res.json();
+        if (data.ok) {
+          const fileId = data.result.photo[data.result.photo.length - 1].file_id;
+          const pathRes = await fetch(`https://api.telegram.org/bot${botToken}/getFile?file_id=${fileId}`);
+          const pathData = await pathRes.json();
+          if (pathData.ok) {
+            return `https://api.telegram.org/file/bot${botToken}/${pathData.result.file_path}`;
+          }
+        }
+        return `Error Telegram: ${data.description || 'Gagal'}`;
+      } catch (err) {
+        return "Error Telegram";
+      }
+    }
+
+    // 5. SUBMIT FORM
+    async function onFormSubmit(e) {
+      e.preventDefault();
+
+      if (!capturedBlobs.rumah || !capturedBlobs.alat) {
+        alert("Harap ambil atau pilih Foto Rumah dan Foto Alat terlebih dahulu!");
+        return;
+      }
+
+      const btn = document.getElementById('btn-submit');
+      btn.innerText = "Mengunggah Foto & Mengirim Data...";
+      btn.disabled = true;
+
       const [urlFotoRumah, urlFotoAlat] = await Promise.all([
-        uploadToTelegram('foto_rumah', BOT_TOKEN_RUMAH, `Foto Rumah\nODP: ${document.getElementById('odp').value}`),
-        uploadToTelegram('foto_alat', BOT_TOKEN_ALAT, `Foto Alat\nSN: ${document.getElementById('sn').value}`)
+        uploadBlobToTelegram(capturedBlobs.rumah, BOT_TOKEN_RUMAH, `Foto Rumah\nODP: ${document.getElementById('odp').value}`),
+        uploadBlobToTelegram(capturedBlobs.alat, BOT_TOKEN_ALAT, `Foto Alat\nSN: ${document.getElementById('sn').value}`)
       ]);
 
-      // Buat Object Data JSON
-      const payloadData = {
-        koordinat: koordinat,
-        odp: document.getElementById('odp').value,
-        pop: document.getElementById('pop').value,
-        cid_lama: document.getElementById('cid_lama').value,
-        nama_lama: document.getElementById('nama_lama').value,
-        sn: document.getElementById('sn').value,
-        keterangan: document.getElementById('keterangan').value,
-        foto_rumah: urlFotoRumah,
-        foto_alat: urlFotoAlat,
-        link_maps: linkMaps,
-        psn: document.getElementById('psn').value
-      };
+      document.getElementById('foto_rumah_url').value = urlFotoRumah;
+      document.getElementById('foto_alat_url').value = urlFotoAlat;
 
-      // Trik Penting: Gunakan text/plain + JSON.stringify agar tidak kena CORS error di Apps Script
-      await fetch(GOOGLE_SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify(payloadData)
-      });
+      submitted = true;
+      document.getElementById('form-lapangan').submit();
+    }
 
-      alert("Data Lapangan Berhasil Disimpan ke Google Sheet!");
+    function onSuccessSubmit() {
+      alert("Data Lapangan Berhasil Disimpan di Tabel Google Sheet & Telegram!");
+      
+      stopCamera('rumah');
+      stopCamera('alat');
+      capturedBlobs = { rumah: null, alat: null };
+
       document.getElementById('form-lapangan').reset();
-    } catch (err) {
-      console.error(err);
-      alert("Gagal menyimpan data.");
-    } finally {
+      document.querySelectorAll('.camera-preview').forEach(el => el.classList.add('hidden'));
+      document.getElementById('status-rumah').innerText = "Belum ada foto";
+      document.getElementById('status-rumah').className = "text-xs font-normal text-amber-600";
+      document.getElementById('status-alat').innerText = "Belum ada foto";
+      document.getElementById('status-alat').className = "text-xs font-normal text-amber-600";
+
+      const btn = document.getElementById('btn-submit');
       btn.innerText = "Kirim Data Lapangan";
       btn.disabled = false;
+      submitted = false;
     }
-  }
-</script>
+  </script>
 </body>
 </html>
