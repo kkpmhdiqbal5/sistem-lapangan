@@ -85,6 +85,7 @@
         <thead>
           <tr class="bg-slate-900 text-white uppercase text-[11px]">
             <th class="p-3 text-center w-10"><input type="checkbox" id="select-all" onclick="toggleSelectAll(this)"></th>
+            <th class="p-3">Sumber Sheet</th>
             <th class="p-3">Waktu</th>
             <th class="p-3">ODP</th>
             <th class="p-3">POP</th>
@@ -99,7 +100,7 @@
         </thead>
         <tbody id="table-body" class="divide-y divide-gray-100 text-gray-700">
           <tr>
-            <td colspan="11" class="p-8 text-center text-gray-400">Memuat data dari server...</td>
+            <td colspan="12" class="p-8 text-center text-gray-400">Memuat data dari server...</td>
           </tr>
         </tbody>
       </table>
@@ -125,14 +126,14 @@
 
     async function loadAllData() {
       const tbody = document.getElementById('table-body');
-      tbody.innerHTML = `<tr><td colspan="11" class="p-8 text-center text-gray-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Mengambil data...</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="12" class="p-8 text-center text-gray-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Mengambil data...</td></tr>`;
       
       try {
         const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getAllData`);
         masterData = await res.json();
         filterData();
       } catch (err) {
-        tbody.innerHTML = `<tr><td colspan="11" class="p-8 text-center text-rose-500">Gagal memuat data dari spreadsheet.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="12" class="p-8 text-center text-rose-500">Gagal memuat data dari spreadsheet.</td></tr>`;
       }
     }
 
@@ -168,7 +169,6 @@
           let idxODP = headers.findIndex(h => h === "ODP");
           let idxPOP = headers.findIndex(h => h === "POP");
           
-          // Logika Sherlok: Khusus Baris 1 ambil dari kolom "LINK MAPS" atau "LINK MAP"
           let idxSherlok = -1;
           if (sheetName === "Baris 1") {
             idxSherlok = headers.findIndex(h => h.includes("LINK MAP") || h.includes("MAPS"));
@@ -219,6 +219,7 @@
 
             if (matchCriteria) {
               matchedRows.push({
+                sheetAsli: sheetName,
                 waktu: waktu !== "Invalid Date" ? waktu : '-',
                 odp: odp,
                 pop: pop,
@@ -239,7 +240,7 @@
       const tbody = document.getElementById('table-body');
 
       if (matchedRows.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="11" class="p-8 text-center text-gray-400">Data tidak ditemukan pada kategori ini.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="12" class="p-8 text-center text-gray-400">Data tidak ditemukan pada kategori ini.</td></tr>`;
         return;
       }
 
@@ -260,6 +261,7 @@
         html += `
           <tr class="hover:bg-gray-50 transition">
             <td class="p-3 text-center"><input type="checkbox" class="row-checkbox" onchange="updateCheckedCount()"></td>
+            <td class="p-3 font-semibold text-indigo-600 bg-indigo-50/50 rounded">${item.sheetAsli}</td>
             <td class="p-3 text-gray-500">${item.waktu}</td>
             <td class="p-3 font-medium">${item.odp}</td>
             <td class="p-3">${item.pop}</td>
