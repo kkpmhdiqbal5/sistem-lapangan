@@ -3,402 +3,225 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Panel Rekap Data Admin - Sistem Cari</title>
+  <title>Sistem Cari Data</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
 </head>
-<body class="bg-gray-100 font-sans">
+<body class="bg-slate-100 font-sans min-h-screen pb-24">
 
-  <!-- NAVBAR ATAS -->
-  <nav class="bg-white shadow-sm border-b px-6 py-3 flex justify-between items-center">
-    <div class="font-bold text-gray-800 text-base flex items-center gap-2">
-      Dashboard Admin - Sistem Cari
+  <!-- HEADER UTAMA -->
+  <header class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center shadow-md sticky top-0 z-40">
+    <div class="font-bold text-lg md:text-xl flex items-center gap-2">
+      <i class="fa-solid fa-magnifying-glass text-sky-400"></i>
+      <span>Sistem Cari Data</span>
     </div>
-    <div class="flex items-center gap-2">
-      <a href="index.html" class="bg-white border text-gray-700 hover:bg-gray-50 px-3 py-1.5 rounded text-xs font-medium flex items-center gap-1.5 shadow-sm">
-        <i class="fa-solid fa-satellite-dish"></i> Sistem Lapangan
+    <div class="flex items-center gap-3">
+      <span class="text-xs bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-full text-slate-300">
+        <i class="fa-solid fa-circle text-emerald-500 text-[8px] mr-1"></i> Mode Pencarian
+      </span>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto my-6 px-4 space-y-6">
+
+    <!-- FORM PENCARIAN -->
+    <div class="bg-white p-5 md:p-6 rounded-xl shadow-md space-y-4">
+      <div class="flex flex-col md:flex-row justify-between md:items-center gap-4 border-b pb-4">
+        <div>
+          <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+            <i class="fa-solid fa-search text-sky-600"></i> Pencarian Terpusat
+          </h2>
+          <p class="text-xs text-slate-500">Cari berdasarkan Nama, CID, ODP, SN, PSN, atau POP</p>
+        </div>
+        <button onclick="loadSearchData()" id="btn-refresh" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 transition shadow-sm">
+          <i class="fa-solid fa-arrows-rotate" id="icon-refresh"></i> Refresh Data
+        </button>
+      </div>
+
+      <div class="relative">
+        <input type="text" id="input-search" onkeyup="filterSearchData()" placeholder="Ketik parameter yang ingin dicari..." class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-sky-500 font-medium bg-slate-50 focus:bg-white transition">
+        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400"></i>
+      </div>
+    </div>
+
+    <!-- HASIL TABEL PENCARIAN -->
+    <div class="bg-white rounded-xl shadow-md overflow-hidden">
+      <div class="p-4 bg-slate-800 text-white flex justify-between items-center text-sm font-semibold">
+        <span><i class="fa-solid fa-list-check mr-2"></i>Hasil Pencarian</span>
+        <span id="search-count" class="bg-sky-500 text-white px-3 py-0.5 rounded-full text-xs font-bold">0 Data</span>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead>
+            <tr class="bg-slate-100 border-b border-slate-200 text-slate-700 uppercase font-bold">
+              <th class="p-3">Waktu</th>
+              <th class="p-3">POP</th>
+              <th class="p-3">ODP</th>
+              <th class="p-3">CID Lama</th>
+              <th class="p-3">Nama Lama</th>
+              <th class="p-3">SN Unit</th>
+              <th class="p-3">P-SN</th>
+              <th class="p-3">Foto Rumah</th>
+              <th class="p-3">Foto Alat</th>
+              <th class="p-3">Lokasi</th>
+              <th class="p-3">Ket</th>
+            </tr>
+          </thead>
+          <tbody id="search-table-body" class="divide-y divide-slate-200 text-slate-700">
+            <tr>
+              <td colspan="11" class="p-8 text-center text-slate-400 font-medium">
+                Mengambil data dari server...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ================= BOTTOM NAVIGATION BAR (SESUAI HALAMAN ADMIN) ================= -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-800 shadow-2xl z-50">
+    <div class="max-w-md mx-auto flex justify-around items-center h-16 px-2">
+      
+      <!-- 1. Sistem Cari (Active) -->
+      <a href="search.html" class="flex flex-col items-center justify-center w-full h-full text-sky-400 transition">
+        <i class="fa-solid fa-magnifying-glass text-lg mb-1"></i>
+        <span class="text-[10px] font-medium">Sistem Cari</span>
       </a>
-      <a href="admin.html" class="bg-indigo-600 text-white hover:bg-indigo-700 px-3 py-1.5 rounded text-xs font-medium flex items-center gap-1.5 shadow-sm">
-        <i class="fa-solid fa-gauge"></i> Dashboard Admin
+
+      <!-- 2. Info Perangkat (Kembali ke admin.html) -->
+      <a href="admin.html" class="flex flex-col items-center justify-center w-full h-full text-slate-400 hover:text-sky-400 transition">
+        <i class="fa-solid fa-microchip text-lg mb-1"></i>
+        <span class="text-[10px] font-medium">Info Perangkat</span>
       </a>
-      <span class="bg-slate-800 text-white px-3 py-1.5 rounded text-xs font-bold">ADMIN</span>
-      <button onclick="logout()" class="text-rose-600 hover:text-rose-700 p-1 text-sm"><i class="fa-solid fa-right-from-bracket"></i></button>
+
+      <!-- 3. Sistem Lapangan (Direct Link ke index.html) -->
+      <a href="index.html" class="flex flex-col items-center justify-center w-full h-full text-slate-400 hover:text-amber-400 transition">
+        <div class="bg-amber-500 text-slate-900 w-8 h-8 rounded-full flex items-center justify-center shadow-lg -mt-3 border-2 border-slate-900">
+          <i class="fa-solid fa-satellite-dish text-sm"></i>
+        </div>
+        <span class="text-[10px] font-medium mt-0.5">Lapangan</span>
+      </a>
+
+      <!-- 4. Panel Kontrol (Kembali ke admin.html) -->
+      <a href="admin.html" class="flex flex-col items-center justify-center w-full h-full text-slate-400 hover:text-sky-400 transition">
+        <i class="fa-solid fa-sliders text-lg mb-1"></i>
+        <span class="text-[10px] font-medium">Panel</span>
+      </a>
+
+      <!-- 5. Profil (Kembali ke admin.html) -->
+      <a href="admin.html" class="flex flex-col items-center justify-center w-full h-full text-slate-400 hover:text-sky-400 transition">
+        <i class="fa-solid fa-user text-lg mb-1"></i>
+        <span class="text-[10px] font-medium">Profil</span>
+      </a>
+
     </div>
   </nav>
 
-  <!-- KONTROL PANEL REKAP DATA ADMIN -->
-  <div class="max-w-7xl mx-auto my-6 px-4 space-y-4">
-    
-    <div class="bg-white p-5 rounded-xl shadow-sm border space-y-4">
-      <h2 class="font-bold text-gray-800 text-base">Panel Rekap Data & Pencarian Perangkat</h2>
-      
-      <!-- FILTER GRID -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-        <div>
-          <label class="block font-bold text-gray-500 uppercase mb-1">PILIH SUMBER KATEGORI</label>
-          <select id="filter-sheet" onchange="filterData()" class="w-full border p-2.5 rounded bg-white outline-none focus:ring-1 focus:ring-indigo-500 font-medium">
-            <option value="semua">Semua Sumber Sheet Gabungan</option>
-            <option value="PERANGKAT_BELOM_DI_AMBIL">PERANGKAT BELOM DI AMBIL</option>
-            <option value="SUDAH_DI_AMBIL">SUDAH DI AMBIL</option>
-            <option value="INFO_PERANGKAT">INFO PERANGKAT</option>
-          </select>
-        </div>
-        <div>
-          <label class="block font-bold text-gray-500 uppercase mb-1">KRITERIA CARI</label>
-          <select id="filter-criteria" onchange="filterData()" class="w-full border p-2.5 rounded bg-white outline-none focus:ring-1 focus:ring-indigo-500 font-medium">
-            <option value="all">Semua Gabungan (ODP / POP / CID / Nama)</option>
-            <option value="odp">ODP</option>
-            <option value="pop">POP</option>
-            <option value="cid">CID</option>
-            <option value="nama">Nama</option>
-          </select>
-        </div>
-        <div>
-          <label class="block font-bold text-gray-500 uppercase mb-1">KATA KUNCI</label>
-          <div class="relative">
-            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400"><i class="fa-solid fa-search"></i></span>
-            <input type="text" id="filter-keyword" onkeyup="filterData()" placeholder="Cari nama, CID, ODP, POP..." class="w-full border pl-9 p-2.5 rounded outline-none focus:ring-1 focus:ring-indigo-500">
-          </div>
-        </div>
-      </div>
-
-      <!-- INFO HASIL & TOMBOL AKSI -->
-      <div class="flex flex-wrap justify-between items-center pt-2 border-t text-xs gap-3">
-        <span id="total-hasil" class="font-bold text-gray-600">Total Hasil: 0 Data</span>
-        <div class="flex flex-wrap gap-2">
-          <button onclick="sendGroupWA()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded font-medium flex items-center gap-1 shadow-sm">
-            <i class="fa-brands fa-whatsapp"></i> Kirim Gabungan (<span id="count-checked">0</span> WA)
-          </button>
-          <button onclick="sendMultipleWA()" class="bg-emerald-700 hover:bg-emerald-800 text-white px-3 py-2 rounded font-medium flex items-center gap-1 shadow-sm">
-            <i class="fa-brands fa-whatsapp"></i> Kirim Sekaligus (<span id="count-checked-2">0</span>)
-          </button>
-          <button onclick="loadAllData()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded font-medium flex items-center gap-1 border">
-            <i class="fa-solid fa-rotate"></i> Refresh
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- TABEL DATA -->
-    <div class="bg-white rounded-xl shadow-sm border overflow-x-auto">
-      <table class="w-full text-left border-collapse text-xs">
-        <thead>
-          <tr class="bg-slate-900 text-white uppercase text-[11px]">
-            <th class="p-3 text-center w-10"><input type="checkbox" id="select-all" onclick="toggleSelectAll(this)"></th>
-            <th class="p-3">Sumber Sheet</th>
-            <th class="p-3">Waktu</th>
-            <th class="p-3">ODP</th>
-            <th class="p-3">POP</th>
-            <th class="p-3">CID / Nama</th>
-            <th class="p-3">Sherlok</th>
-            <th class="p-3">SN</th>
-            <th class="p-3">P-SN</th>
-            <th class="p-3 text-center">Foto Rumah</th>
-            <th class="p-3 text-center">Foto Alat</th>
-            <th class="p-3 text-center">Aksi</th>
-          </tr>
-        </thead>
-        <tbody id="table-body" class="divide-y divide-gray-100 text-gray-700">
-          <tr>
-            <td colspan="12" class="p-8 text-center text-gray-400">Memuat data dari server...</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-  </div>
-
-  <!-- MODAL PREVIEW GAMBAR -->
-  <div id="imageModal" class="fixed inset-0 bg-black/70 hidden z-50 flex items-center justify-center p-4" onclick="closeModal()">
-    <div class="bg-white p-2 rounded-lg max-w-lg w-full text-center relative" onclick="event.stopPropagation()">
-      <button onclick="closeModal()" class="absolute top-2 right-2 bg-rose-600 text-white w-7 h-7 rounded-full text-xs font-bold">&times;</button>
-      <img id="modalImg" src="" class="max-h-[80vh] mx-auto rounded object-contain">
-    </div>
-  </div>
-
+  <!-- JAVASCRIPT SISTEM PENCARIAN -->
   <script>
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHOXnA4YsBeNdPDUxXwPlsJHPJo7k7E4IqItpNOKLjfsYeQce7a9Gda8p-3p-Ys6tJkg/exec";
-    let masterData = {};
-    let currentFilteredRows = [];
+    let searchDataStore = [];
 
-    if (localStorage.getItem("admin_logged_in") !== "true") {
-      window.location.href = "login.html";
-    }
-
-    async function loadAllData() {
-      const tbody = document.getElementById('table-body');
-      tbody.innerHTML = `<tr><td colspan="12" class="p-8 text-center text-gray-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Mengambil data dari server...</td></tr>`;
+    async function loadSearchData() {
+      const iconRefresh = document.getElementById('icon-refresh');
+      const tbody = document.getElementById('search-table-body');
       
-      try {
-        const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getAllData`);
-        if (!res.ok) throw new Error("Gagal terhubung ke server");
-        masterData = await res.json();
-        
-        if (masterData["Laporan"]) delete masterData["Laporan"];
-        if (masterData["laporan"]) delete masterData["laporan"];
+      if(iconRefresh) iconRefresh.classList.add('fa-spin');
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="11" class="p-8 text-center text-slate-500 font-medium">
+            <i class="fa-solid fa-spinner fa-spin text-sky-600 text-xl block mb-2"></i>
+            Memuat data terbaru...
+          </td>
+        </tr>
+      `;
 
-        filterData();
+      try {
+        const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getDataAdmin`);
+        const result = await response.json();
+
+        if (result.status === "success") {
+          searchDataStore = result.data.reverse();
+          renderSearchTable(searchDataStore);
+        } else {
+          tbody.innerHTML = `<tr><td colspan="11" class="p-6 text-center text-red-500 font-medium">Gagal mengambil data.</td></tr>`;
+        }
       } catch (err) {
-        console.error(err);
-        tbody.innerHTML = `<tr><td colspan="12" class="p-8 text-center text-rose-500 font-semibold">Gagal memuat data dari spreadsheet. Silakan periksa koneksi atau coba Refresh.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="11" class="p-6 text-center text-red-500 font-medium">Koneksi terputus atau URL Apps Script belum sesuai.</td></tr>`;
+      } finally {
+        if(iconRefresh) iconRefresh.classList.remove('fa-spin');
       }
     }
 
-    function filterData() {
-      const selectedCategory = document.getElementById('filter-sheet').value;
-      const criteria = document.getElementById('filter-criteria').value;
-      const keyword = document.getElementById('filter-keyword').value.toLowerCase().trim();
+    function renderSearchTable(dataList) {
+      const tbody = document.getElementById('search-table-body');
+      document.getElementById('search-count').innerText = `${dataList.length} Data`;
 
-      let targetSheets = [];
-      if (selectedCategory === "semua") {
-        targetSheets = Object.keys(masterData).filter(s => s.toLowerCase() !== "laporan");
-      } else if (selectedCategory === "PERANGKAT_BELOM_DI_AMBIL") {
-        if (masterData["Full Data"]) targetSheets.push("Full Data");
-        if (masterData["target"]) targetSheets.push("target");
-      } else if (selectedCategory === "SUDAH_DI_AMBIL") {
-        if (masterData["sudah diambil"]) targetSheets.push("sudah diambil");
-      } else if (selectedCategory === "INFO_PERANGKAT") {
-        if (masterData["Baris 1"]) targetSheets.push("Baris 1");
-      } else {
-        if (selectedCategory.toLowerCase() !== "laporan") {
-          targetSheets = [selectedCategory];
-        }
-      }
-
-      currentFilteredRows = [];
-
-      targetSheets.forEach(sheetName => {
-        if (sheetName.toLowerCase() === "laporan") return;
-
-        let rows = masterData[sheetName] || [];
-        if (rows.length > 0) {
-          
-          let isSudahDiambil = (sheetName.toLowerCase() === "sudah diambil");
-          let startIndex = isSudahDiambil ? 0 : 1;
-
-          for (let i = startIndex; i < rows.length; i++) {
-            let r = rows[i];
-            if (!r || r.length === 0 || r.every(cell => cell === "")) continue;
-
-            let waktu = '-';
-            let nama = '-';
-            let cid = '-';
-            let odp = '-';
-            let pop = '-';
-            let sherlok = '-';
-            let snUnit = '-';
-            let psn = '-';
-            let fotoRumah = '-';
-            let fotoAlat = '-';
-            let ket = '-';
-
-            if (isSudahDiambil) {
-              nama = r[0] ? String(r[0]) : '-';
-              cid = r[1] ? String(r[1]) : '-';
-              odp = r[2] ? String(r[2]) : '-';
-              snUnit = r[3] ? String(r[3]) : '-';
-            } else {
-              let headers = rows[0].map(h => String(h).toUpperCase().trim());
-
-              let idxTime = headers.findIndex(h => h === "TIME" || h.includes("TIME") || h.includes("WAKTU"));
-              let idxNama = headers.findIndex(h => h === "NAMA" || h.includes("NAMA"));
-              let idxCID = headers.findIndex(h => h === "CID" || h.includes("CID"));
-              let idxODP = headers.findIndex(h => h === "ODP" || h.includes("ODP"));
-              let idxPOP = headers.findIndex(h => h === "POP" || h.includes("POP"));
-              let idxSherlok = headers.findIndex(h => h.includes("SHERLOK") || h.includes("SHERLOCK") || h.includes("MAP"));
-              let idxSN = headers.findIndex(h => h.includes("SN") && !h.includes("P-SN") && !h.includes("PSN"));
-              let idxPSN = headers.findIndex(h => h.includes("P-SN") || h.includes("PSN"));
-              let idxFotoRumah = headers.findIndex(h => h.includes("FOTO RUMAH") || h.includes("RUMAH"));
-              let idxFotoAlat = headers.findIndex(h => h.includes("FOTO ALAT") || h.includes("ALAT"));
-              let idxKet = headers.findIndex(h => h.includes("KET") || h.includes("KETERANGAN"));
-
-              waktu = (idxTime !== -1 && r[idxTime]) ? String(r[idxTime]) : '-';
-              nama = (idxNama !== -1 && r[idxNama]) ? String(r[idxNama]) : '-';
-              cid = (idxCID !== -1 && r[idxCID]) ? String(r[idxCID]) : '-';
-              odp = (idxODP !== -1 && r[idxODP]) ? String(r[idxODP]) : '-';
-              pop = (idxPOP !== -1 && r[idxPOP]) ? String(r[idxPOP]) : '-';
-              sherlok = (idxSherlok !== -1 && r[idxSherlok]) ? String(r[idxSherlok]) : '-';
-              snUnit = (idxSN !== -1 && r[idxSN]) ? String(r[idxSN]) : '-';
-              psn = (idxPSN !== -1 && r[idxPSN]) ? String(r[idxPSN]) : '-';
-              fotoRumah = (idxFotoRumah !== -1 && r[idxFotoRumah]) ? String(r[idxFotoRumah]) : '-';
-              fotoAlat = (idxFotoAlat !== -1 && r[idxFotoAlat]) ? String(r[idxFotoAlat]) : '-';
-              ket = (idxKet !== -1 && r[idxKet]) ? String(r[idxKet]) : '-';
-            }
-
-            let rowText = r.join(" ").toLowerCase();
-            let matchCriteria = false;
-
-            if (keyword === "") {
-              matchCriteria = true;
-            } else {
-              if (criteria === "odp") {
-                matchCriteria = odp.toLowerCase().includes(keyword);
-              } else if (criteria === "pop") {
-                matchCriteria = pop.toLowerCase().includes(keyword);
-              } else if (criteria === "cid") {
-                matchCriteria = cid.toLowerCase().includes(keyword);
-              } else if (criteria === "nama") {
-                matchCriteria = nama.toLowerCase().includes(keyword);
-              } else {
-                matchCriteria = rowText.includes(keyword);
-              }
-            }
-
-            if (matchCriteria) {
-              currentFilteredRows.push({
-                sheetAsli: sheetName,
-                waktu: waktu,
-                odp: odp,
-                pop: pop,
-                cid: cid,
-                nama: nama,
-                sherlok: sherlok,
-                snUnit: snUnit,
-                psn: psn,
-                fotoRumah: fotoRumah,
-                fotoAlat: fotoAlat,
-                ket: ket
-              });
-            }
-          }
-        }
-      });
-
-      document.getElementById('total-hasil').innerText = `Total Hasil: ${currentFilteredRows.length} Data`;
-      const tbody = document.getElementById('table-body');
-
-      if (currentFilteredRows.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="12" class="p-8 text-center text-gray-400">Data tidak ditemukan pada kategori ini.</td></tr>`;
+      if (dataList.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="11" class="p-6 text-center text-slate-400 font-medium">Data tidak ditemukan.</td></tr>`;
         return;
       }
 
-      let html = "";
-      currentFilteredRows.forEach((item, idx) => {
-        let renderSherlok = (item.sherlok && item.sherlok.startsWith('http')) ? 
-          `<a href="${item.sherlok}" target="_blank" class="text-blue-600 underline font-mono text-[11px] font-semibold"><i class="fa-solid fa-map-location-dot mr-1"></i> Buka Map</a>` : 
-          `<span class="text-gray-600 font-mono text-[11px]">${item.sherlok}</span>`;
-
-        let renderFotoRumah = (item.fotoRumah && item.fotoRumah.startsWith('http')) ? 
-          `<img src="${item.fotoRumah}" class="w-10 h-10 object-cover rounded cursor-pointer mx-auto border shadow-sm hover:scale-110 transition" onclick="openModal('${item.fotoRumah}')">` : 
-          `<span class="text-gray-400 text-[10px]">Tidak ada</span>`;
-
-        let renderFotoAlat = (item.fotoAlat && item.fotoAlat.startsWith('http')) ? 
-          `<img src="${item.fotoAlat}" class="w-10 h-10 object-cover rounded cursor-pointer mx-auto border shadow-sm hover:scale-110 transition" onclick="openModal('${item.fotoAlat}')">` : 
-          `<span class="text-gray-400 text-[10px]">Tidak ada</span>`;
-
+      let html = '';
+      dataList.forEach(row => {
         html += `
-          <tr class="hover:bg-gray-50 transition">
-            <td class="p-3 text-center"><input type="checkbox" class="row-checkbox" data-index="${idx}" onchange="updateCheckedCount()"></td>
-            <td class="p-3 font-semibold text-indigo-600 bg-indigo-50/50 rounded">${item.sheetAsli}</td>
-            <td class="p-3 text-gray-500 whitespace-nowrap">${item.waktu}</td>
-            <td class="p-3 font-medium">${item.odp}</td>
-            <td class="p-3">${item.pop}</td>
-            <td class="p-3"><b>${item.cid}</b> / ${item.nama}</td>
-            <td class="p-3">${renderSherlok}</td>
-            <td class="p-3 font-mono">${item.snUnit}</td>
-            <td class="p-3 font-mono">${item.psn}</td>
-            <td class="p-3 text-center">${renderFotoRumah}</td>
-            <td class="p-3 text-center">${renderFotoAlat}</td>
-            <td class="p-3 text-center">
-              <button onclick="sendSingleWA(${idx})" class="bg-emerald-600 text-white p-1.5 rounded hover:bg-emerald-700 transition" title="Kirim WA"><i class="fa-brands fa-whatsapp"></i></button>
+          <tr class="hover:bg-slate-50 transition">
+            <td class="p-3 font-mono text-[11px] whitespace-nowrap">${row.timestamp}</td>
+            <td class="p-3 font-semibold text-slate-800">${row.pop}</td>
+            <td class="p-3 font-semibold text-sky-600">${row.odp}</td>
+            <td class="p-3">${row.cid_lama}</td>
+            <td class="p-3 font-medium text-slate-800">${row.nama_lama}</td>
+            <td class="p-3 font-mono">${row.sn}</td>
+            <td class="p-3 font-mono">${row.psn}</td>
+            <td class="p-3">
+              ${row.foto_rumah_url && row.foto_rumah_url.includes('http') ? 
+                `<a href="${row.foto_rumah_url}" target="_blank" class="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-2 py-1 rounded font-medium text-[11px] flex items-center gap-1 w-fit"><i class="fa-solid fa-image"></i> Lihat</a>` 
+                : `<span class="text-slate-400">-</span>`}
             </td>
+            <td class="p-3">
+              ${row.foto_alat_url && row.foto_alat_url.includes('http') ? 
+                `<a href="${row.foto_alat_url}" target="_blank" class="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 px-2 py-1 rounded font-medium text-[11px] flex items-center gap-1 w-fit"><i class="fa-solid fa-image"></i> Lihat</a>` 
+                : `<span class="text-slate-400">-</span>`}
+            </td>
+            <td class="p-3">
+              ${row.link_maps ? 
+                `<a href="${row.link_maps}" target="_blank" class="bg-sky-50 text-sky-600 hover:bg-sky-100 px-2 py-1 rounded font-medium text-[11px] flex items-center gap-1 w-fit"><i class="fa-solid fa-map-pin"></i> Maps</a>` 
+                : `<span class="text-slate-400">-</span>`}
+            </td>
+            <td class="p-3 text-slate-500 max-w-xs truncate" title="${row.keterangan}">${row.keterangan || '-'}</td>
           </tr>
         `;
       });
 
       tbody.innerHTML = html;
-      document.getElementById('select-all').checked = false;
-      updateCheckedCount();
     }
 
-    function openModal(url) {
-      document.getElementById('modalImg').src = url;
-      document.getElementById('imageModal').classList.remove('hidden');
-    }
-
-    function closeModal() {
-      document.getElementById('imageModal').classList.add('hidden');
-    }
-
-    function toggleSelectAll(master) {
-      const checkboxes = document.querySelectorAll('.row-checkbox');
-      checkboxes.forEach(cb => cb.checked = master.checked);
-      updateCheckedCount();
-    }
-
-    function updateCheckedCount() {
-      const checkedCount = document.querySelectorAll('.row-checkbox:checked').length;
-      document.getElementById('count-checked').innerText = checkedCount;
-      document.getElementById('count-checked-2').innerText = checkedCount;
-    }
-
-    function formatSingleText(item, indexNumber) {
-      let prefix = indexNumber ? `*${indexNumber}. ${item.nama}*\n` : `*${item.nama}*\n`;
-      return `${prefix}` +
-        `• ODP: ${item.odp}\n` +
-        `• POP: ${item.pop}\n` +
-        `• CID: ${item.cid}\n` +
-        `• SN: ${item.snUnit}\n` +
-        `• Sheet: ${item.sheetAsli}\n` +
-        `• Ket: ${item.ket}\n` +
-        `📍 Sherlock: ${item.sherlok}\n` +
-        `🖼️ Foto Rumah: ${item.fotoRumah}\n` +
-        `🖼️ Foto Alat: ${item.fotoAlat}`;
-    }
-
-    // 1. KIRIM GABUNGAN (SATU PESAN WA BERISI SEMUA DATA YANG DICENTANG)
-    function sendGroupWA() {
-      const checkedBoxes = document.querySelectorAll('.row-checkbox:checked');
-      if (checkedBoxes.length === 0) {
-        alert("Pilih/centang minimal satu data terlebih dahulu!");
-        return;
-      }
-
-      let text = `*📋 REKAP GABUNGAN (${checkedBoxes.length} DATA LAPANGAN)*\n`;
-      text += `====================================\n\n`;
-
-      checkedBoxes.forEach((cb, i) => {
-        let idx = cb.getAttribute('data-index');
-        let item = currentFilteredRows[idx];
-        text += formatSingleText(item, i + 1);
-        text += `\n------------------------------------\n`;
+    function filterSearchData() {
+      const keyword = document.getElementById('input-search').value.toLowerCase();
+      const filtered = searchDataStore.filter(item => {
+        return (
+          item.nama_lama.toLowerCase().includes(keyword) ||
+          item.cid_lama.toLowerCase().includes(keyword) ||
+          item.odp.toLowerCase().includes(keyword) ||
+          item.sn.toLowerCase().includes(keyword) ||
+          item.psn.toLowerCase().includes(keyword) ||
+          item.pop.toLowerCase().includes(keyword) ||
+          item.keterangan.toLowerCase().includes(keyword)
+        );
       });
-
-      let waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
-      window.open(waUrl, '_blank');
+      renderSearchTable(filtered);
     }
 
-    // 2. KIRIM SEKALIGUS (BUKA TAB WA SATU PER SATU UNTUK SETIAP DATA DICENTANG)
-    function sendMultipleWA() {
-      const checkedBoxes = document.querySelectorAll('.row-checkbox:checked');
-      if (checkedBoxes.length === 0) {
-        alert("Pilih/centang minimal satu data terlebih dahulu!");
-        return;
-      }
-
-      checkedBoxes.forEach((cb) => {
-        let idx = cb.getAttribute('data-index');
-        let item = currentFilteredRows[idx];
-        let text = formatSingleText(item, null);
-        let waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
-        window.open(waUrl, '_blank');
-      });
-    }
-
-    // 3. KIRIM PER BARIS DATA (TOMBOL AKSI WA DI TABEL)
-    function sendSingleWA(idx) {
-      let item = currentFilteredRows[idx];
-      let text = formatSingleText(item, null);
-      let waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
-      window.open(waUrl, '_blank');
-    }
-    
-    function logout() {
-      localStorage.removeItem("admin_logged_in");
-      window.location.href = "login.html";
-    }
-
-    window.onload = loadAllData;
+    window.onload = function() {
+      loadSearchData();
+    };
   </script>
 </body>
 </html>
