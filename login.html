@@ -5,16 +5,30 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login System - Admin Portal</title>
   
-  <!-- Font Google (Inter) & FontAwesome untuk Ikon -->
+  <!-- ========================================== -->
+  <!-- 1. PUSTAKA PENDUKUNG (SUPPORT LIBRARIES)   -->
+  <!-- ========================================== -->
+  
+  <!-- Font Google: Inter (Pendukung Tipografi) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Font Awesome 6.4.0 (Pendukung Ikon UI) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
+  <!-- Normalize CSS (Pendukung Konsistensi Tampilan Lintas Browser) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css" />
+
+  <!-- ========================================== -->
+  <!-- 2. STYLESHEET DESAIN TAMPILAN             -->
+  <!-- ========================================== -->
   <style>
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: 'Inter', sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
 
     body {
@@ -26,7 +40,7 @@
       padding: 20px;
     }
 
-    /* Card Login Presisi di Tengah */
+    /* Pembungkus Kartu Login */
     .login-card {
       background: rgba(255, 255, 255, 0.98);
       padding: 40px 35px;
@@ -133,7 +147,7 @@
       cursor: not-allowed;
     }
 
-    /* Notifikasi Alert */
+    /* Komponen Notifikasi Alert */
     .alert {
       padding: 12px 14px;
       border-radius: 8px;
@@ -175,6 +189,9 @@
 </head>
 <body>
 
+  <!-- ========================================== -->
+  <!-- 3. STRUKTUR ELEMEN HTML                   -->
+  <!-- ========================================== -->
   <div class="login-card">
     <div class="login-header">
       <i class="fa-solid fa-user-shield"></i>
@@ -182,7 +199,7 @@
       <p>Masukan kredensial untuk mengakses dashboard</p>
     </div>
 
-    <!-- Alert Notifikasi Error / Sukses -->
+    <!-- Container Notifikasi Status -->
     <div id="alertBox" class="alert"></div>
 
     <form id="loginForm">
@@ -213,48 +230,51 @@
     </div>
   </div>
 
+  <!-- ========================================== -->
+  <!-- 4. LOGIKA JAVASCRIPT & DUKUNGAN API        -->
+  <!-- ========================================== -->
   <script>
-    // GANTI SESUAI DENGAN URL WEB APP GOOGLE APPS SCRIPT ANDA
+    // URL WEB APP GOOGLE APPS SCRIPT
     const SCRIPT_URL = "URL_WEB_APP_APPS_SCRIPT_ANDA";
 
+    // Inisialisasi Elemen DOM
     const loginForm = document.getElementById("loginForm");
     const btnSubmit = document.getElementById("btnSubmit");
     const alertBox = document.getElementById("alertBox");
 
-    // Jika sudah login sebelumnya, langsung lempar ke admin.html
+    // Dukungan Otomatis: Jika user sudah login, langsung alihkan ke admin.html
     if (localStorage.getItem("session_user")) {
       window.location.href = "admin.html";
     }
 
+    // Pendukung Event Listener Form Submission
     loginForm.addEventListener("submit", function(e) {
       e.preventDefault();
 
       const userVal = document.getElementById("username").value.trim();
       const passVal = document.getElementById("password").value.trim();
 
-      // Set Loading State
+      // Indikator Proses Loading
       btnSubmit.disabled = true;
       btnSubmit.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Memeriksa...`;
       hideAlert();
 
-      // Panggil API Google Apps Script
+      // Komunikasi ke API Google Apps Script
       fetch(`${SCRIPT_URL}?action=login&username=${encodeURIComponent(userVal)}&password=${encodeURIComponent(passVal)}`)
         .then(response => response.json())
         .then(res => {
           if (res.status === "success") {
-            // Tampilkan Alert Sukses
             showAlert("success", "Login berhasil! Mengalihkan ke dashboard...");
 
-            // Simpan Session User ke LocalStorage Browser
+            // Menyimpan Sesi & Hak Akses User
             localStorage.setItem("session_user", JSON.stringify(res.user));
 
-            // Redirect ke admin.html setelah 1 detik
+            // Redirect Otomatis ke admin.html
             setTimeout(() => {
               window.location.href = "admin.html";
             }, 1000);
 
           } else {
-            // Tampilkan pesan error dari server
             showAlert("danger", res.message || "Username atau Password salah!");
             resetButton();
           }
@@ -266,16 +286,19 @@
         });
     });
 
+    // Fungsi Pendukung: Menampilkan Notifikasi Status
     function showAlert(type, message) {
       alertBox.className = `alert alert-${type}`;
       alertBox.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'}"></i> ${message}`;
       alertBox.style.display = "flex";
     }
 
+    // Fungsi Pendukung: Menyembunyikan Notifikasi
     function hideAlert() {
       alertBox.style.display = "none";
     }
 
+    // Fungsi Pendukung: Mengembalikan Status Tombol
     function resetButton() {
       btnSubmit.disabled = false;
       btnSubmit.innerHTML = `<span>Masuk Sistem</span> <i class="fa-solid fa-arrow-right"></i>`;
