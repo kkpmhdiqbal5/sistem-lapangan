@@ -1,34 +1,55 @@
 <!DOCTYPE html>
-<html lang="id">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login Admin</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100 flex items-center justify-center h-screen">
-  <div class="bg-white p-8 rounded-xl shadow-md w-96 space-y-4">
-    <h2 class="text-xl font-bold text-center text-gray-800">Login Admin</h2>
-    <div class="space-y-3">
-      <input type="text" id="username" placeholder="Username" class="w-full border p-2.5 rounded text-sm outline-none focus:ring-2 focus:ring-indigo-500">
-      <input type="password" id="password" placeholder="Password" class="w-full border p-2.5 rounded text-sm outline-none focus:ring-2 focus:ring-indigo-500">
-      <button onclick="handleLogin()" class="w-full bg-indigo-600 text-white py-2.5 rounded text-sm font-bold hover:bg-indigo-700 transition">Masuk</button>
-    </div>
-  </div>
+<html>
+  <head>
+    <base target="_top">
+    <title>Sistem Dashboard & Input Data</title>
+  </head>
+  <body>
 
-  <script>
-    function handleLogin() {
-      // Sesuaikan username & password admin Anda di sini
-      const user = document.getElementById('username').value;
-      const pass = document.getElementById('password').value;
-      
-      if (user === "admin" && pass === "12345") {
-        localStorage.setItem("admin_logged_in", "true");
-        window.location.href = "admin.html";
-      } else {
-        alert("Username atau Password salah!");
+    <!-- FORM LOGIN -->
+    <div id="loginSection">
+      <h2>Halaman Login</h2>
+      <input type="text" id="username" placeholder="Username"><br><br>
+      <input type="password" id="password" placeholder="Password"><br><br>
+      <button onclick="prosesLogin()">Login</button>
+    </div>
+
+    <!-- MENU UTAMA (SEBELUM LOGIN DISAMBUNG/SEMBUNYI) -->
+    <div id="mainSection" style="display:none;">
+      <h2>Menu Utama</h2>
+      <button id="btnDashboard" style="display:none;">Menu Dashboard</button>
+      <button id="btnFormInput" style="display:none;">Menu Form Input</button>
+      <button id="btnDataAdmin" style="display:none;">Menu Data Admin</button>
+      <button id="btnKelolaUsers" style="display:none;">Menu Kelola Akun</button>
+    </div>
+
+    <!-- JAVASCRIPT / KODE LANGKAH 3 DITARUH DI SINI -->
+    <script>
+      function prosesLogin() {
+        var username = document.getElementById("username").value;
+        var password = document.getElementById("password").value;
+
+        // Panggil fungsi doGet di Code.gs
+        google.script.run.withSuccessHandler(function(res) {
+          if (res.status === "success") {
+            var p = res.user.permissions;
+
+            // Tampilkan section menu utama
+            document.getElementById("loginSection").style.display = "none";
+            document.getElementById("mainSection").style.display = "block";
+
+            // Atur tampilan tombol berdasarkan hak akses yang dikirim dari Apps Script
+            document.getElementById("btnDashboard").style.display = p.dashboard ? "inline-block" : "none";
+            document.getElementById("btnFormInput").style.display = p.form_input ? "inline-block" : "none";
+            document.getElementById("btnDataAdmin").style.display = p.data_admin ? "inline-block" : "none";
+            document.getElementById("btnKelolaUsers").style.display = p.manage_users ? "inline-block" : "none";
+
+            alert("Selamat Datang, " + res.user.username + " (" + res.user.role + ")");
+          } else {
+            alert(res.message);
+          }
+        }).doGet({ parameter: { action: "login", username: username, password: password } });
       }
-    }
-  </script>
-</body>
+    </script>
+  </body>
 </html>
