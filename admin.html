@@ -3,153 +3,332 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard Admin - Sistem Cari</title>
+  <title>Dashboard Admin & Management</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* Sembunyikan scrollbar untuk tampilan mobile yang rapi */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
 </head>
-<body class="bg-gray-100 font-sans">
+<body class="bg-slate-100 font-sans min-h-screen pb-24">
 
-  <!-- NAVBAR ATAS -->
-  <nav class="bg-white shadow-sm border-b px-6 py-3 flex justify-between items-center">
-    <div class="font-bold text-gray-800 text-base flex items-center gap-2">
-      Dashboard Admin
+  <!-- HEADER UTAMA ADMIN -->
+  <header class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center shadow-md sticky top-0 z-40">
+    <div class="font-bold text-lg md:text-xl flex items-center gap-2">
+      <i class="fa-solid fa-user-shield text-sky-400"></i>
+      <span id="header-title">Sistem Cari Data</span>
     </div>
-    <div class="flex items-center gap-2">
-      <a href="index.html" class="bg-white border text-gray-700 hover:bg-gray-50 px-3 py-1.5 rounded text-xs font-medium flex items-center gap-1.5 shadow-sm">
-        <i class="fa-solid fa-satellite-dish"></i> Sistem Lapangan
-      </a>
-      <a href="search.html" class="bg-emerald-600 text-white hover:bg-emerald-700 px-3 py-1.5 rounded text-xs font-medium flex items-center gap-1.5 shadow-sm">
-        <i class="fa-solid fa-search"></i> Sistem Cari
-      </a>
-      <button onclick="logout()" class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded text-xs font-medium flex items-center gap-1.5 shadow-sm">
-        <i class="fa-solid fa-right-from-bracket"></i> Logout
+    <div class="flex items-center gap-3">
+      <span class="text-xs bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-full text-slate-300 hidden sm:inline-block">
+        <i class="fa-solid fa-circle text-emerald-500 text-[8px] mr-1"></i> Admin Online
+      </span>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto my-6 px-4">
+
+    <!-- ================= 1. HALAMAN: SISTEM CARI ================= -->
+    <section id="page-cari" class="page-content space-y-6">
+      <div class="bg-white p-5 md:p-6 rounded-xl shadow-md space-y-4">
+        <div class="flex flex-col md:flex-row justify-between md:items-center gap-4 border-b pb-4">
+          <div>
+            <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+              <i class="fa-solid fa-magnifying-glass text-sky-600"></i> Sistem Cari Data Lapangan
+            </h2>
+            <p class="text-xs text-slate-500">Cari berdasarkan Nama, CID, ODP, SN, PSN, atau POP</p>
+          </div>
+          <button onclick="loadDataFromSheets()" id="btn-refresh" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 transition shadow-sm">
+            <i class="fa-solid fa-arrows-rotate" id="icon-refresh"></i> Muat Data
+          </button>
+        </div>
+
+        <div class="relative">
+          <input type="text" id="input-search" onkeyup="filterData()" placeholder="Ketik kata kunci pencarian..." class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-sky-500 font-medium bg-slate-50 focus:bg-white transition">
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400"></i>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-xl shadow-md overflow-hidden">
+        <div class="p-4 bg-slate-800 text-white flex justify-between items-center text-sm font-semibold">
+          <span><i class="fa-solid fa-database mr-2"></i>Hasil Pencarian Data</span>
+          <span id="total-count" class="bg-sky-500 text-white px-3 py-0.5 rounded-full text-xs font-bold">0 Data</span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-slate-100 border-b border-slate-200 text-slate-700 uppercase font-bold">
+                <th class="p-3">Waktu</th>
+                <th class="p-3">POP</th>
+                <th class="p-3">ODP</th>
+                <th class="p-3">CID Lama</th>
+                <th class="p-3">Nama Lama</th>
+                <th class="p-3">SN Unit</th>
+                <th class="p-3">P-SN</th>
+                <th class="p-3">Foto Rumah</th>
+                <th class="p-3">Foto Alat</th>
+                <th class="p-3">Lokasi</th>
+                <th class="p-3">Ket</th>
+              </tr>
+            </thead>
+            <tbody id="table-body" class="divide-y divide-slate-200 text-slate-700">
+              <tr>
+                <td colspan="11" class="p-8 text-center text-slate-400 font-medium">
+                  Klik tombol "Muat Data" untuk memuat data terbaru dari server.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= 2. HALAMAN: PROFIL ================= -->
+    <section id="page-profil" class="page-content hidden max-w-2xl mx-auto space-y-6">
+      <div class="bg-white rounded-2xl shadow-md overflow-hidden text-center p-6 space-y-4">
+        <div class="relative w-24 h-24 mx-auto">
+          <div class="w-24 h-24 rounded-full bg-slate-800 text-sky-400 flex items-center justify-center text-4xl font-bold border-4 border-sky-500 shadow-md">
+            <i class="fa-solid fa-user-tie"></i>
+          </div>
+        </div>
+        <div>
+          <h3 class="text-xl font-bold text-slate-800">Administrator Utama</h3>
+          <p class="text-xs text-slate-500">Super Admin / Monitoring Lapangan</p>
+        </div>
+        <div class="grid grid-cols-2 gap-3 text-left pt-4 border-t">
+          <div class="bg-slate-50 p-3 rounded-lg border">
+            <span class="text-[10px] text-slate-400 uppercase font-bold block">Jabatan</span>
+            <span class="text-xs font-semibold text-slate-700">Admin Lapangan</span>
+          </div>
+          <div class="bg-slate-50 p-3 rounded-lg border">
+            <span class="text-[10px] text-slate-400 uppercase font-bold block">Status Akses</span>
+            <span class="text-xs font-semibold text-emerald-600">Full Access</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= 3. HALAMAN: LAPORAN ================= -->
+    <section id="page-laporan" class="page-content hidden space-y-6">
+      <div class="bg-white p-6 rounded-xl shadow-md">
+        <h3 class="text-base font-bold text-slate-800 mb-4 border-b pb-2">
+          <i class="fa-solid fa-chart-pie text-sky-600 mr-2"></i>Ringkasan Laporan Data
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="bg-sky-50 border border-sky-200 p-4 rounded-xl flex items-center justify-between">
+            <div>
+              <p class="text-xs text-sky-600 font-bold uppercase">Total Data Masuk</p>
+              <h4 id="report-total" class="text-2xl font-black text-sky-900 mt-1">0</h4>
+            </div>
+            <i class="fa-solid fa-file-invoice text-sky-300 text-3xl"></i>
+          </div>
+          <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl flex items-center justify-between">
+            <div>
+              <p class="text-xs text-emerald-600 font-bold uppercase">POP Perbaungan</p>
+              <h4 id="report-perbaungan" class="text-2xl font-black text-emerald-900 mt-1">0</h4>
+            </div>
+            <i class="fa-solid fa-tower-cell text-emerald-300 text-3xl"></i>
+          </div>
+          <div class="bg-indigo-50 border border-indigo-200 p-4 rounded-xl flex items-center justify-between">
+            <div>
+              <p class="text-xs text-indigo-600 font-bold uppercase">POP Pantai Cermin</p>
+              <h4 id="report-pantai" class="text-2xl font-black text-indigo-900 mt-1">0</h4>
+            </div>
+            <i class="fa-solid fa-network-wired text-indigo-300 text-3xl"></i>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= 4. HALAMAN: PANEL KONTROL ================= -->
+    <section id="page-panel" class="page-content hidden space-y-6">
+      <div class="bg-white p-6 rounded-xl shadow-md space-y-4">
+        <h3 class="text-base font-bold text-slate-800 border-b pb-2">
+          <i class="fa-solid fa-sliders text-sky-600 mr-2"></i>Pengaturan Panel Kontrol
+        </h3>
+        <div class="space-y-3">
+          <button onclick="loadDataFromSheets()" class="w-full bg-slate-800 text-white p-3 rounded-lg text-xs font-bold hover:bg-slate-900 transition flex items-center justify-center gap-2">
+            <i class="fa-solid fa-sync"></i> Sinkronkan Ulang Data Spreadsheet
+          </button>
+          <a href="https://docs.google.com/spreadsheets" target="_blank" class="w-full bg-emerald-600 text-white p-3 rounded-lg text-xs font-bold hover:bg-emerald-700 transition flex items-center justify-center gap-2 block text-center">
+            <i class="fa-solid fa-file-excel"></i> Buka Google Sheets Utama
+          </a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= BOTTOM NAVIGATION BAR (NAVIGASI BAWAH) ================= -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-800 shadow-2xl z-50">
+    <div class="max-w-md mx-auto flex justify-around items-center h-16 px-2">
+      
+      <!-- Button: Profil -->
+      <button onclick="switchTab('profil', 'Profil Admin')" id="nav-profil" class="nav-btn flex flex-col items-center justify-center w-full h-full text-slate-400 hover:text-sky-400 transition">
+        <i class="fa-solid fa-user text-lg mb-1"></i>
+        <span class="text-[10px] font-medium">Profil</span>
       </button>
+
+      <!-- Button: Sistem Cari -->
+      <button onclick="switchTab('cari', 'Sistem Cari Data')" id="nav-cari" class="nav-btn flex flex-col items-center justify-center w-full h-full text-sky-400 active-tab transition">
+        <i class="fa-solid fa-magnifying-glass text-lg mb-1"></i>
+        <span class="text-[10px] font-medium">Sistem Cari</span>
+      </button>
+
+      <!-- Button: Sistem Lapangan (Direct Link ke index.html) -->
+      <a href="index.html" class="flex flex-col items-center justify-center w-full h-full text-slate-400 hover:text-amber-400 transition">
+        <div class="bg-amber-500 text-slate-900 w-8 h-8 rounded-full flex items-center justify-center shadow-lg -mt-3 border-2 border-slate-900">
+          <i class="fa-solid fa-satellite-dish text-sm"></i>
+        </div>
+        <span class="text-[10px] font-medium mt-0.5">Lapangan</span>
+      </a>
+
+      <!-- Button: Laporan -->
+      <button onclick="switchTab('laporan', 'Laporan Data')" id="nav-laporan" class="nav-btn flex flex-col items-center justify-center w-full h-full text-slate-400 hover:text-sky-400 transition">
+        <i class="fa-solid fa-chart-column text-lg mb-1"></i>
+        <span class="text-[10px] font-medium">Laporan</span>
+      </button>
+
+      <!-- Button: Panel Kontrol -->
+      <button onclick="switchTab('panel', 'Panel Kontrol')" id="nav-panel" class="nav-btn flex flex-col items-center justify-center w-full h-full text-slate-400 hover:text-sky-400 transition">
+        <i class="fa-solid fa-sliders text-lg mb-1"></i>
+        <span class="text-[10px] font-medium">Panel</span>
+      </button>
+
     </div>
   </nav>
 
-  <!-- KONTROL DASHBOARD -->
-  <div class="max-w-7xl mx-auto my-8 px-4 space-y-6">
-    <div class="flex justify-between items-center">
-      <h1 class="text-xl font-bold text-gray-800">Ringkasan Data Sistem</h1>
-      <button onclick="fetchDashboardStats()" class="text-xs bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 px-3 py-1.5 rounded shadow-sm font-medium flex items-center gap-1.5">
-        <i class="fa-solid fa-arrows-rotate"></i> Refresh
-      </button>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      
-      <!-- KARTU 1: PERANGKAT BELUM DIAMBIL (Full Data + Target Kolom I Terisi) -->
-      <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-amber-500 flex justify-between items-center">
-        <div>
-          <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Perangkat Belum Diambil</p>
-          <h2 id="count-belum" class="text-3xl font-extrabold text-gray-800 mt-1"><i class="fa-solid fa-spinner fa-spin text-gray-300 text-2xl"></i></h2>
-          <p class="text-[11px] text-gray-500 mt-1">Sumber: Sheet "Full Data" + "target" (Kolom I terisi)</p>
-        </div>
-        <div class="bg-amber-100 text-amber-600 w-12 h-12 rounded-xl flex items-center justify-center text-xl">
-          <i class="fa-solid fa-box-archive"></i>
-        </div>
-      </div>
-
-      <!-- KARTU 2: PERANGKAT SUDAH DIAMBIL -->
-      <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-emerald-500 flex justify-between items-center">
-        <div>
-          <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Perangkat Sudah Diambil</p>
-          <h2 id="count-sudah" class="text-3xl font-extrabold text-gray-800 mt-1"><i class="fa-solid fa-spinner fa-spin text-gray-300 text-2xl"></i></h2>
-          <p class="text-[11px] text-gray-500 mt-1">Sumber: Sheet "sudah diambil"</p>
-        </div>
-        <div class="bg-emerald-100 text-emerald-600 w-12 h-12 rounded-xl flex items-center justify-center text-xl">
-          <i class="fa-solid fa-box-open"></i>
-        </div>
-      </div>
-
-      <!-- KARTU 3: INFO PERANGKAT LAPANGAN -->
-      <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 border-blue-500 flex justify-between items-center">
-        <div>
-          <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Info Perangkat Lapangan</p>
-          <h2 id="count-info" class="text-3xl font-extrabold text-gray-800 mt-1"><i class="fa-solid fa-spinner fa-spin text-gray-300 text-2xl"></i></h2>
-          <p class="text-[11px] text-gray-500 mt-1">Sumber: Sheet "Baris 1"</p>
-        </div>
-        <div class="bg-blue-100 text-blue-600 w-12 h-12 rounded-xl flex items-center justify-center text-xl">
-          <i class="fa-solid fa-clipboard-list"></i>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
+  <!-- JAVASCRIPT SISTEM -->
   <script>
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHOXnA4YsBeNdPDUxXwPlsJHPJo7k7E4IqItpNOKLjfsYeQce7a9Gda8p-3p-Ys6tJkg/exec";
+    let allData = [];
 
-    if (localStorage.getItem("admin_logged_in") !== "true") {
-      window.location.href = "login.html";
+    // FUNGSI GANTI HALAMAN/TAB
+    function switchTab(tabName, pageTitle) {
+      document.querySelectorAll('.page-content').forEach(el => el.classList.add('hidden'));
+      document.getElementById(`page-${tabName}`).classList.remove('hidden');
+
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('text-sky-400');
+        btn.classList.add('text-slate-400');
+      });
+
+      const activeBtn = document.getElementById(`nav-${tabName}`);
+      if(activeBtn) {
+        activeBtn.classList.remove('text-slate-400');
+        activeBtn.classList.add('text-sky-400');
+      }
+
+      document.getElementById('header-title').innerText = pageTitle;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    async function fetchDashboardStats() {
-      // Tampilkan indikator loading ringan
-      document.getElementById('count-belum').innerHTML = `<i class="fa-solid fa-spinner fa-spin text-gray-300 text-2xl"></i>`;
-      document.getElementById('count-sudah').innerHTML = `<i class="fa-solid fa-spinner fa-spin text-gray-300 text-2xl"></i>`;
-      document.getElementById('count-info').innerHTML = `<i class="fa-solid fa-spinner fa-spin text-gray-300 text-2xl"></i>`;
+    // FUNGSI AMBIL DATA DARI GOOGLE SHEETS
+    async function loadDataFromSheets() {
+      const iconRefresh = document.getElementById('icon-refresh');
+      const tbody = document.getElementById('table-body');
+      
+      if(iconRefresh) iconRefresh.classList.add('fa-spin');
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="11" class="p-8 text-center text-slate-500 font-medium">
+            <i class="fa-solid fa-spinner fa-spin text-sky-600 text-xl block mb-2"></i>
+            Memuat data dari Google Sheets...
+          </td>
+        </tr>
+      `;
 
       try {
-        const res = await fetch(`${GOOGLE_SCRIPT_URL}?action=getAllData`);
-        if (!res.ok) throw new Error("Koneksi gagal");
-        
-        const data = await res.json();
+        const response = await fetch(`${GOOGLE_SCRIPT_URL}?action=getDataAdmin`);
+        const result = await response.json();
 
-        // --- OPTIMASI 1: Hitung Full Data secara efisien ---
-        let countFullData = 0;
-        if (data["Full Data"] && Array.isArray(data["Full Data"])) {
-          const len = data["Full Data"].length;
-          countFullData = len > 1 ? len - 1 : 0; // Langsung kurangi header tanpa looping berat
+        if (result.status === "success") {
+          allData = result.data.reverse();
+          renderTable(allData);
+          updateReportData(allData);
+        } else {
+          tbody.innerHTML = `<tr><td colspan="11" class="p-6 text-center text-red-500 font-medium">Gagal mengambil data.</td></tr>`;
         }
-
-        // --- OPTIMASI 2: Hitung target (Hanya Kolom I terisi) ---
-        let countTargetValid = 0;
-        if (data["target"] && Array.isArray(data["target"])) {
-          const targetRows = data["target"];
-          const len = targetRows.length;
-          // Gunakan for loop biasa (paling cepat di JS)
-          for (let i = 1; i < len; i++) {
-            const r = targetRows[i];
-            if (r && r.length > 8 && r[8] !== undefined && r[8] !== null && String(r[8]).trim() !== "") {
-              countTargetValid++;
-            }
-          }
-        }
-
-        // Render Angka Kartu 1
-        document.getElementById('count-belum').innerText = countFullData + countTargetValid;
-
-        // --- OPTIMASI 3: Hitung "sudah diambil" ---
-        let countSudah = 0;
-        if (data["sudah diambil"] && Array.isArray(data["sudah diambil"])) {
-          countSudah = data["sudah diambil"].length;
-        }
-        document.getElementById('count-sudah').innerText = countSudah;
-
-        // --- OPTIMASI 4: Hitung "Baris 1" ---
-        let countInfo = 0;
-        if (data["Baris 1"] && Array.isArray(data["Baris 1"])) {
-          const len = data["Baris 1"].length;
-          countInfo = len > 1 ? len - 1 : 0;
-        }
-        document.getElementById('count-info').innerText = countInfo;
-
       } catch (err) {
-        console.error("Gagal memuat statistik dashboard:", err);
-        document.getElementById('count-belum').innerText = "0";
-        document.getElementById('count-sudah').innerText = "0";
-        document.getElementById('count-info').innerText = "0";
+        tbody.innerHTML = `<tr><td colspan="11" class="p-6 text-center text-red-500 font-medium">Koneksi terputus atau URL Apps Script belum sesuai.</td></tr>`;
+      } finally {
+        if(iconRefresh) iconRefresh.classList.remove('fa-spin');
       }
     }
 
-    function logout() {
-      localStorage.removeItem("admin_logged_in");
-      window.location.href = "login.html";
+    function renderTable(dataList) {
+      const tbody = document.getElementById('table-body');
+      document.getElementById('total-count').innerText = `${dataList.length} Data`;
+
+      if (dataList.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="11" class="p-6 text-center text-slate-400 font-medium">Tidak ada data ditemukan.</td></tr>`;
+        return;
+      }
+
+      let html = '';
+      dataList.forEach(row => {
+        html += `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="p-3 font-mono text-[11px] whitespace-nowrap">${row.timestamp}</td>
+            <td class="p-3 font-semibold text-slate-800">${row.pop}</td>
+            <td class="p-3 font-semibold text-sky-600">${row.odp}</td>
+            <td class="p-3">${row.cid_lama}</td>
+            <td class="p-3 font-medium text-slate-800">${row.nama_lama}</td>
+            <td class="p-3 font-mono">${row.sn}</td>
+            <td class="p-3 font-mono">${row.psn}</td>
+            <td class="p-3">
+              ${row.foto_rumah_url && row.foto_rumah_url.includes('http') ? 
+                `<a href="${row.foto_rumah_url}" target="_blank" class="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-2 py-1 rounded font-medium text-[11px] flex items-center gap-1 w-fit"><i class="fa-solid fa-image"></i> Lihat</a>` 
+                : `<span class="text-slate-400">-</span>`}
+            </td>
+            <td class="p-3">
+              ${row.foto_alat_url && row.foto_alat_url.includes('http') ? 
+                `<a href="${row.foto_alat_url}" target="_blank" class="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 px-2 py-1 rounded font-medium text-[11px] flex items-center gap-1 w-fit"><i class="fa-solid fa-image"></i> Lihat</a>` 
+                : `<span class="text-slate-400">-</span>`}
+            </td>
+            <td class="p-3">
+              ${row.link_maps ? 
+                `<a href="${row.link_maps}" target="_blank" class="bg-sky-50 text-sky-600 hover:bg-sky-100 px-2 py-1 rounded font-medium text-[11px] flex items-center gap-1 w-fit"><i class="fa-solid fa-map-pin"></i> Maps</a>` 
+                : `<span class="text-slate-400">-</span>`}
+            </td>
+            <td class="p-3 text-slate-500 max-w-xs truncate" title="${row.keterangan}">${row.keterangan || '-'}</td>
+          </tr>
+        `;
+      });
+
+      tbody.innerHTML = html;
     }
 
-    // Jalankan penghitungan cepat saat halaman dibuka
-    window.onload = fetchDashboardStats;
+    function filterData() {
+      const keyword = document.getElementById('input-search').value.toLowerCase();
+      const filtered = allData.filter(item => {
+        return (
+          item.nama_lama.toLowerCase().includes(keyword) ||
+          item.cid_lama.toLowerCase().includes(keyword) ||
+          item.odp.toLowerCase().includes(keyword) ||
+          item.sn.toLowerCase().includes(keyword) ||
+          item.psn.toLowerCase().includes(keyword) ||
+          item.pop.toLowerCase().includes(keyword) ||
+          item.keterangan.toLowerCase().includes(keyword)
+        );
+      });
+      renderTable(filtered);
+    }
+
+    function updateReportData(data) {
+      document.getElementById('report-total').innerText = data.length;
+      const perbaungan = data.filter(d => d.pop.toUpperCase() === "PERBAUNGAN").length;
+      const pantai = data.filter(d => d.pop.toUpperCase() === "PANTAI CERMIN").length;
+
+      document.getElementById('report-perbaungan').innerText = perbaungan;
+      document.getElementById('report-pantai').innerText = pantai;
+    }
+
+    window.onload = function() {
+      loadDataFromSheets();
+    };
   </script>
 </body>
 </html>
