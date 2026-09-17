@@ -49,11 +49,10 @@
         <div>
           <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">PILIH SUMBER SHEET</label>
           <select id="select-sheet" onchange="filterSearchData()" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
-            <option value="all">Semua Sheet Data</option>
-            <option value="Dismantle">Dismantle</option>
-            <option value="Pasang Baru">Pasang Baru</option>
-            <option value="Maintenance">Maintenance</option>
-            <option value="Perbaikan">Perbaikan</option>
+            <option value="all">Semua Sheet</option>
+            <option value="dismantle">Dismantle (Full Data & Target Kolom I)</option>
+            <option value="sudah_diambil">Sudah Diambil</option>
+            <option value="baris_1">Info Perangkat (Baris 1)</option>
           </select>
         </div>
 
@@ -68,7 +67,7 @@
             <option value="nama">Nama Lama</option>
             <option value="sn">SN Unit</option>
             <option value="psn">P-SN (SN Pelanggan)</option>
-            <option value="ket">Keterangan</option>
+            <option value="ket">Keterangan / Kolom I</option>
             <option value="waktu">Waktu / Tanggal</option>
           </select>
         </div>
@@ -239,7 +238,7 @@
 
       let html = '';
       dataList.forEach((row, idx) => {
-        const sumberSheet = row.sumber_sheet || row.sheet || 'Dismantle';
+        const sumberSheet = row.sumber_sheet || row.sheet || 'Full Data';
 
         html += `
           <tr class="hover:bg-slate-50 transition border-b border-slate-100">
@@ -247,9 +246,9 @@
               <input type="checkbox" value="${idx}" onchange="updateSelectedCount()" class="row-checkbox rounded border-slate-300 text-indigo-600 focus:ring-0 cursor-pointer">
             </td>
             <td class="p-3 font-semibold text-slate-600">${sumberSheet}</td>
-            <td class="p-3 font-mono text-[11px] text-slate-500 whitespace-nowrap">${row.timestamp}</td>
-            <td class="p-3 font-bold text-sky-600">${row.odp}</td>
-            <td class="p-3 font-bold text-slate-800">${row.pop}</td>
+            <td class="p-3 font-mono text-[11px] text-slate-500 whitespace-nowrap">${row.timestamp || '-'}</td>
+            <td class="p-3 font-bold text-sky-600">${row.odp || '-'}</td>
+            <td class="p-3 font-bold text-slate-800">${row.pop || '-'}</td>
             <td class="p-3">
               <div class="font-bold text-slate-800">${row.nama_lama || '-'}</div>
               <div class="text-[11px] text-slate-500 font-mono">CID: ${row.cid_lama || '-'}</div>
@@ -281,30 +280,38 @@
       updateSelectedCount();
     }
 
-    // FUNGSI FILTERING BY SHEET, KRITERIA & KATA KUNCI
+    // FUNGSI FILTERING SESUAI ATURAN TERBARU
     function filterSearchData() {
-      const selectedSheet = document.getElementById('select-sheet').value.toLowerCase();
+      const selectedSheet = document.getElementById('select-sheet').value;
       const kriteria = document.getElementById('select-kriteria').value;
       const keyword = document.getElementById('input-search').value.toLowerCase();
 
       const filtered = searchDataStore.filter(item => {
-        const itemSheet = (item.sumber_sheet || item.sheet || 'Dismantle').toLowerCase();
-        
-        // Filter berdasarkan Sumber Sheet
-        if (selectedSheet !== 'all' && !itemSheet.includes(selectedSheet)) {
-          return false;
+        const itemSheet = (item.sumber_sheet || item.sheet || '').toLowerCase();
+        const kolomI = (item.kolom_i || item.keterangan || '').trim();
+
+        // 1. FILTER SUMBER SHEET
+        if (selectedSheet === 'dismantle') {
+          // Mengambil dari Full Data OR Target yang Memiliki Tulisan di Kolom I
+          const isFullData = itemSheet.includes('full data');
+          const isTargetDenganKolomI = itemSheet.includes('target') && kolomI !== '';
+          if (!isFullData && !isTargetDenganKolomI) return false;
+        } else if (selectedSheet === 'sudah_diambil') {
+          if (!itemSheet.includes('sudah diambil')) return false;
+        } else if (selectedSheet === 'baris_1') {
+          if (!itemSheet.includes('baris 1')) return false;
         }
 
+        // 2. FILTER KRITERIA & KATA KUNCI
         const valNama = (item.nama_lama || '').toLowerCase();
         const valCid = (item.cid_lama || '').toLowerCase();
         const valOdp = (item.odp || '').toLowerCase();
         const valPop = (item.pop || '').toLowerCase();
         const valSn = (item.sn || '').toLowerCase();
         const valPsn = (item.psn || '').toLowerCase();
-        const valKet = (item.keterangan || '').toLowerCase();
+        const valKet = kolomI.toLowerCase();
         const valWaktu = (item.timestamp || '').toLowerCase();
 
-        // Filter berdasarkan Kriteria Cari
         if (kriteria === 'pop') return valPop.includes(keyword);
         if (kriteria === 'odp') return valOdp.includes(keyword);
         if (kriteria === 'cid') return valCid.includes(keyword);
