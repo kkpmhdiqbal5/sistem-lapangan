@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Panel Rekap Data Admin - Dashboard</title>
   
-  <!-- Dependensi CSS & Font -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -16,7 +15,6 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
     body { background-color: #0f172a; color: #f8fafc; min-height: 100vh; padding: 20px; }
     
-    /* Header Navigation */
     .header-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid #334155; }
     .header-title { font-size: 20px; font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 10px; }
     .nav-buttons { display: flex; gap: 10px; }
@@ -24,7 +22,6 @@
     .btn-nav:hover { background: #475569; }
     .btn-nav.active { background: #2563eb; }
 
-    /* Panel Card Filter */
     .panel-card { background: #1e293b; border-radius: 12px; padding: 20px; margin-bottom: 24px; border: 1px solid #334155; }
     .filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 16px; }
     .filter-group label { display: block; font-size: 12px; font-weight: 600; color: #94a3b8; margin-bottom: 6px; text-transform: uppercase; }
@@ -38,7 +35,6 @@
     .btn-wa { background: #10b981; } .btn-wa:hover { background: #059669; }
     .btn-refresh { background: #2563eb; } .btn-refresh:hover { background: #1d4ed8; }
 
-    /* Tabel Horizontal Scroll */
     .table-container { background: #1e293b; border-radius: 12px; overflow-x: auto; border: 1px solid #334155; }
     table { width: 100%; border-collapse: collapse; text-align: left; font-size: 12px; white-space: nowrap; }
     th { background: #0f172a; color: #94a3b8; padding: 12px 14px; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; border-bottom: 1px solid #334155; }
@@ -67,7 +63,7 @@
     }
   </script>
 
-  <!-- Header Navigation -->
+  <!-- Navigation Bar -->
   <div class="header-nav">
     <div class="header-title">
       <i class="fa-solid fa-square-poll-vertical"></i>
@@ -124,7 +120,7 @@
     </div>
   </div>
 
-  <!-- Tabel Terpisah Sendiri-Sendiri -->
+  <!-- Tabel Utama -->
   <div class="table-container">
     <table>
       <thead>
@@ -156,8 +152,7 @@
   </div>
 
   <script>
-    // PASTI KAN DIISI DENGAN URL APPS SCRIPT ANDA (/exec)
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHOXnA4YsBeNdPDUxXwPlsJHPJo7k7E4IqItpNOKLjfsYeQce7a9Gda8p-3p-Ys6tJkg/exec";
+    const SCRIPT_URL = "URL_WEB_APP_APPS_SCRIPT_ANDA";
     let globalData = [];
 
     document.addEventListener("DOMContentLoaded", function() {
@@ -239,7 +234,6 @@
 
       let html = "";
       data.forEach((item, idx) => {
-        // Render Tautan Aktif
         let sherlockLink = item.sherlock ? (item.sherlock.includes("http") ? `<a href="${item.sherlock}" target="_blank"><i class="fa-solid fa-location-dot"></i> Maps</a>` : item.sherlock) : "-";
         let fotoRumahLink = item.foto_rumah_url ? `<a href="${item.foto_rumah_url}" target="_blank"><i class="fa-solid fa-image"></i> Lihat</a>` : "-";
         let fotoAlatLink = item.foto_alat_url ? `<a href="${item.foto_alat_url}" target="_blank"><i class="fa-solid fa-image"></i> Lihat</a>` : "-";
@@ -289,24 +283,38 @@
       checkboxes.forEach(cb => cb.checked = master.checked);
     }
 
+    // FUNGSI PENDUKUNG FORMULASI TEMPLATE WA
+    function buildWaTemplate(item, nomorUrut) {
+      let text = "";
+      if (nomorUrut) {
+        text += `${nomorUrut}. ${item.nama_lama || '-'}\n`;
+      } else {
+        text += `${item.nama_lama || '-'}\n`;
+      }
+      text += `* ODP: ${item.odp || '-'}\n`;
+      text += `* POP: ${item.pop || '-'}\n`;
+      text += `* CID: ${item.cid_lama || '-'}\n`;
+      text += `* paket: ${item.paket || '-'}\n`;
+      text += `* seles: ${item.sales || '-'}\n`;
+      text += `* SN: ${item.sn || '-'}\n`;
+      text += `* p-SN: ${item.psn || '-'}\n`;
+      text += `* Sheet: ${item.sumber_sheet || '-'}\n`;
+      text += `* Ket: ${item.keterangan || '-'}\n`;
+      text += `📍 Sherlock: ${item.sherlock || '-'}\n`;
+      text += `🖼️ Foto Rumah: ${item.foto_rumah_url || '-'}\n`;
+      text += `🖼️ Foto Alat: ${item.foto_alat_url || '-'}\n`;
+      text += `------------------------------------`;
+      return text;
+    }
+
+    // 1. KIRIM WA UNTUK AKSI SATU BARIS
     function kirimBarisWA(encodedItem) {
       const item = JSON.parse(decodeURIComponent(encodedItem));
-      let pesan = `*DATA RECORD ADMIN*\n\n`;
-      pesan += `*Sheet:* ${item.sumber_sheet}\n`;
-      pesan += `*Nama:* ${item.nama_lama}\n`;
-      pesan += `*CID:* ${item.cid_lama}\n`;
-      if (item.paket) pesan += `*Paket:* ${item.paket}\n`;
-      if (item.nohp) pesan += `*No HP:* ${item.nohp}\n`;
-      if (item.odp) pesan += `*ODP:* ${item.odp}\n`;
-      if (item.pop) pesan += `*POP:* ${item.pop}\n`;
-      if (item.sales) pesan += `*Sales:* ${item.sales}\n`;
-      if (item.keterangan) pesan += `*Ket:* ${item.keterangan}\n`;
-      if (item.sn) pesan += `*SN:* ${item.sn}\n`;
-      if (item.psn) pesan += `*P-SN:* ${item.psn}\n`;
-
+      let pesan = buildWaTemplate(item, null);
       window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(pesan)}`, '_blank');
     }
 
+    // 2. KIRIM WA UNTUK PILIHAN GABUNGAN
     function kirimGabunganWA() {
       const selected = document.querySelectorAll(".row-check:checked");
       if (selected.length === 0) {
@@ -314,21 +322,17 @@
         return;
       }
 
-      let pesan = `*REKAP DATA PILIHAN ADMIN*\n----------------------------------\n\n`;
+      let pesanArr = [];
       selected.forEach((cb, i) => {
         const itemIndex = cb.value;
         const item = globalData[itemIndex];
         if (item) {
-          pesan += `*${i + 1}. ${item.nama_lama} (CID: ${item.cid_lama})*\n`;
-          if (item.paket) pesan += `Paket: ${item.paket} | `;
-          if (item.nohp) pesan += `HP: ${item.nohp}\n`;
-          if (item.sn) pesan += `SN: ${item.sn} | `;
-          if (item.psn) pesan += `P-SN: ${item.psn}\n`;
-          pesan += `\n`;
+          pesanArr.push(buildWaTemplate(item, i + 1));
         }
       });
 
-      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(pesan)}`, '_blank');
+      let finalPesan = pesanArr.join("\n\n");
+      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(finalPesan)}`, '_blank');
     }
 
     function logout() {
