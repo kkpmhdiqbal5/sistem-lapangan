@@ -3,203 +3,48 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login System - Admin Portal</title>
+  <title>Login - Portal Admin</title>
   
-  <!-- ========================================== -->
-  <!-- 1. PUSTAKA PENDUKUNG (SUPPORT LIBRARIES)   -->
-  <!-- ========================================== -->
-  
-  <!-- Font Google: Inter (Pendukung Tipografi) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  
-  <!-- Font Awesome 6.4.0 (Pendukung Ikon UI) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-
-  <!-- Normalize CSS (Pendukung Konsistensi Tampilan Lintas Browser) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css" />
 
-  <!-- ========================================== -->
-  <!-- 2. STYLESHEET DESAIN TAMPILAN             -->
-  <!-- ========================================== -->
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    }
-
-    body {
-      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 20px;
-    }
-
-    /* Pembungkus Kartu Login */
-    .login-card {
-      background: rgba(255, 255, 255, 0.98);
-      padding: 40px 35px;
-      border-radius: 16px;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-      width: 100%;
-      max-width: 400px;
-      transition: transform 0.2s ease;
-    }
-
-    .login-header {
-      text-align: center;
-      margin-bottom: 30px;
-    }
-
-    .login-header i {
-      font-size: 42px;
-      color: #2563eb;
-      margin-bottom: 12px;
-    }
-
-    .login-header h2 {
-      font-size: 24px;
-      font-weight: 700;
-      color: #0f172a;
-      letter-spacing: -0.5px;
-    }
-
-    .login-header p {
-      font-size: 14px;
-      color: #64748b;
-      margin-top: 4px;
-    }
-
-    .form-group {
-      margin-bottom: 20px;
-      position: relative;
-    }
-
-    .form-group label {
-      display: block;
-      font-size: 13px;
-      font-weight: 600;
-      color: #334155;
-      margin-bottom: 8px;
-    }
-
-    .input-wrapper {
-      position: relative;
-    }
-
-    .input-wrapper i {
-      position: absolute;
-      left: 14px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #94a3b8;
-      font-size: 16px;
-    }
-
-    .form-control {
-      width: 100%;
-      padding: 12px 16px 12px 42px;
-      font-size: 14px;
-      border: 1.5px solid #e2e8f0;
-      border-radius: 10px;
-      outline: none;
-      transition: all 0.2s ease;
-      background-color: #f8fafc;
-      color: #1e293b;
-    }
-
-    .form-control:focus {
-      border-color: #2563eb;
-      background-color: #ffffff;
-      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
-    }
-
-    .btn-submit {
-      width: 100%;
-      padding: 13px;
-      background-color: #2563eb;
-      color: white;
-      border: none;
-      border-radius: 10px;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 8px;
-      margin-top: 10px;
-    }
-
-    .btn-submit:hover {
-      background-color: #1d4ed8;
-      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
-    }
-
-    .btn-submit:disabled {
-      background-color: #94a3b8;
-      cursor: not-allowed;
-    }
-
-    /* Komponen Notifikasi Alert */
-    .alert {
-      padding: 12px 14px;
-      border-radius: 8px;
-      font-size: 13px;
-      margin-bottom: 20px;
-      display: none;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .alert-danger {
-      background-color: #fef2f2;
-      color: #dc2626;
-      border: 1px solid #fecaca;
-    }
-
-    .alert-success {
-      background-color: #f0fdf4;
-      color: #16a34a;
-      border: 1px solid #bbf7d0;
-    }
-
-    .back-link {
-      text-align: center;
-      margin-top: 24px;
-    }
-
-    .back-link a {
-      color: #64748b;
-      font-size: 13px;
-      text-decoration: none;
-      transition: color 0.2s;
-    }
-
-    .back-link a:hover {
-      color: #2563eb;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+    body { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+    .login-card { background: rgba(255, 255, 255, 0.98); padding: 40px 35px; border-radius: 16px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3); width: 100%; max-width: 400px; }
+    .login-header { text-align: center; margin-bottom: 30px; }
+    .login-header i { font-size: 42px; color: #2563eb; margin-bottom: 12px; }
+    .login-header h2 { font-size: 24px; font-weight: 700; color: #0f172a; }
+    .login-header p { font-size: 14px; color: #64748b; margin-top: 4px; }
+    .form-group { margin-bottom: 20px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 8px; }
+    .input-wrapper { position: relative; }
+    .input-wrapper i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
+    .form-control { width: 100%; padding: 12px 16px 12px 42px; font-size: 14px; border: 1.5px solid #e2e8f0; border-radius: 10px; outline: none; background-color: #f8fafc; color: #1e293b; }
+    .form-control:focus { border-color: #2563eb; background-color: #ffffff; box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1); }
+    .btn-submit { width: 100%; padding: 13px; background-color: #2563eb; color: white; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 10px; }
+    .btn-submit:hover { background-color: #1d4ed8; }
+    .btn-submit:disabled { background-color: #94a3b8; cursor: not-allowed; }
+    .alert { padding: 12px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 20px; display: none; align-items: center; gap: 10px; }
+    .alert-danger { background-color: #fef2f2; color: #dc2626; border: 1px solid #fecaca; }
+    .alert-success { background-color: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; }
+    .back-link { text-align: center; margin-top: 24px; }
+    .back-link a { color: #64748b; font-size: 13px; text-decoration: none; }
+    .back-link a:hover { color: #2563eb; }
   </style>
 </head>
 <body>
 
-  <!-- ========================================== -->
-  <!-- 3. STRUKTUR ELEMEN HTML                   -->
-  <!-- ========================================== -->
   <div class="login-card">
     <div class="login-header">
       <i class="fa-solid fa-user-shield"></i>
       <h2>Login Admin</h2>
-      <p>Masukan kredensial untuk mengakses dashboard</p>
+      <p>Masukan kredensial akun Google Sheets</p>
     </div>
 
-    <!-- Container Notifikasi Status -->
     <div id="alertBox" class="alert"></div>
 
     <form id="loginForm">
@@ -230,46 +75,40 @@
     </div>
   </div>
 
-  <!-- ========================================== -->
-  <!-- 4. LOGIKA JAVASCRIPT & DUKUNGAN API        -->
-  <!-- ========================================== -->
   <script>
-    // URL WEB APP GOOGLE APPS SCRIPT
+    // GANTI DENGAN URL APPS SCRIPT ANDA (/exec)
     const SCRIPT_URL = "URL_WEB_APP_APPS_SCRIPT_ANDA";
 
-    // Inisialisasi Elemen DOM
     const loginForm = document.getElementById("loginForm");
     const btnSubmit = document.getElementById("btnSubmit");
     const alertBox = document.getElementById("alertBox");
 
-    // Dukungan Otomatis: Jika user sudah login, langsung alihkan ke admin.html
+    // Jika sudah login sebelumnya, langsung alihkan ke admin.html
     if (localStorage.getItem("session_user")) {
       window.location.href = "admin.html";
     }
 
-    // Pendukung Event Listener Form Submission
     loginForm.addEventListener("submit", function(e) {
       e.preventDefault();
 
       const userVal = document.getElementById("username").value.trim();
       const passVal = document.getElementById("password").value.trim();
 
-      // Indikator Proses Loading
       btnSubmit.disabled = true;
       btnSubmit.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Memeriksa...`;
       hideAlert();
 
-      // Komunikasi ke API Google Apps Script
+      // Cek kredensial langsung ke Google Sheets via Apps Script API
       fetch(`${SCRIPT_URL}?action=login&username=${encodeURIComponent(userVal)}&password=${encodeURIComponent(passVal)}`)
         .then(response => response.json())
         .then(res => {
           if (res.status === "success") {
-            showAlert("success", "Login berhasil! Mengalihkan ke dashboard...");
+            showAlert("success", "Login berhasil! Mengalihkan ke admin.html...");
 
-            // Menyimpan Sesi & Hak Akses User
+            // Simpan Sesi User & Akses Permission di Browser
             localStorage.setItem("session_user", JSON.stringify(res.user));
 
-            // Redirect Otomatis ke admin.html
+            // Redirect ke admin.html setelah 1 detik
             setTimeout(() => {
               window.location.href = "admin.html";
             }, 1000);
@@ -281,24 +120,18 @@
         })
         .catch(err => {
           console.error("Login Error:", err);
-          showAlert("danger", "Gagal terhubung ke server! Periksa koneksi internet.");
+          showAlert("danger", "Gagal terhubung ke Google Sheets!");
           resetButton();
         });
     });
 
-    // Fungsi Pendukung: Menampilkan Notifikasi Status
     function showAlert(type, message) {
       alertBox.className = `alert alert-${type}`;
       alertBox.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'}"></i> ${message}`;
       alertBox.style.display = "flex";
     }
 
-    // Fungsi Pendukung: Menyembunyikan Notifikasi
-    function hideAlert() {
-      alertBox.style.display = "none";
-    }
-
-    // Fungsi Pendukung: Mengembalikan Status Tombol
+    function hideAlert() { alertBox.style.display = "none"; }
     function resetButton() {
       btnSubmit.disabled = false;
       btnSubmit.innerHTML = `<span>Masuk Sistem</span> <i class="fa-solid fa-arrow-right"></i>`;
