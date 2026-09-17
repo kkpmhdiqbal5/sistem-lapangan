@@ -1,55 +1,285 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <base target="_top">
-    <title>Sistem Dashboard & Input Data</title>
-  </head>
-  <body>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login System - Admin Portal</title>
+  
+  <!-- Font Google (Inter) & FontAwesome untuk Ikon -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- FORM LOGIN -->
-    <div id="loginSection">
-      <h2>Halaman Login</h2>
-      <input type="text" id="username" placeholder="Username"><br><br>
-      <input type="password" id="password" placeholder="Password"><br><br>
-      <button onclick="prosesLogin()">Login</button>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    /* Card Login Presisi di Tengah */
+    .login-card {
+      background: rgba(255, 255, 255, 0.98);
+      padding: 40px 35px;
+      border-radius: 16px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      width: 100%;
+      max-width: 400px;
+      transition: transform 0.2s ease;
+    }
+
+    .login-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .login-header i {
+      font-size: 42px;
+      color: #2563eb;
+      margin-bottom: 12px;
+    }
+
+    .login-header h2 {
+      font-size: 24px;
+      font-weight: 700;
+      color: #0f172a;
+      letter-spacing: -0.5px;
+    }
+
+    .login-header p {
+      font-size: 14px;
+      color: #64748b;
+      margin-top: 4px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+      position: relative;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #334155;
+      margin-bottom: 8px;
+    }
+
+    .input-wrapper {
+      position: relative;
+    }
+
+    .input-wrapper i {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #94a3b8;
+      font-size: 16px;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 12px 16px 12px 42px;
+      font-size: 14px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 10px;
+      outline: none;
+      transition: all 0.2s ease;
+      background-color: #f8fafc;
+      color: #1e293b;
+    }
+
+    .form-control:focus {
+      border-color: #2563eb;
+      background-color: #ffffff;
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 13px;
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .btn-submit:hover {
+      background-color: #1d4ed8;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+    }
+
+    .btn-submit:disabled {
+      background-color: #94a3b8;
+      cursor: not-allowed;
+    }
+
+    /* Notifikasi Alert */
+    .alert {
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 20px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .alert-danger {
+      background-color: #fef2f2;
+      color: #dc2626;
+      border: 1px solid #fecaca;
+    }
+
+    .alert-success {
+      background-color: #f0fdf4;
+      color: #16a34a;
+      border: 1px solid #bbf7d0;
+    }
+
+    .back-link {
+      text-align: center;
+      margin-top: 24px;
+    }
+
+    .back-link a {
+      color: #64748b;
+      font-size: 13px;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .back-link a:hover {
+      color: #2563eb;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-card">
+    <div class="login-header">
+      <i class="fa-solid fa-user-shield"></i>
+      <h2>Login Admin</h2>
+      <p>Masukan kredensial untuk mengakses dashboard</p>
     </div>
 
-    <!-- MENU UTAMA (SEBELUM LOGIN DISAMBUNG/SEMBUNYI) -->
-    <div id="mainSection" style="display:none;">
-      <h2>Menu Utama</h2>
-      <button id="btnDashboard" style="display:none;">Menu Dashboard</button>
-      <button id="btnFormInput" style="display:none;">Menu Form Input</button>
-      <button id="btnDataAdmin" style="display:none;">Menu Data Admin</button>
-      <button id="btnKelolaUsers" style="display:none;">Menu Kelola Akun</button>
+    <!-- Alert Notifikasi Error / Sukses -->
+    <div id="alertBox" class="alert"></div>
+
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <div class="input-wrapper">
+          <i class="fa-solid fa-user"></i>
+          <input type="text" id="username" class="form-control" placeholder="Masukkan username" required autocomplete="off">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Password</label>
+        <div class="input-wrapper">
+          <i class="fa-solid fa-lock"></i>
+          <input type="password" id="password" class="form-control" placeholder="Masukkan password" required>
+        </div>
+      </div>
+
+      <button type="submit" id="btnSubmit" class="btn-submit">
+        <span>Masuk Sistem</span>
+        <i class="fa-solid fa-arrow-right"></i>
+      </button>
+    </form>
+
+    <div class="back-link">
+      <a href="index.html"><i class="fa-solid fa-arrow-left"></i> Kembali ke Form Lapangan</a>
     </div>
+  </div>
 
-    <!-- JAVASCRIPT / KODE LANGKAH 3 DITARUH DI SINI -->
-    <script>
-      function prosesLogin() {
-        var username = document.getElementById("username").value;
-        var password = document.getElementById("password").value;
+  <script>
+    // GANTI SESUAI DENGAN URL WEB APP GOOGLE APPS SCRIPT ANDA
+    const SCRIPT_URL = "URL_WEB_APP_APPS_SCRIPT_ANDA";
 
-        // Panggil fungsi doGet di Code.gs
-        google.script.run.withSuccessHandler(function(res) {
+    const loginForm = document.getElementById("loginForm");
+    const btnSubmit = document.getElementById("btnSubmit");
+    const alertBox = document.getElementById("alertBox");
+
+    // Jika sudah login sebelumnya, langsung lempar ke admin.html
+    if (localStorage.getItem("session_user")) {
+      window.location.href = "admin.html";
+    }
+
+    loginForm.addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const userVal = document.getElementById("username").value.trim();
+      const passVal = document.getElementById("password").value.trim();
+
+      // Set Loading State
+      btnSubmit.disabled = true;
+      btnSubmit.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Memeriksa...`;
+      hideAlert();
+
+      // Panggil API Google Apps Script
+      fetch(`${SCRIPT_URL}?action=login&username=${encodeURIComponent(userVal)}&password=${encodeURIComponent(passVal)}`)
+        .then(response => response.json())
+        .then(res => {
           if (res.status === "success") {
-            var p = res.user.permissions;
+            // Tampilkan Alert Sukses
+            showAlert("success", "Login berhasil! Mengalihkan ke dashboard...");
 
-            // Tampilkan section menu utama
-            document.getElementById("loginSection").style.display = "none";
-            document.getElementById("mainSection").style.display = "block";
+            // Simpan Session User ke LocalStorage Browser
+            localStorage.setItem("session_user", JSON.stringify(res.user));
 
-            // Atur tampilan tombol berdasarkan hak akses yang dikirim dari Apps Script
-            document.getElementById("btnDashboard").style.display = p.dashboard ? "inline-block" : "none";
-            document.getElementById("btnFormInput").style.display = p.form_input ? "inline-block" : "none";
-            document.getElementById("btnDataAdmin").style.display = p.data_admin ? "inline-block" : "none";
-            document.getElementById("btnKelolaUsers").style.display = p.manage_users ? "inline-block" : "none";
+            // Redirect ke admin.html setelah 1 detik
+            setTimeout(() => {
+              window.location.href = "admin.html";
+            }, 1000);
 
-            alert("Selamat Datang, " + res.user.username + " (" + res.user.role + ")");
           } else {
-            alert(res.message);
+            // Tampilkan pesan error dari server
+            showAlert("danger", res.message || "Username atau Password salah!");
+            resetButton();
           }
-        }).doGet({ parameter: { action: "login", username: username, password: password } });
-      }
-    </script>
-  </body>
+        })
+        .catch(err => {
+          console.error("Login Error:", err);
+          showAlert("danger", "Gagal terhubung ke server! Periksa koneksi internet.");
+          resetButton();
+        });
+    });
+
+    function showAlert(type, message) {
+      alertBox.className = `alert alert-${type}`;
+      alertBox.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'}"></i> ${message}`;
+      alertBox.style.display = "flex";
+    }
+
+    function hideAlert() {
+      alertBox.style.display = "none";
+    }
+
+    function resetButton() {
+      btnSubmit.disabled = false;
+      btnSubmit.innerHTML = `<span>Masuk Sistem</span> <i class="fa-solid fa-arrow-right"></i>`;
+    }
+  </script>
+</body>
 </html>
