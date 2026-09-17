@@ -199,6 +199,44 @@
     </div>
   </nav>
 
+
+  <script>
+  // 1. Pengecekan Sesi Login dari Google Sheets
+  const sessionData = localStorage.getItem("session_user");
+
+  if (!sessionData) {
+    alert("Akses ditolak! Anda wajib login terlebih dahulu.");
+    window.location.href = "login.html"; // Tendang kembali ke login
+  }
+
+  // 2. Baca Hak Akses Pengguna
+  const currentUser = JSON.parse(sessionData);
+  const p = currentUser.permissions;
+
+  // 3. Batasi Fitur Berdasarkan Izin dari Google Sheets
+  document.addEventListener("DOMContentLoaded", function() {
+    // Tampilkan / Sembunyikan Elemen berdasarkan Otoritas (TRUE/FALSE)
+    if (document.getElementById("secDashboard")) {
+      document.getElementById("secDashboard").style.display = p.dashboard ? "block" : "none";
+    }
+    if (document.getElementById("secFormInput")) {
+      document.getElementById("secFormInput").style.display = p.form_input ? "block" : "none";
+    }
+    if (document.getElementById("secDataAdmin")) {
+      document.getElementById("secDataAdmin").style.display = p.data_admin ? "block" : "none";
+    }
+    if (document.getElementById("secKelolaUsers")) {
+      document.getElementById("secKelolaUsers").style.display = p.manage_users ? "block" : "none";
+    }
+  });
+
+  // 4. Fungsi Logout
+  function logout() {
+    localStorage.removeItem("session_user");
+    window.location.href = "login.html";
+  }
+</script>
+
   <!-- JAVASCRIPT SISTEM -->
   <script>
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHOXnA4YsBeNdPDUxXwPlsJHPJo7k7E4IqItpNOKLjfsYeQce7a9Gda8p-3p-Ys6tJkg/exec";
