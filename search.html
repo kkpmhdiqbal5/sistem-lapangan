@@ -16,109 +16,138 @@
   <!-- HEADER UTAMA -->
   <header class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center shadow-md sticky top-0 z-40">
     <div class="font-bold text-lg md:text-xl flex items-center gap-2">
-      <i class="fa-solid fa-magnifying-glass text-sky-400"></i>
+      <div class="bg-sky-500/20 p-2 rounded-lg border border-sky-500/30">
+        <i class="fa-solid fa-magnifying-glass text-sky-400"></i>
+      </div>
       <span>Sistem Cari Data</span>
     </div>
     <div class="flex items-center gap-3">
-      <span class="text-xs bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-full text-slate-300">
-        <i class="fa-solid fa-circle text-emerald-500 text-[8px] mr-1"></i> Mode Pencarian
+      <span class="text-xs bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-full text-slate-300 flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span>Mode Pencarian Cepat</span>
       </span>
     </div>
   </header>
 
   <main class="max-w-7xl mx-auto my-6 px-4 space-y-6">
 
-    <!-- FORM PENCARIAN -->
-    <div class="bg-white p-5 md:p-6 rounded-xl shadow-md space-y-4">
-      <div class="flex flex-col md:flex-row justify-between md:items-center gap-4 border-b pb-4">
+    <!-- HERO / CARD PENCARIAN & METRIK RINGKAS -->
+    <div class="bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-5">
+      
+      <!-- Top Row: Judul & Akses Refresh -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
         <div>
           <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-            <i class="fa-solid fa-search text-sky-600"></i> Pencarian Terpusat
+            <i class="fa-solid fa-filter text-sky-600"></i> Pencarian Terpusat Lapangan
           </h2>
-          <p class="text-xs text-slate-500">Cari berdasarkan Nama, CID, ODP, SN, PSN, atau POP</p>
+          <p class="text-xs text-slate-500 mt-0.5">Filter data berdasarkan Nama, CID, ODP, SN, P-SN, POP, atau Keterangan</p>
         </div>
-        <button onclick="loadSearchData()" id="btn-refresh" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 transition shadow-sm">
+        <button onclick="loadSearchData()" id="btn-refresh" class="bg-sky-600 hover:bg-sky-700 text-white px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 transition-all duration-200 shadow-sm active:scale-95 sm:w-auto w-full">
           <i class="fa-solid fa-arrows-rotate" id="icon-refresh"></i> Refresh Data
         </button>
       </div>
 
+      <!-- Search Input Area (Penaikan Estetika) -->
       <div class="relative">
-        <input type="text" id="input-search" onkeyup="filterSearchData()" placeholder="Ketik parameter yang ingin dicari..." class="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-sky-500 font-medium bg-slate-50 focus:bg-white transition">
-        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-400"></i>
+        <input type="text" id="input-search" onkeyup="filterSearchData()" placeholder="Ketik kata kunci (Contoh: POP, CID, Nama, SN, ODP)..." class="w-full pl-11 pr-10 py-3.5 border border-slate-300 rounded-xl text-sm outline-none focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 font-medium bg-slate-50/50 focus:bg-white transition-all shadow-inner">
+        <i class="fa-solid fa-magnifying-glass absolute left-4 top-4 text-slate-400 text-sm"></i>
+        <button onclick="clearSearch()" id="btn-clear" class="hidden absolute right-3 top-3 text-slate-400 hover:text-slate-600 p-1.5 rounded-full">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
       </div>
+
+      <!-- Quick Badges Informasi -->
+      <div class="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500 pt-1">
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="text-slate-400 font-medium">Bantuan Cari:</span>
+          <span onclick="setQuickSearch('PERBAUNGAN')" class="cursor-pointer bg-slate-100 hover:bg-slate-200 px-2.5 py-1 rounded-md text-[11px] font-semibold text-slate-600 border border-slate-200 transition">POP Perbaungan</span>
+          <span onclick="setQuickSearch('PANTAI CERMIN')" class="cursor-pointer bg-slate-100 hover:bg-slate-200 px-2.5 py-1 rounded-md text-[11px] font-semibold text-slate-600 border border-slate-200 transition">POP Pantai Cermin</span>
+        </div>
+        <div class="font-semibold text-slate-600 bg-sky-50 text-sky-700 px-3 py-1 rounded-lg border border-sky-200">
+          Total Terfilter: <span id="search-count" class="font-bold">0 Data</span>
+        </div>
+      </div>
+
     </div>
 
-    <!-- HASIL TABEL PENCARIAN -->
-    <div class="bg-white rounded-xl shadow-md overflow-hidden">
-      <div class="p-4 bg-slate-800 text-white flex justify-between items-center text-sm font-semibold">
-        <span><i class="fa-solid fa-list-check mr-2"></i>Hasil Pencarian</span>
-        <span id="search-count" class="bg-sky-500 text-white px-3 py-0.5 rounded-full text-xs font-bold">0 Data</span>
+    <!-- HASIL TABEL PENCARIAN DATA -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
+      
+      <!-- Table Bar Header -->
+      <div class="px-5 py-4 bg-slate-900 text-white flex justify-between items-center text-xs font-semibold">
+        <span class="flex items-center gap-2">
+          <i class="fa-solid fa-table-list text-sky-400"></i>
+          <span>Daftar Data Lapangan</span>
+        </span>
+        <span class="text-slate-400 text-[11px]">Diurutkan berdasarkan yang terbaru</span>
       </div>
 
+      <!-- Table Wrapper -->
       <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse text-xs">
           <thead>
-            <tr class="bg-slate-100 border-b border-slate-200 text-slate-700 uppercase font-bold">
-              <th class="p-3">Waktu</th>
-              <th class="p-3">POP</th>
-              <th class="p-3">ODP</th>
-              <th class="p-3">CID Lama</th>
-              <th class="p-3">Nama Lama</th>
-              <th class="p-3">SN Unit</th>
-              <th class="p-3">P-SN</th>
-              <th class="p-3">Foto Rumah</th>
-              <th class="p-3">Foto Alat</th>
-              <th class="p-3">Lokasi</th>
-              <th class="p-3">Ket</th>
+            <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase font-bold text-[10px] tracking-wider">
+              <th class="p-3.5">Waktu</th>
+              <th class="p-3.5">POP</th>
+              <th class="p-3.5">ODP</th>
+              <th class="p-3.5">CID Lama</th>
+              <th class="p-3.5">Nama Lama</th>
+              <th class="p-3.5">SN Unit</th>
+              <th class="p-3.5">P-SN</th>
+              <th class="p-3.5">Foto Rumah</th>
+              <th class="p-3.5">Foto Alat</th>
+              <th class="p-3.5">Lokasi</th>
+              <th class="p-3.5">Ket</th>
             </tr>
           </thead>
-          <tbody id="search-table-body" class="divide-y divide-slate-200 text-slate-700">
+          <tbody id="search-table-body" class="divide-y divide-slate-100 text-slate-700">
             <tr>
               <td colspan="11" class="p-8 text-center text-slate-400 font-medium">
-                Mengambil data dari server...
+                Memuat data dari server...
               </td>
             </tr>
           </tbody>
         </table>
       </div>
+
     </div>
 
   </main>
 
-  <!-- ================= BOTTOM NAVIGATION BAR (SESUAI HALAMAN ADMIN) ================= -->
+  <!-- ================= BOTTOM NAVIGATION BAR (NAVIGASI BAWAH RAPI) ================= -->
   <nav class="fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-800 shadow-2xl z-50">
     <div class="max-w-md mx-auto flex justify-around items-center h-16 px-2">
       
       <!-- 1. Sistem Cari (Active) -->
-      <a href="search.html" class="flex flex-col items-center justify-center w-full h-full text-sky-400 transition">
-        <i class="fa-solid fa-magnifying-glass text-lg mb-1"></i>
-        <span class="text-[10px] font-medium">Sistem Cari</span>
+      <a href="search.html" class="flex flex-col items-center justify-center w-full h-full text-sky-400 font-bold transition">
+        <i class="fa-solid fa-magnifying-glass text-lg mb-0.5"></i>
+        <span class="text-[10px]">Sistem Cari</span>
       </a>
 
-      <!-- 2. Info Perangkat (Kembali ke admin.html) -->
+      <!-- 2. Info Perangkat -->
       <a href="admin.html" class="flex flex-col items-center justify-center w-full h-full text-slate-400 hover:text-sky-400 transition">
-        <i class="fa-solid fa-microchip text-lg mb-1"></i>
-        <span class="text-[10px] font-medium">Info Perangkat</span>
+        <i class="fa-solid fa-microchip text-lg mb-0.5"></i>
+        <span class="text-[10px]">Info Perangkat</span>
       </a>
 
       <!-- 3. Sistem Lapangan (Direct Link ke index.html) -->
       <a href="index.html" class="flex flex-col items-center justify-center w-full h-full text-slate-400 hover:text-amber-400 transition">
-        <div class="bg-amber-500 text-slate-900 w-8 h-8 rounded-full flex items-center justify-center shadow-lg -mt-3 border-2 border-slate-900">
+        <div class="bg-amber-500 text-slate-900 w-8 h-8 rounded-full flex items-center justify-center shadow-md -mt-3 border-2 border-slate-900">
           <i class="fa-solid fa-satellite-dish text-sm"></i>
         </div>
-        <span class="text-[10px] font-medium mt-0.5">Lapangan</span>
+        <span class="text-[10px] mt-0.5">Lapangan</span>
       </a>
 
-      <!-- 4. Panel Kontrol (Kembali ke admin.html) -->
+      <!-- 4. Panel Kontrol -->
       <a href="admin.html" class="flex flex-col items-center justify-center w-full h-full text-slate-400 hover:text-sky-400 transition">
-        <i class="fa-solid fa-sliders text-lg mb-1"></i>
-        <span class="text-[10px] font-medium">Panel</span>
+        <i class="fa-solid fa-sliders text-lg mb-0.5"></i>
+        <span class="text-[10px]">Panel</span>
       </a>
 
-      <!-- 5. Profil (Kembali ke admin.html) -->
+      <!-- 5. Profil -->
       <a href="admin.html" class="flex flex-col items-center justify-center w-full h-full text-slate-400 hover:text-sky-400 transition">
-        <i class="fa-solid fa-user text-lg mb-1"></i>
-        <span class="text-[10px] font-medium">Profil</span>
+        <i class="fa-solid fa-user text-lg mb-0.5"></i>
+        <span class="text-[10px]">Profil</span>
       </a>
 
     </div>
@@ -129,6 +158,7 @@
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHOXnA4YsBeNdPDUxXwPlsJHPJo7k7E4IqItpNOKLjfsYeQce7a9Gda8p-3p-Ys6tJkg/exec";
     let searchDataStore = [];
 
+    // FUNGSI MEMUAT DATA DARI SERVER
     async function loadSearchData() {
       const iconRefresh = document.getElementById('icon-refresh');
       const tbody = document.getElementById('search-table-body');
@@ -138,7 +168,7 @@
         <tr>
           <td colspan="11" class="p-8 text-center text-slate-500 font-medium">
             <i class="fa-solid fa-spinner fa-spin text-sky-600 text-xl block mb-2"></i>
-            Memuat data terbaru...
+            Memuat seluruh data dari Google Sheets...
           </td>
         </tr>
       `;
@@ -151,7 +181,7 @@
           searchDataStore = result.data.reverse();
           renderSearchTable(searchDataStore);
         } else {
-          tbody.innerHTML = `<tr><td colspan="11" class="p-6 text-center text-red-500 font-medium">Gagal mengambil data.</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="11" class="p-6 text-center text-red-500 font-medium">Gagal mengambil data dari Google Sheets.</td></tr>`;
         }
       } catch (err) {
         tbody.innerHTML = `<tr><td colspan="11" class="p-6 text-center text-red-500 font-medium">Koneksi terputus atau URL Apps Script belum sesuai.</td></tr>`;
@@ -160,42 +190,50 @@
       }
     }
 
+    // FUNGSI MENAMPILKAN TABEL DATA
     function renderSearchTable(dataList) {
       const tbody = document.getElementById('search-table-body');
       document.getElementById('search-count').innerText = `${dataList.length} Data`;
 
       if (dataList.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="11" class="p-6 text-center text-slate-400 font-medium">Data tidak ditemukan.</td></tr>`;
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="11" class="p-8 text-center text-slate-400 font-medium">
+              <i class="fa-solid fa-folder-open text-2xl block mb-1 text-slate-300"></i>
+              Data tidak ditemukan atau kata kunci tidak cocok.
+            </td>
+          </tr>
+        `;
         return;
       }
 
       let html = '';
       dataList.forEach(row => {
         html += `
-          <tr class="hover:bg-slate-50 transition">
-            <td class="p-3 font-mono text-[11px] whitespace-nowrap">${row.timestamp}</td>
-            <td class="p-3 font-semibold text-slate-800">${row.pop}</td>
-            <td class="p-3 font-semibold text-sky-600">${row.odp}</td>
-            <td class="p-3">${row.cid_lama}</td>
-            <td class="p-3 font-medium text-slate-800">${row.nama_lama}</td>
-            <td class="p-3 font-mono">${row.sn}</td>
-            <td class="p-3 font-mono">${row.psn}</td>
-            <td class="p-3">
+          <tr class="hover:bg-sky-50/50 transition border-b border-slate-100">
+            <td class="p-3.5 font-mono text-[11px] whitespace-nowrap text-slate-500">${row.timestamp}</td>
+            <td class="p-3.5 font-bold text-slate-800">${row.pop}</td>
+            <td class="p-3.5 font-bold text-sky-600">${row.odp}</td>
+            <td class="p-3.5 font-semibold text-slate-700">${row.cid_lama}</td>
+            <td class="p-3.5 font-medium text-slate-800">${row.nama_lama}</td>
+            <td class="p-3.5 font-mono text-slate-600">${row.sn}</td>
+            <td class="p-3.5 font-mono text-slate-600">${row.psn}</td>
+            <td class="p-3.5">
               ${row.foto_rumah_url && row.foto_rumah_url.includes('http') ? 
-                `<a href="${row.foto_rumah_url}" target="_blank" class="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-2 py-1 rounded font-medium text-[11px] flex items-center gap-1 w-fit"><i class="fa-solid fa-image"></i> Lihat</a>` 
-                : `<span class="text-slate-400">-</span>`}
+                `<a href="${row.foto_rumah_url}" target="_blank" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-2.5 py-1 rounded-md font-semibold text-[11px] inline-flex items-center gap-1 border border-indigo-200/60 shadow-xs transition"><i class="fa-solid fa-image"></i> Lihat</a>` 
+                : `<span class="text-slate-300">-</span>`}
             </td>
-            <td class="p-3">
+            <td class="p-3.5">
               ${row.foto_alat_url && row.foto_alat_url.includes('http') ? 
-                `<a href="${row.foto_alat_url}" target="_blank" class="bg-emerald-50 text-emerald-600 hover:bg-emerald-100 px-2 py-1 rounded font-medium text-[11px] flex items-center gap-1 w-fit"><i class="fa-solid fa-image"></i> Lihat</a>` 
-                : `<span class="text-slate-400">-</span>`}
+                `<a href="${row.foto_alat_url}" target="_blank" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 px-2.5 py-1 rounded-md font-semibold text-[11px] inline-flex items-center gap-1 border border-emerald-200/60 shadow-xs transition"><i class="fa-solid fa-image"></i> Lihat</a>` 
+                : `<span class="text-slate-300">-</span>`}
             </td>
-            <td class="p-3">
+            <td class="p-3.5">
               ${row.link_maps ? 
-                `<a href="${row.link_maps}" target="_blank" class="bg-sky-50 text-sky-600 hover:bg-sky-100 px-2 py-1 rounded font-medium text-[11px] flex items-center gap-1 w-fit"><i class="fa-solid fa-map-pin"></i> Maps</a>` 
-                : `<span class="text-slate-400">-</span>`}
+                `<a href="${row.link_maps}" target="_blank" class="bg-sky-50 hover:bg-sky-100 text-sky-600 px-2.5 py-1 rounded-md font-semibold text-[11px] inline-flex items-center gap-1 border border-sky-200/60 shadow-xs transition"><i class="fa-solid fa-map-pin"></i> Maps</a>` 
+                : `<span class="text-slate-300">-</span>`}
             </td>
-            <td class="p-3 text-slate-500 max-w-xs truncate" title="${row.keterangan}">${row.keterangan || '-'}</td>
+            <td class="p-3.5 text-slate-500 max-w-xs truncate" title="${row.keterangan}">${row.keterangan || '-'}</td>
           </tr>
         `;
       });
@@ -203,8 +241,19 @@
       tbody.innerHTML = html;
     }
 
+    // FUNGSI FILTER DATA SECARA LIVE
     function filterSearchData() {
-      const keyword = document.getElementById('input-search').value.toLowerCase();
+      const input = document.getElementById('input-search');
+      const clearBtn = document.getElementById('btn-clear');
+      const keyword = input.value.toLowerCase();
+
+      // Tampilkan/sembunyikan tombol silang pencarian
+      if(keyword.length > 0) {
+        clearBtn.classList.remove('hidden');
+      } else {
+        clearBtn.classList.add('hidden');
+      }
+
       const filtered = searchDataStore.filter(item => {
         return (
           item.nama_lama.toLowerCase().includes(keyword) ||
@@ -219,6 +268,21 @@
       renderSearchTable(filtered);
     }
 
+    // FUNGSI CARI CEPAT DENGAN TOMBOL BADGE
+    function setQuickSearch(val) {
+      const input = document.getElementById('input-search');
+      input.value = val;
+      filterSearchData();
+    }
+
+    // FUNGSI BERSIHKAN INPUT CARI
+    function clearSearch() {
+      const input = document.getElementById('input-search');
+      input.value = '';
+      filterSearchData();
+    }
+
+    // AUTO LOAD DATA KETIKA HALAMAN DIBUKA
     window.onload = function() {
       loadSearchData();
     };
