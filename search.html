@@ -6,6 +6,8 @@
   <title>Panel Rekap Data Admin - Search</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Pustaka Scanner Barcode / QR Code -->
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <style>
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -43,7 +45,7 @@
       <h2 class="text-base font-bold text-slate-800">Panel Rekap Data Admin</h2>
 
       <!-- Baris Filter & Input Pencarian -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
         
         <!-- Dropdown 1: PILIH SUMBER SHEET -->
         <div>
@@ -60,24 +62,32 @@
         <div>
           <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">KRITERIA CARI</label>
           <select id="select-kriteria" onchange="filterSearchData()" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-xs font-semibold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
-            <option value="all">Semua Kolom (ODP/CID/Nama/POP/SN/P-SN)</option>
-            <option value="pop">POP</option>
+            <option value="all">Semua Kriteria</option>
             <option value="odp">ODP</option>
-            <option value="cid">CID Lama</option>
-            <option value="nama">Nama Lama</option>
-            <option value="sn">SN Unit</option>
-            <option value="psn">P-SN (SN Pelanggan)</option>
-            <option value="ket">Keterangan / Kolom I</option>
-            <option value="waktu">Waktu / Tanggal</option>
+            <option value="pop">POP</option>
+            <option value="cid">CID</option>
+            <option value="nama">NAMA</option>
+            <option value="sn">SN</option>
+            <option value="psn">P-SN</option>
           </select>
         </div>
 
-        <!-- Input 3: KATA KUNCI -->
+        <!-- Input 3: FILTER TANGGAL -->
         <div>
-          <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">KATA KUNCI</label>
-          <div class="relative">
-            <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
-            <input type="text" id="input-search" onkeyup="filterSearchData()" placeholder="Misal: garuda, CID10..." class="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-medium text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+          <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">CARI BERDASARKAN TANGGAL</label>
+          <input type="date" id="input-tanggal" onchange="filterSearchData()" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-medium text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+        </div>
+
+        <!-- Input 4: KATA KUNCI / BARCODE SCANNER -->
+        <div>
+          <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">KATA KUNCI / SCAN</label>
+          <div class="relative flex items-center">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 text-slate-400 text-xs"></i>
+            <input type="text" id="input-search" onkeyup="filterSearchData()" placeholder="Ketik atau Scan..." class="w-full pl-8 pr-10 py-2 bg-slate-50 border border-slate-300 rounded-lg text-xs font-medium text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white transition">
+            
+            <button type="button" onclick="bukaScanner()" class="absolute right-1.5 p-1.5 bg-indigo-100 hover:bg-indigo-200 text-indigo-700 rounded-md transition" title="Scan Barcode SN / P-SN">
+              <i class="fa-solid fa-qrcode text-xs"></i>
+            </button>
           </div>
         </div>
 
@@ -85,8 +95,9 @@
 
       <!-- Informasi Total Hasil & Tombol Aksi -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
-        <div class="text-xs font-semibold text-slate-600">
-          Total Hasil: <span id="search-count" class="font-bold text-slate-900">0 Data</span>
+        <div class="text-xs font-semibold text-slate-600 flex items-center gap-2">
+          <span>Total Hasil: <strong id="search-count" class="text-slate-900">0 Data</strong></span>
+          <button onclick="resetFilter()" class="text-indigo-600 hover:text-indigo-800 text-[11px] underline font-medium">Reset Filter</button>
         </div>
 
         <div class="flex flex-wrap items-center gap-2 text-xs">
@@ -122,7 +133,7 @@
                 <input type="checkbox" id="check-all" onclick="toggleSelectAll(this)" class="rounded border-slate-600 text-indigo-600 focus:ring-0 cursor-pointer">
               </th>
               <th class="p-3">SUMBER SHEET</th>
-              <th class="p-3">WAKTU</th>
+              <th class="p-3">WAKTU / TANGGAL</th>
               <th class="p-3">ODP</th>
               <th class="p-3">POP</th>
               <th class="p-3">CID / NAMA</th>
@@ -144,49 +155,64 @@
 
   </main>
 
+  <!-- ================= MODAL POPUP CAMERA SCANNER ================= -->
+  <div id="modal-scanner" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden p-5 space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 class="font-bold text-slate-800 flex items-center gap-2 text-sm">
+          <i class="fa-solid fa-camera text-indigo-600"></i> Pindai Barcode / QR Code SN
+        </h3>
+        <button onclick="tutupScanner()" class="text-slate-400 hover:text-slate-600 p-1">
+          <i class="fa-solid fa-xmark text-base"></i>
+        </button>
+      </div>
+
+      <!-- Area Tampilan Kamera Scanner -->
+      <div class="rounded-xl overflow-hidden border border-slate-200 bg-black min-h-[250px] flex items-center justify-center">
+        <div id="reader" class="w-full"></div>
+      </div>
+
+      <p class="text-[11px] text-slate-500 text-center font-medium">Arahkan kamera ke Barcode/QR Code SN atau P-SN perangkat.</p>
+
+      <button onclick="tutupScanner()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2 rounded-lg text-xs transition">
+        Batal / Tutup
+      </button>
+    </div>
+  </div>
+
   <!-- ================= BAR BAWAH (BOTTOM NAVIGATION BAR) ================= -->
   <nav class="fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-800 shadow-2xl z-50">
     <div class="max-w-md mx-auto flex justify-around items-center h-16 px-2">
-      
-      <!-- 1. Sistem Cari (Active) -->
       <a href="search.html" class="flex flex-col items-center justify-center w-full h-full text-sky-400 font-bold transition">
         <i class="fa-solid fa-magnifying-glass text-lg mb-0.5"></i>
         <span class="text-[10px]">Sistem Cari</span>
       </a>
-
-      <!-- 2. Info Perangkat -->
       <a href="admin.html" class="flex flex-col items-center justify-center w-full h-full text-slate-400 hover:text-sky-400 transition">
         <i class="fa-solid fa-microchip text-lg mb-0.5"></i>
         <span class="text-[10px]">Info Perangkat</span>
       </a>
-
-      <!-- 3. Sistem Lapangan -->
       <a href="index.html" class="flex flex-col items-center justify-center w-full h-full text-slate-400 hover:text-amber-400 transition">
         <div class="bg-amber-500 text-slate-900 w-8 h-8 rounded-full flex items-center justify-center shadow-md -mt-3 border-2 border-slate-900">
           <i class="fa-solid fa-satellite-dish text-sm"></i>
         </div>
         <span class="text-[10px] mt-0.5">Lapangan</span>
       </a>
-
-      <!-- 4. Panel Kontrol -->
       <a href="admin.html" class="flex flex-col items-center justify-center w-full h-full text-slate-400 hover:text-sky-400 transition">
         <i class="fa-solid fa-sliders text-lg mb-0.5"></i>
         <span class="text-[10px]">Panel</span>
       </a>
-
-      <!-- 5. Profil -->
       <a href="admin.html" class="flex flex-col items-center justify-center w-full h-full text-slate-400 hover:text-sky-400 transition">
         <i class="fa-solid fa-user text-lg mb-0.5"></i>
         <span class="text-[10px]">Profil</span>
       </a>
-
     </div>
   </nav>
 
-  <!-- JAVASCRIPT SISTEM REKAP DATA ADMIN -->
+  <!-- JAVASCRIPT SISTEM REKAP DATA ADMIN & SCANNER BARCODE -->
   <script>
     const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHOXnA4YsBeNdPDUxXwPhsJHPJo7k7E4IqItpNOKLjfsYeQce7a9Gda8p-3p-Ys6tJkg/exec";
     let searchDataStore = [];
+    let html5QrCode = null;
 
     // FUNGSI LOAD DATA DARI GOOGLE SHEETS
     async function loadSearchData() {
@@ -254,8 +280,8 @@
               <div class="text-[11px] text-slate-500 font-mono">CID: ${row.cid_lama || '-'}</div>
             </td>
             <td class="p-3 font-mono text-slate-600">
-              <div>SN: ${row.sn || '-'}</div>
-              <div class="text-[10px] text-slate-400">P-SN: ${row.psn || '-'}</div>
+              <div class="font-bold text-slate-800">SN: ${row.sn || '-'}</div>
+              <div class="text-[10px] text-slate-500">P-SN: ${row.psn || '-'}</div>
             </td>
             <td class="p-3">
               <div class="flex items-center gap-1">
@@ -280,19 +306,20 @@
       updateSelectedCount();
     }
 
-    // FUNGSI FILTERING SESUAI ATURAN TERBARU
+    // FUNGSI FILTERING DATA (DENGAN TAMBAHAN TANGGAL)
     function filterSearchData() {
       const selectedSheet = document.getElementById('select-sheet').value;
       const kriteria = document.getElementById('select-kriteria').value;
-      const keyword = document.getElementById('input-search').value.toLowerCase();
+      const inputTanggal = document.getElementById('input-tanggal').value; // YYYY-MM-DD
+      const keyword = document.getElementById('input-search').value.toLowerCase().trim();
 
       const filtered = searchDataStore.filter(item => {
         const itemSheet = (item.sumber_sheet || item.sheet || '').toLowerCase();
         const kolomI = (item.kolom_i || item.keterangan || '').trim();
+        const timestamp = (item.timestamp || '').toLowerCase();
 
-        // 1. FILTER SUMBER SHEET
+        // 1. Filter Sumber Sheet
         if (selectedSheet === 'dismantle') {
-          // Mengambil dari Full Data OR Target yang Memiliki Tulisan di Kolom I
           const isFullData = itemSheet.includes('full data');
           const isTargetDenganKolomI = itemSheet.includes('target') && kolomI !== '';
           if (!isFullData && !isTargetDenganKolomI) return false;
@@ -302,29 +329,77 @@
           if (!itemSheet.includes('baris 1')) return false;
         }
 
-        // 2. FILTER KRITERIA & KATA KUNCI
-        const valNama = (item.nama_lama || '').toLowerCase();
-        const valCid = (item.cid_lama || '').toLowerCase();
+        // 2. Filter Berdasarkan Tanggal
+        if (inputTanggal !== '') {
+          // Mengubah format YYYY-MM-DD ke format lokal sederhana jika diperlukan
+          if (!timestamp.includes(inputTanggal)) return false;
+        }
+
+        // 3. Filter Kriteria Cari
         const valOdp = (item.odp || '').toLowerCase();
         const valPop = (item.pop || '').toLowerCase();
+        const valCid = (item.cid_lama || '').toLowerCase();
+        const valNama = (item.nama_lama || '').toLowerCase();
         const valSn = (item.sn || '').toLowerCase();
         const valPsn = (item.psn || '').toLowerCase();
-        const valKet = kolomI.toLowerCase();
-        const valWaktu = (item.timestamp || '').toLowerCase();
 
-        if (kriteria === 'pop') return valPop.includes(keyword);
         if (kriteria === 'odp') return valOdp.includes(keyword);
+        if (kriteria === 'pop') return valPop.includes(keyword);
         if (kriteria === 'cid') return valCid.includes(keyword);
         if (kriteria === 'nama') return valNama.includes(keyword);
         if (kriteria === 'sn') return valSn.includes(keyword);
         if (kriteria === 'psn') return valPsn.includes(keyword);
-        if (kriteria === 'ket') return valKet.includes(keyword);
-        if (kriteria === 'waktu') return valWaktu.includes(keyword);
 
-        return valNama.includes(keyword) || valCid.includes(keyword) || valOdp.includes(keyword) || valPop.includes(keyword) || valSn.includes(keyword) || valPsn.includes(keyword) || valKet.includes(keyword) || valWaktu.includes(keyword);
+        return valOdp.includes(keyword) || valPop.includes(keyword) || valCid.includes(keyword) || valNama.includes(keyword) || valSn.includes(keyword) || valPsn.includes(keyword);
       });
 
       renderSearchTable(filtered);
+    }
+
+    // RESET FILTER FORM
+    function resetFilter() {
+      document.getElementById('select-sheet').value = 'all';
+      document.getElementById('select-kriteria').value = 'all';
+      document.getElementById('input-tanggal').value = '';
+      document.getElementById('input-search').value = '';
+      filterSearchData();
+    }
+
+    // ================= FUNGSI SCANNER BARCODE & QR CODE =================
+    function bukaScanner() {
+      document.getElementById('modal-scanner').classList.remove('hidden');
+      
+      if(!html5QrCode) {
+        html5QrCode = new Html5Qrcode("reader");
+      }
+
+      const config = { fps: 10, qrbox: { width: 220, height: 220 } };
+
+      html5QrCode.start(
+        { facingMode: "environment" },
+        config,
+        (decodedText) => {
+          document.getElementById('input-search').value = decodedText;
+          tutupScanner();
+          filterSearchData();
+        },
+        (errorMessage) => {}
+      ).catch(err => {
+        alert("Gagal membuka kamera. Pastikan izin kamera telah diberikan.");
+        tutupScanner();
+      });
+    }
+
+    function tutupScanner() {
+      if (html5QrCode && html5QrCode.isScanning) {
+        html5QrCode.stop().then(() => {
+          document.getElementById('modal-scanner').classList.add('hidden');
+        }).catch(err => {
+          document.getElementById('modal-scanner').classList.add('hidden');
+        });
+      } else {
+        document.getElementById('modal-scanner').classList.add('hidden');
+      }
     }
 
     // UPDATE JUMLAH CHECKBOX YANG DIPILIH
