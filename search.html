@@ -5,10 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Panel Rekap Data Admin - Dashboard</title>
   
+  <!-- Dependensi CDN Resmi (Font & Ikon) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
 
   <style>
@@ -18,7 +19,7 @@
     .header-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid #334155; }
     .header-title { font-size: 22px; font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 10px; }
     .nav-buttons { display: flex; gap: 10px; }
-    .btn-nav { padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; text-decoration: none; color: #fff; background: #334155; transition: 0.2s; }
+    .btn-nav { padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; text-decoration: none; color: #fff; background: #334155; transition: 0.2s; border: none; cursor: pointer; }
     .btn-nav:hover { background: #475569; }
     .btn-nav.active { background: #2563eb; }
 
@@ -45,11 +46,11 @@
     .badge-sheet { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; background: #334155; color: #38bdf8; }
     .text-cid { font-weight: 700; color: #ffffff; }
     .text-sub { font-size: 11px; color: #94a3b8; margin-top: 2px; }
-    .sn-box { font-family: monospace; white-space: pre-wrap; word-break: break-all; background: #0f172a; padding: 8px; border-radius: 6px; border: 1px solid #334155; font-size: 12px; color: #cbd5e1; }
+    .sn-box { font-family: monospace; white-space: pre-wrap; word-break: break-all; background: #0f172a; padding: 10px; border-radius: 6px; border: 1px solid #334155; font-size: 12px; color: #cbd5e1; line-height: 1.5; }
     .sn-box a { color: #38bdf8; text-decoration: none; }
     .sn-box a:hover { text-decoration: underline; }
 
-    .btn-icon-wa { width: 32px; height: 32px; border-radius: 50%; background: #10b981; color: #fff; display: flex; align-items: center; justify-content: center; text-decoration: none; border: none; cursor: pointer; }
+    .btn-icon-wa { width: 34px; height: 34px; border-radius: 50%; background: #10b981; color: #fff; display: flex; align-items: center; justify-content: center; text-decoration: none; border: none; cursor: pointer; }
     .btn-icon-wa:hover { background: #059669; }
   </style>
 </head>
@@ -71,9 +72,9 @@
       <span>Dashboard Admin</span>
     </div>
     <div class="nav-buttons">
-      <a href="index.html" class="btn-nav">Form Lapangan</a>
-      <a href="search.html" class="btn-nav active">Dashboard Admin</a>
-      <button onclick="logout()" class="btn-nav" style="background:#ef4444;"><i class="fa-solid fa-right-from-bracket"></i></button>
+      <a href="index.html" class="btn-nav">Sistem Lapangan</a>
+      <a href="admin.html" class="btn-nav active">Dashboard Admin</a>
+      <button onclick="logout()" class="btn-nav" style="background:#ef4444;"><i class="fa-solid fa-right-from-bracket"></i> Keluar</button>
     </div>
   </div>
 
@@ -147,7 +148,8 @@
   </div>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHOXnA4YsBeNdPDUxXwPlsJHPJo7k7E4IqItpNOKLjfsYeQce7a9Gda8p-3p-Ys6tJkg/exec"; // Ganti dengan URL /exec Apps Script Anda
+    // MASUKKAN URL WEB APP APPS SCRIPT BERAKHIRAN /exec DI SINI
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHOXnA4YsBeNdPDUxXwPlsJHPJo7k7E4IqItpNOKLjfsYeQce7a9Gda8p-3p-Ys6tJkg/exec";
     let globalData = [];
 
     document.addEventListener("DOMContentLoaded", function() {
@@ -170,8 +172,8 @@
           }
         })
         .catch(err => {
-          console.error(err);
-          tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #ef4444;">Gagal terhubung ke Google Sheets!</td></tr>`;
+          console.error("Fetch Error:", err);
+          tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: #ef4444;">Gagal terhubung ke Google Sheets! Periksa SCRIPT_URL.</td></tr>`;
         });
     }
 
@@ -216,7 +218,8 @@
           const matchOdp = (item.odp || "").toLowerCase().includes(keywordVal);
           const matchPop = (item.pop || "").toLowerCase().includes(keywordVal);
           const matchSn = (item.sn || "").toLowerCase().includes(keywordVal);
-          if (!matchCid && !matchNama && !matchOdp && !matchPop && !matchSn) return false;
+          const matchAlamat = (item.alamat || "").toLowerCase().includes(keywordVal);
+          if (!matchCid && !matchNama && !matchOdp && !matchPop && !matchSn && !matchAlamat) return false;
         }
 
         return true;
@@ -236,11 +239,30 @@
 
       let html = "";
       data.forEach((item, idx) => {
-        // Format Tautan Otomatis pada Link Sherlock/Maps
-        let snFormatted = item.sn || "-";
-        if (snFormatted.includes("https://")) {
-          snFormatted = snFormatted.replace(/(https:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>');
+        // RAKITAN TEKS DINAMIS: Hanya tampilkan atribut yang memilki nilai saja
+        let detailParts = [];
+
+        if (item.paket) detailParts.push(`PAKET : ${item.paket}`);
+        if (item.alamat) detailParts.push(`ALAMAT : ${item.alamat}`);
+        if (item.nohp) detailParts.push(`NO HP : ${item.nohp}`);
+        
+        if (item.sherlock) {
+          let sherlockFormatted = item.sherlock;
+          if (sherlockFormatted.includes("https://")) {
+            sherlockFormatted = `<a href="${sherlockFormatted}" target="_blank">${sherlockFormatted}</a>`;
+          }
+          detailParts.push(`SHERLOCK : ${sherlockFormatted}`);
         }
+
+        if (item.sales) detailParts.push(`SALES : ${item.sales}`);
+        if (item.keterangan) detailParts.push(`KENDALA/KET : ${item.keterangan}`);
+        if (item.foto_rumah_url) detailParts.push(`FOTO RUMAH : <a href="${item.foto_rumah_url}" target="_blank">Lihat Foto</a>`);
+        if (item.foto_alat_url) detailParts.push(`FOTO ALAT : <a href="${item.foto_alat_url}" target="_blank">Lihat Foto</a>`);
+        if (item.sn) detailParts.push(`SN : ${item.sn}`);
+        if (item.psn) detailParts.push(`P-SN : ${item.psn}`);
+        if (item.gabungan_data) detailParts.push(`GABUNGAN : ${item.gabungan_data}`);
+
+        let finalDetailText = detailParts.length > 0 ? detailParts.join("<br>") : "-";
 
         html += `
           <tr>
@@ -254,7 +276,7 @@
               <div class="text-sub">CID: ${item.cid_lama || '-'}</div>
             </td>
             <td>
-              <div class="sn-box">${snFormatted}</div>
+              <div class="sn-box">${finalDetailText}</div>
             </td>
             <td style="text-align: center;">
               <button onclick="kirimBarisWA('${encodeURIComponent(JSON.stringify(item))}')" class="btn-icon-wa" title="Kirim WA">
@@ -287,9 +309,11 @@
       pesan += `*Sheet:* ${item.sumber_sheet}\n`;
       pesan += `*Nama:* ${item.nama_lama}\n`;
       pesan += `*CID:* ${item.cid_lama}\n`;
-      pesan += `*ODP:* ${item.odp}\n`;
-      pesan += `*POP:* ${item.pop}\n`;
-      pesan += `*Data SN / Info:* ${item.sn}\n`;
+      if (item.odp) pesan += `*ODP:* ${item.odp}\n`;
+      if (item.pop) pesan += `*POP:* ${item.pop}\n`;
+      if (item.nohp) pesan += `*NO HP:* ${item.nohp}\n`;
+      if (item.sherlock) pesan += `*Sherlock:* ${item.sherlock}\n`;
+      if (item.keterangan) pesan += `*Ket:* ${item.keterangan}\n`;
 
       window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(pesan)}`, '_blank');
     }
@@ -307,8 +331,9 @@
         const item = globalData[itemIndex];
         if (item) {
           pesan += `*${i + 1}. ${item.nama_lama} (CID: ${item.cid_lama})*\n`;
-          pesan += `ODP: ${item.odp} | POP: ${item.pop}\n`;
-          pesan += `Info: ${item.sn}\n\n`;
+          if (item.odp || item.pop) pesan += `ODP: ${item.odp || '-'} | POP: ${item.pop || '-'}\n`;
+          if (item.nohp) pesan += `HP: ${item.nohp}\n`;
+          pesan += `\n`;
         }
       });
 
