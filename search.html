@@ -152,8 +152,9 @@
   </div>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHOXnA4YsBeNdPDUxXwPlsJHPJo7k7E4IqItpNOKLjfsYeQce7a9Gda8p-3p-Ys6tJkg/exec";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHOXnA4YsBeNdPDUxXwPlsJHPJo7k7E4IqItpNOKLjfsYeQce7a9Gda8p-3p-Ys6tJkg/exec"; // Ganti dengan URL Apps Script Anda
     let globalData = [];
+    let currentFilteredData = []; // Menyimpan data hasil filter aktif di tabel
 
     document.addEventListener("DOMContentLoaded", function() {
       loadData();
@@ -202,7 +203,11 @@
       const tanggalVal = document.getElementById("filterTanggal").value;
       const keywordVal = document.getElementById("filterKeyword").value.toLowerCase().trim();
 
-      const filtered = globalData.filter(item => {
+      // Reset checkbox header "Pilih Semua" saat filter berubah
+      const checkAll = document.getElementById("checkAll");
+      if (checkAll) checkAll.checked = false;
+
+      currentFilteredData = globalData.filter(item => {
         if (sheetVal !== "ALL" && item.sumber_sheet !== sheetVal) return false;
         if (kriteriaVal !== "ALL" && item.kolom_i !== kriteriaVal) return false;
         if (tanggalVal !== "" && (!item.timestamp || !item.timestamp.startsWith(tanggalVal))) return false;
@@ -220,7 +225,7 @@
         return true;
       });
 
-      renderTable(filtered);
+      renderTable(currentFilteredData);
     }
 
     function renderTable(data) {
@@ -283,18 +288,16 @@
       checkboxes.forEach(cb => cb.checked = master.checked);
     }
 
-// FUNGSI UNTUK MERAKIT TEMPLATE SATUAN DATA LAPANGAN
+    // FUNGSI TEMPLATE WHATSAPP
     function buildWaTemplate(item, nomorUrut) {
       let lines = [];
 
-      // Judul Nama dengan Nomor Urut
       if (nomorUrut) {
         lines.push(`*${nomorUrut}. ${item.nama_lama || '-'}*`);
       } else {
         lines.push(`*${item.nama_lama || '-'}*`);
       }
 
-      // Atribut Data Utama
       lines.push(`* ODP: ${item.odp || '-'}`);
       lines.push(`* POP: ${item.pop || '-'}`);
       lines.push(`* CID: ${item.cid_lama || '-'}`);
@@ -302,24 +305,20 @@
       lines.push(`* Sheet: ${item.sumber_sheet || '-'}`);
       lines.push(`* Ket: ${item.keterangan || '-'}`);
       
-      // Link Sherlock / Maps
       let sherlockVal = item.sherlock || '-';
       if (sherlockVal !== '-' && !sherlockVal.startsWith('http')) {
         sherlockVal = `https://www.google.com/maps?q=${sherlockVal.replace(/\s+/g, '')}`;
       }
       lines.push(`📍 Sherlock: ${sherlockVal}`);
-
-      // Link Foto
       lines.push(`🖼️ Foto Rumah: ${item.foto_rumah_url || '-'}`);
       lines.push(`🖼️ Foto Alat: ${item.foto_alat_url || '-'}`);
 
       return lines.join("\n");
     }
 
-    // 1. KIRIM WA SATU BARIS (AKSI INDIVIDUAL)
+    // 1. KIRIM WA SATU BARIS (INDIVIDUAL)
     function kirimBarisWA(encodedItem) {
       const item = JSON.parse(decodeURIComponent(encodedItem));
-      
       let header = `📋 *REKAP DATA LAPANGAN*\n====================================\n\n`;
       let body = buildWaTemplate(item, 1);
       let pesan = header + body;
@@ -327,7 +326,7 @@
       window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(pesan)}`, '_blank');
     }
 
-    // 2. KIRIM WA GABUNGAN (PERSIS SEPERTI GAMBAR CONTOH)
+    // 2. KIRIM WA GABUNGAN (BERDASARKAN TABEL AKTIF)
     function kirimGabunganWA() {
       const selected = document.querySelectorAll(".row-check:checked");
       if (selected.length === 0) {
@@ -340,14 +339,13 @@
 
       let itemsArr = [];
       selected.forEach((cb, i) => {
-        const itemIndex = cb.value;
-        const item = globalData[itemIndex];
+        const itemIndex = parseInt(cb.value, 10);
+        const item = currentFilteredData[itemIndex]; // Mengambil dari data yang sedang aktif/difilter
         if (item) {
           itemsArr.push(buildWaTemplate(item, i + 1));
         }
       });
 
-      // Gabungkan tiap blok data dengan pemisah 2 kali Enter (\n\n)
       let pesanAkhir = header + itemsArr.join("\n\n");
       window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(pesanAkhir)}`, '_blank');
     }
