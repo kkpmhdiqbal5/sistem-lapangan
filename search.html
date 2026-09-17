@@ -283,38 +283,51 @@
       checkboxes.forEach(cb => cb.checked = master.checked);
     }
 
-    // FUNGSI PENDUKUNG FORMULASI TEMPLATE WA
+// FUNGSI UNTUK MERAKIT TEMPLATE SATUAN DATA LAPANGAN
     function buildWaTemplate(item, nomorUrut) {
-      let text = "";
+      let lines = [];
+
+      // Judul Nama dengan Nomor Urut
       if (nomorUrut) {
-        text += `${nomorUrut}. ${item.nama_lama || '-'}\n`;
+        lines.push(`*${nomorUrut}. ${item.nama_lama || '-'}*`);
       } else {
-        text += `${item.nama_lama || '-'}\n`;
+        lines.push(`*${item.nama_lama || '-'}*`);
       }
-      text += `* ODP: ${item.odp || '-'}\n`;
-      text += `* POP: ${item.pop || '-'}\n`;
-      text += `* CID: ${item.cid_lama || '-'}\n`;
-      text += `* paket: ${item.paket || '-'}\n`;
-      text += `* seles: ${item.sales || '-'}\n`;
-      text += `* SN: ${item.sn || '-'}\n`;
-      text += `* p-SN: ${item.psn || '-'}\n`;
-      text += `* Sheet: ${item.sumber_sheet || '-'}\n`;
-      text += `* Ket: ${item.keterangan || '-'}\n`;
-      text += `📍 Sherlock: ${item.sherlock || '-'}\n`;
-      text += `🖼️ Foto Rumah: ${item.foto_rumah_url || '-'}\n`;
-      text += `🖼️ Foto Alat: ${item.foto_alat_url || '-'}\n`;
-      text += `------------------------------------`;
-      return text;
+
+      // Atribut Data Utama
+      lines.push(`* ODP: ${item.odp || '-'}`);
+      lines.push(`* POP: ${item.pop || '-'}`);
+      lines.push(`* CID: ${item.cid_lama || '-'}`);
+      lines.push(`* SN: ${item.sn || '-'}`);
+      lines.push(`* Sheet: ${item.sumber_sheet || '-'}`);
+      lines.push(`* Ket: ${item.keterangan || '-'}`);
+      
+      // Link Sherlock / Maps
+      let sherlockVal = item.sherlock || '-';
+      if (sherlockVal !== '-' && !sherlockVal.startsWith('http')) {
+        sherlockVal = `https://www.google.com/maps?q=${sherlockVal.replace(/\s+/g, '')}`;
+      }
+      lines.push(`📍 Sherlock: ${sherlockVal}`);
+
+      // Link Foto
+      lines.push(`🖼️ Foto Rumah: ${item.foto_rumah_url || '-'}`);
+      lines.push(`🖼️ Foto Alat: ${item.foto_alat_url || '-'}`);
+
+      return lines.join("\n");
     }
 
-    // 1. KIRIM WA UNTUK AKSI SATU BARIS
+    // 1. KIRIM WA SATU BARIS (AKSI INDIVIDUAL)
     function kirimBarisWA(encodedItem) {
       const item = JSON.parse(decodeURIComponent(encodedItem));
-      let pesan = buildWaTemplate(item, null);
+      
+      let header = `📋 *REKAP DATA LAPANGAN*\n====================================\n\n`;
+      let body = buildWaTemplate(item, 1);
+      let pesan = header + body;
+
       window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(pesan)}`, '_blank');
     }
 
-    // 2. KIRIM WA UNTUK PILIHAN GABUNGAN
+    // 2. KIRIM WA GABUNGAN (PERSIS SEPERTI GAMBAR CONTOH)
     function kirimGabunganWA() {
       const selected = document.querySelectorAll(".row-check:checked");
       if (selected.length === 0) {
@@ -322,17 +335,21 @@
         return;
       }
 
-      let pesanArr = [];
+      let totalData = selected.length;
+      let header = `📋 *REKAP GABUNGAN (${totalData} DATA LAPANGAN)*\n====================================\n\n`;
+
+      let itemsArr = [];
       selected.forEach((cb, i) => {
         const itemIndex = cb.value;
         const item = globalData[itemIndex];
         if (item) {
-          pesanArr.push(buildWaTemplate(item, i + 1));
+          itemsArr.push(buildWaTemplate(item, i + 1));
         }
       });
 
-      let finalPesan = pesanArr.join("\n\n");
-      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(finalPesan)}`, '_blank');
+      // Gabungkan tiap blok data dengan pemisah 2 kali Enter (\n\n)
+      let pesanAkhir = header + itemsArr.join("\n\n");
+      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(pesanAkhir)}`, '_blank');
     }
 
     function logout() {
