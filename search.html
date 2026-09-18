@@ -152,9 +152,14 @@
   </div>
 
   <script>
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHOXnA4YsBeNdPDUxXwPlsJHPJo7k7E4IqItpNOKLjfsYeQce7a9Gda8p-3p-Ys6tJkg/exec"; // Ganti dengan URL Apps Script Anda
+    // KONFIGURASI API & BOT TELEGRAM ANDA
+    const TELEGRAM_CHAT_ID = "8476745358"; 
+    const BOT_TOKEN_RUMAH = "8782461297:AAF86N2WvKmbbhbQEnQ7rzfaHmPhxmVf5Xg";
+    const BOT_TOKEN_ALAT = "8903234783:AAEw2CyDfh_hNyVTEUxgF-h0XTiNvL01u14";
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyHOXnA4YsBeNdPDUxXwPlsJHPJo7k7E4IqItpNOKLjfsYeQce7a9Gda8p-3p-Ys6tJkg/exec";
+
     let globalData = [];
-    let currentFilteredData = []; // Menyimpan data hasil filter aktif di tabel
+    let currentFilteredData = [];
 
     document.addEventListener("DOMContentLoaded", function() {
       loadData();
@@ -203,7 +208,6 @@
       const tanggalVal = document.getElementById("filterTanggal").value;
       const keywordVal = document.getElementById("filterKeyword").value.toLowerCase().trim();
 
-      // Reset checkbox header "Pilih Semua" saat filter berubah
       const checkAll = document.getElementById("checkAll");
       if (checkAll) checkAll.checked = false;
 
@@ -264,7 +268,7 @@
             <td style="font-family: monospace;">${item.sn || '-'}</td>
             <td style="font-family: monospace;">${item.psn || '-'}</td>
             <td style="text-align: center;">
-              <button onclick="kirimBarisWA('${encodeURIComponent(JSON.stringify(item))}')" class="btn-icon-wa" title="Kirim WA">
+              <button onclick="kirimBarisWA(${idx})" class="btn-icon-wa" title="Kirim WA">
                 <i class="fa-brands fa-whatsapp"></i>
               </button>
             </td>
@@ -288,8 +292,37 @@
       checkboxes.forEach(cb => cb.checked = master.checked);
     }
 
-    // FUNGSI TEMPLATE WHATSAPP
-    function buildWaTemplate(item, nomorUrut) {
+    // FUNGSI CONVERT TELEGRAM FILE_ID KE DIRECT URL SANGAT CEPAT VIA BOT TELEGRAM API
+    async function convertTelegramToDirectUrl(fileIdOrUrl, botToken) {
+      if (!fileIdOrUrl || fileIdOrUrl.trim() === "" || fileIdOrUrl === "-") return "-";
+      
+      // Jika sudah berupa Direct URL lengkap
+      if (fileIdOrUrl.includes("api.telegram.org/file/bot")) {
+        return fileIdOrUrl.trim();
+      }
+
+      // Jika berupa URL file Telegram biasa, ambil file_id dari Ujung URL-nya
+      let cleanFileId = fileIdOrUrl.trim();
+      if (cleanFileId.includes("/")) {
+        let parts = cleanFileId.split("/");
+        cleanFileId = parts[parts.length - 1];
+      }
+
+      try {
+        let res = await fetch(`https://api.telegram.org/bot${botToken}/getFile?file_id=${cleanFileId}`);
+        let data = await res.json();
+        if (data.ok && data.result.file_path) {
+          return `https://api.telegram.org/file/bot${botToken}/${data.result.file_path}`;
+        }
+      } catch (err) {
+        console.error("Gagal mendeteksi link Telegram direct:", err);
+      }
+
+      return fileIdOrUrl; // Kembalikan default jika error
+    }
+
+    // FUNGSI UNTUK MERAKIT TEMPLATE WA SECARA ASYNCHRONOUS (REAL-TIME DIRECT LINK)
+    async function buildWaTemplate(item, nomorUrut) {
       let lines = [];
 
       if (nomorUrut) {
@@ -304,35 +337,38 @@
       lines.push(`* SN: ${item.sn || '-'}`);
       lines.push(`* Sheet: ${item.sumber_sheet || '-'}`);
       lines.push(`* Ket: ${item.keterangan || '-'}`);
-      
+
+      // Sherlock
       let sherlockVal = item.sherlock || '-';
       if (sherlockVal !== '-' && !sherlockVal.startsWith('http')) {
         sherlockVal = `https://www.google.com/maps?q=${sherlockVal.replace(/\s+/g, '')}`;
       }
       lines.push(`📍 Sherlock: ${sherlockVal}`);
-// Penanganan Foto Rumah Real-time
-      let fotoRumah = (item.foto_rumah_url && item.foto_rumah_url.trim() !== "") ? item.foto_rumah_url : "-";
-      lines.push(`🖼️ Foto Rumah: ${fotoRumah}`);
 
-      // Penanganan Foto Alat Real-time
-      let fotoAlat = (item.foto_alat_url && item.foto_alat_url.trim() !== "") ? item.foto_alat_url : "-";
-      lines.push(`🖼️ Foto Alat: ${fotoAlat}`);
+      // Fetch Direct URL Foto Rumah dan Foto Alat menggunakan Token Masing-Masing
+      let fotoRumahUrl = await convertTelegramToDirectUrl(item.foto_rumah_url, BOT_TOKEN_RUMAH);
+      let fotoAlatUrl = await convertTelegramToDirectUrl(item.foto_alat_url, BOT_TOKEN_ALAT);
+
+      lines.push(`🖼️ Foto Rumah: ${fotoRumahUrl}`);
+      lines.push(`🖼️ Foto Alat: ${fotoAlatUrl}`);
 
       return lines.join("\n");
     }
 
     // 1. KIRIM WA SATU BARIS (INDIVIDUAL)
-    function kirimBarisWA(encodedItem) {
-      const item = JSON.parse(decodeURIComponent(encodedItem));
+    async function kirimBarisWA(index) {
+      const item = currentFilteredData[index];
+      if (!item) return;
+
       let header = `📋 *REKAP DATA LAPANGAN*\n====================================\n\n`;
-      let body = buildWaTemplate(item, 1);
+      let body = await buildWaTemplate(item, 1);
       let pesan = header + body;
 
       window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(pesan)}`, '_blank');
     }
 
     // 2. KIRIM WA GABUNGAN (BERDASARKAN TABEL AKTIF)
-    function kirimGabunganWA() {
+    async function kirimGabunganWA() {
       const selected = document.querySelectorAll(".row-check:checked");
       if (selected.length === 0) {
         alert("Pilih minimal satu data yang ingin dikirim!");
@@ -343,13 +379,15 @@
       let header = `📋 *REKAP GABUNGAN (${totalData} DATA LAPANGAN)*\n====================================\n\n`;
 
       let itemsArr = [];
-      selected.forEach((cb, i) => {
+      for (let i = 0; i < selected.length; i++) {
+        let cb = selected[i];
         const itemIndex = parseInt(cb.value, 10);
-        const item = currentFilteredData[itemIndex]; // Mengambil dari data yang sedang aktif/difilter
+        const item = currentFilteredData[itemIndex];
         if (item) {
-          itemsArr.push(buildWaTemplate(item, i + 1));
+          let templateStr = await buildWaTemplate(item, i + 1);
+          itemsArr.push(templateStr);
         }
-      });
+      }
 
       let pesanAkhir = header + itemsArr.join("\n\n");
       window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(pesanAkhir)}`, '_blank');
