@@ -316,7 +316,7 @@
 
       // Penanganan Foto Alat Real-time
       let fotoAlat = (item.foto_alat_url && item.foto_alat_url.trim() !== "") ? item.foto_alat_url : "-";
-      lines.push(`🖼️ Foto Alat: ${fotoAlat}`);
+      lines.push(`🖼️ Foto Alat: (=IMAGE + ${fotoAlat})`);
 
       return lines.join("\n");
     }
