@@ -310,8 +310,13 @@
         sherlockVal = `https://www.google.com/maps?q=${sherlockVal.replace(/\s+/g, '')}`;
       }
       lines.push(`📍 Sherlock: ${sherlockVal}`);
-      lines.push(`🖼️ Foto Rumah: ${item.foto_rumah_url || '-'}`);
-      lines.push(`🖼️ Foto Alat: ${item.foto_alat_url || '-'}`);
+// Penanganan Foto Rumah Real-time
+      let fotoRumah = (item.foto_rumah_url && item.foto_rumah_url.trim() !== "") ? item.foto_rumah_url : "-";
+      lines.push(`🖼️ Foto Rumah: ${fotoRumah}`);
+
+      // Penanganan Foto Alat Real-time
+      let fotoAlat = (item.foto_alat_url && item.foto_alat_url.trim() !== "") ? item.foto_alat_url : "-";
+      lines.push(`🖼️ Foto Alat: ${fotoAlat}`);
 
       return lines.join("\n");
     }
