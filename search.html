@@ -321,39 +321,36 @@
       return fileIdOrUrl; // Kembalikan default jika error
     }
 
-    // FUNGSI UNTUK MERAKIT TEMPLATE WA SECARA ASYNCHRONOUS (REAL-TIME DIRECT LINK)
-    async function buildWaTemplate(item, nomorUrut) {
-      let lines = [];
+// FUNGSI TEMPLATE WHATSAPP (LEBIH CEPAT TANPA BOT API WAITING)
+function buildWaTemplate(item, nomorUrut) {
+  let lines = [];
 
-      if (nomorUrut) {
-        lines.push(`*${nomorUrut}. ${item.nama_lama || '-'}*`);
-      } else {
-        lines.push(`*${item.nama_lama || '-'}*`);
-      }
+  if (nomorUrut) {
+    lines.push(`*${nomorUrut}. ${item.nama_lama || '-'}*`);
+  } else {
+    lines.push(`*${item.nama_lama || '-'}*`);
+  }
 
-      lines.push(`* ODP: ${item.odp || '-'}`);
-      lines.push(`* POP: ${item.pop || '-'}`);
-      lines.push(`* CID: ${item.cid_lama || '-'}`);
-      lines.push(`* SN: ${item.sn || '-'}`);
-      lines.push(`* Sheet: ${item.sumber_sheet || '-'}`);
-      lines.push(`* Ket: ${item.keterangan || '-'}`);
+  lines.push(`* ODP: ${item.odp || '-'}`);
+  lines.push(`* POP: ${item.pop || '-'}`);
+  lines.push(`* CID: ${item.cid_lama || '-'}`);
+  lines.push(`* SN: ${item.sn || '-'}`);
+  lines.push(`* Sheet: ${item.sumber_sheet || '-'}`);
+  lines.push(`* Ket: ${item.keterangan || '-'}`);
 
-      // Sherlock
-      let sherlockVal = item.sherlock || '-';
-      if (sherlockVal !== '-' && !sherlockVal.startsWith('http')) {
-        sherlockVal = `https://www.google.com/maps?q=${sherlockVal.replace(/\s+/g, '')}`;
-      }
-      lines.push(`📍 Sherlock: ${sherlockVal}`);
+  // Sherlock
+  let sherlockVal = item.sherlock || '-';
+  if (sherlockVal !== '-' && !sherlockVal.startsWith('http')) {
+    sherlockVal = `https://www.google.com/maps?q=${sherlockVal.replace(/\s+/g, '')}`;
+  }
+  lines.push(`📍 Sherlock: ${sherlockVal}`);
 
-      // Fetch Direct URL Foto Rumah dan Foto Alat menggunakan Token Masing-Masing
-      let fotoRumahUrl = await convertTelegramToDirectUrl(item.foto_rumah_url, BOT_TOKEN_RUMAH);
-      let fotoAlatUrl = await convertTelegramToDirectUrl(item.foto_alat_url, BOT_TOKEN_ALAT);
+  // Foto Rumah & Alat (Menggunakan Link Telegraph Permanen)
+  lines.push(`🖼️ Foto Rumah: ${item.foto_rumah_url || '-'}`);
+  lines.push(`🖼️ Foto Alat: ${item.foto_alat_url || '-'}`);
 
-      lines.push(`🖼️ Foto Rumah: ${fotoRumahUrl}`);
-      lines.push(`🖼️ Foto Alat: ${fotoAlatUrl}`);
-
-      return lines.join("\n");
-    }
+  return lines.join("\n");
+}
 
     // 1. KIRIM WA SATU BARIS (INDIVIDUAL)
     async function kirimBarisWA(index) {
