@@ -179,41 +179,21 @@ function ccKirimTeknisi_(d, au) {
 function ccKirimLaporan_(d, au) {
   const teks = String(d.teks || '').trim();
   if (!teks) return tmErr_('Teks laporan kosong.');
-  const ts = String(d.ts || '').trim().slice(0, 60);
-  if (!ts) return tmErr_('Nama TS wajib diisi.');
-  const mentah = String(d.nomor || d.tujuan || '').trim();
-  if (!mentah) return tmErr_('Nomor tujuan wajib diisi.');
-  const tujuan = /@g\.us$/i.test(mentah) ? mentah : ccNoHp_(mentah);
-  if (!tujuan) return tmErr_('Nomor tujuan tidak valid. Pakai nomor HP (08xx / 628xx) atau ID grup yang berakhiran @g.us.');
-  const r = waKirim_(tujuan, ('👷 TS: ' + ts + '\n\n' + teks).slice(0, 3800), 'LAPORAN');
-  tmLogChat_(tujuan, '', 'OUT', '[WA laporan, TS ' + ts + ', oleh ' + au.user + ']');
-  return r.ok ? { status: 'success', message: 'Laporan terkirim ke ' + tujuan + ' (TS: ' + ts + ').' } : tmErr_('Gagal kirim: ' + r.msg);
-}
-
-// Form Lapangan: laporan dikirim ke 1-10 nomor WA, atas nama 1-10 TS. Semua akun yang login boleh; isi pesan disusun di server dari kolom form.
-function ccLapKirim_(d, au) {
-  const ts = (Array.isArray(d.ts) ? d.ts : []).map(x => String(x || '').trim().slice(0, 60)).filter(Boolean).slice(0, 10);
-  const mentah = (Array.isArray(d.nomor) ? d.nomor : []).map(x => String(x || '').trim()).filter(Boolean).slice(0, 10);
+  const arr = v => (Array.isArray(v) ? v : [v]).map(x => String(x == null ? '' : x).trim()).filter(Boolean).slice(0, 10);
+  const ts = arr(d.ts).map(x => x.slice(0, 60)), mentah = arr(d.nomor || d.tujuan);
   if (!ts.length) return tmErr_('Nama TS wajib diisi.');
   if (!mentah.length) return tmErr_('Nomor tujuan wajib diisi.');
-  const cache = CacheService.getScriptCache(), kk = 'lapwa_' + tmNorm_(au.user), n = Number(cache.get(kk) || 0);
-  if (n + mentah.length > 60) return tmErr_('Terlalu banyak kiriman WA dari akun ini. Coba lagi nanti.');   // 60 pesan/jam/akun
-  const f = d.data || {}, v = k => String(f[k] == null ? '' : f[k]).replace(/\s+/g, ' ').trim().slice(0, 200) || '-';
-  const pesan = ('📋 LAPORAN LAPANGAN\nCID : ' + v('cid_lama') + '\nNAMA : ' + v('nama_lama') + '\nODP : ' + v('odp') + '\nPOP : ' + v('pop') +
-    '\nSN : ' + v('sn') + '\nP-SN : ' + v('psn') + '\nKET : ' + v('keterangan') + '\nMAPS : https://www.google.com/maps?q=' + v('koordinat').replace(/\s/g, '') +
-    '\n👷 TS : ' + ts.join(', ')).slice(0, 3800);
-  const hasil = { terkirim: [], gagal: [] };
+  const pesan = ('👷 TS: ' + ts.join(', ') + '\n\n' + teks).slice(0, 3800), hasil = { terkirim: [], gagal: [] };
   mentah.forEach((m, i) => {
-    const tujuan = ccTujuanOk_(m);
-    if (!tujuan) { hasil.gagal.push(m + ' (nomor tidak valid)'); return; }
+    const tujuan = /@g\.us$/i.test(m) ? m : ccNoHp_(m);
+    if (!tujuan) { hasil.gagal.push(m + ' (nomor/ID grup tidak valid)'); return; }
     if (i) Utilities.sleep(700);
     const r = waKirim_(tujuan, pesan, 'LAPORAN');
     if (r.ok) hasil.terkirim.push(tujuan); else hasil.gagal.push(m + ' (' + r.msg + ')');
   });
-  cache.put(kk, String(n + hasil.terkirim.length), 3600);
-  tmLogChat_(hasil.terkirim.join(','), tmCidDigit_(f.cid_lama), 'OUT', '[WA laporan lapangan, TS ' + ts.join(', ') + ', oleh ' + au.user + ']');
+  tmLogChat_(hasil.terkirim.join(','), '', 'OUT', '[WA laporan, TS ' + ts.join(', ') + ', oleh ' + au.user + ']');
   return { status: hasil.terkirim.length ? 'success' : 'error', hasil: hasil,
-    message: 'Terkirim ke ' + hasil.terkirim.length + ' nomor' + (hasil.gagal.length ? '. Gagal: ' + hasil.gagal.join('; ') : '.') };
+    message: 'Laporan terkirim ke ' + hasil.terkirim.length + ' tujuan (TS: ' + ts.join(', ') + ')' + (hasil.gagal.length ? '. Gagal: ' + hasil.gagal.join('; ') : '.') };
 }
 
 /* ---------- PENGATURAN API (admin tertinggi, dari Profil > Pengaturan API) ---------- */
@@ -683,7 +663,6 @@ function chatRoute_(d, au) {
     case 'terminateAiMassal': return ccAiMassal_(d, au);
     case 'terminateAiImpor': return ccAiImpor_(d, au);
     case 'terminateAiAktif': return ccAiAktif2_();
-    case 'terminateLapKirim': return ccLapKirim_(d, au);
     case 'terminateApiHapus': return ccApiHapus_(d, au);
     case 'terminateChatTandai': return ccTandai_(d, au);
     case 'terminateApiSimpan': return ccApiSimpan_(d, au);

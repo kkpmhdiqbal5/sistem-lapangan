@@ -155,7 +155,7 @@
   <!-- HEADER BAR APP -->
   <div class="app-header">
     <div class="app-title">Home</div>
-    <div class="d-flex gap-2 align-items-center"><a id="btnAdmin" href="admin.html" class="btn btn-sm btn-dark fw-bold" style="display:none">🔐 Sistem Admin</a></div>
+    <div class="d-flex gap-2 align-items-center"><a id="btnTerm" href="terminate.html" class="btn btn-sm btn-dark fw-bold" style="display:none">🚚 Input Terminate</a><a id="btnAdmin" href="admin.html" class="btn btn-sm btn-dark fw-bold" style="display:none">🔐 Sistem Admin</a></div>
   </div>
 
   <div class="container px-3">
@@ -292,7 +292,7 @@
                <!-- NAMA TS / TEKNISI (BARU) -->
         <div class="mb-3">
           <label class="form-label small fw-bold text-primary mb-1">NAMA TS / TEKNISI *</label>
-          <input type="text" id="nama_ts" name="nama_ts" class="form-control form-control-mobile" style="border-color: #0284c7;" placeholder="Ketik nama Anda...">
+          <input type="text" id="nama_ts" name="nama_ts" class="form-control form-control-mobile" style="border-color: #0284c7;" placeholder="Ketik nama Anda..." required>
         </div>
 
         
@@ -343,6 +343,7 @@
     // tombol masuk Sistem Admin (hanya akun admin / berizin dashboard) + AI Lapangan (bila dihidupkan admin)
     (function () {
       var s = window.Auth && Auth.get(); if (!s) return;
+      var bt = document.getElementById("btnTerm"); if (bt && Auth.can("TINPUT")) bt.style.display = "";
       var b = document.getElementById("btnAdmin");
       if (b && (s.role === "ADMIN" || Auth.can("DASHBOARD"))) { b.style.display = ""; b.href = Auth.can("DASHBOARD") ? "admin.html" : Auth.home(); }
       fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: "terminateAiIsi", token: s.token, teks: "" }) }).then(function (r) { return r.json(); }).then(function (r) {
@@ -462,44 +463,6 @@
       if (modal) modal.hide();
     }
 
-    // Pop-up kirim laporan: 1-10 nama TS dan 1-10 nomor WA tujuan (diingat di perangkat ini)
-    function dialogLaporan() {
-      return new Promise(function (selesai) {
-        function baca(k, def) { try { var a = JSON.parse(localStorage.getItem(k) || "[]"); return a.length ? a : def; } catch (e) { return def; } }
-        var ts = baca("lap_ts_list", [document.getElementById("nama_ts").value.trim()]), no = baca("lap_no_list", [""]);
-        var ov = document.createElement("div");
-        ov.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:2000;display:flex;align-items:center;justify-content:center;padding:16px";
-        ov.innerHTML = '<div style="background:#fff;border-radius:16px;width:100%;max-width:440px;max-height:92vh;overflow:auto;padding:18px">' +
-          '<div class="fw-bold mb-1">📤 Kirim Laporan</div><div class="small text-secondary mb-3">Laporan dikirim ke WhatsApp tujuan. Isi 1 sampai 10 nama TS dan 1 sampai 10 nomor.</div>' +
-          '<div class="small fw-bold text-primary mb-1">NAMA TS / TEKNISI</div><div id="dlTs"></div><button type="button" class="btn btn-sm btn-outline-primary mb-3" id="dlTsTambah">+ Tambah TS</button>' +
-          '<div class="small fw-bold text-primary mb-1">NOMOR WA TUJUAN (08xx / 628xx / ID grup @g.us)</div><div id="dlNo"></div><button type="button" class="btn btn-sm btn-outline-primary mb-3" id="dlNoTambah">+ Tambah nomor</button>' +
-          '<div id="dlErr" class="small text-danger mb-2"></div>' +
-          '<div class="d-flex gap-2"><button type="button" class="btn btn-light border flex-fill" id="dlBatal">Batal</button><button type="button" class="btn btn-primary flex-fill fw-bold" id="dlKirim">Kirim</button></div></div>';
-        document.body.appendChild(ov);
-        function gambar(id, arr, ph, mode) {
-          var h = ""; arr.forEach(function (v, i) { h += '<div class="d-flex gap-1 mb-1"><input class="form-control" data-i="' + i + '" inputmode="' + mode + '" placeholder="' + ph + '" value="' + v.replace(/"/g, "&quot;") + '">' + (arr.length > 1 ? '<button type="button" class="btn btn-outline-danger btn-sm" data-x="' + i + '">✕</button>' : "") + '</div>'; });
-          ov.querySelector(id).innerHTML = h;
-        }
-        function ambil(id, arr) { Array.prototype.forEach.call(ov.querySelectorAll(id + " input"), function (el) { arr[el.getAttribute("data-i")] = el.value; }); }
-        function tampil() { ambil("#dlTs", ts); ambil("#dlNo", no); gambar("#dlTs", ts, "Nama TS", "text"); gambar("#dlNo", no, "08123456789", "tel"); }
-        tampil();
-        function tambah(arr) { ambil("#dlTs", ts); ambil("#dlNo", no); if (arr.length < 10) arr.push(""); tampil(); }
-        ov.querySelector("#dlTsTambah").onclick = function () { tambah(ts); };
-        ov.querySelector("#dlNoTambah").onclick = function () { tambah(no); };
-        ov.addEventListener("click", function (e) { var x = e.target.getAttribute && e.target.getAttribute("data-x"); if (x == null) return; var box = e.target.closest("#dlTs") ? [ts, "#dlTs"] : [no, "#dlNo"]; ambil("#dlTs", ts); ambil("#dlNo", no); box[0].splice(+x, 1); gambar("#dlTs", ts, "Nama TS", "text"); gambar("#dlNo", no, "08123456789", "tel"); });
-        ov.querySelector("#dlBatal").onclick = function () { ov.remove(); selesai(null); };
-        ov.querySelector("#dlKirim").onclick = function () {
-          ambil("#dlTs", ts); ambil("#dlNo", no);
-          var t = ts.map(function (v) { return v.trim(); }).filter(Boolean), n = no.map(function (v) { return v.trim(); }).filter(Boolean);
-          if (!t.length) { ov.querySelector("#dlErr").textContent = "Isi minimal 1 nama TS."; return; }
-          if (!n.length) { ov.querySelector("#dlErr").textContent = "Isi minimal 1 nomor tujuan."; return; }
-          try { localStorage.setItem("lap_ts_list", JSON.stringify(t)); localStorage.setItem("lap_no_list", JSON.stringify(n)); } catch (e) {}
-          document.getElementById("nama_ts").value = t.join(", ");
-          ov.remove(); selesai({ ts: t, nomor: n });
-        };
-      });
-    }
-
     document.getElementById('fieldForm').addEventListener('submit', function(e) {
       e.preventDefault();
       
@@ -507,11 +470,6 @@
         alert("Harap lengkapi Foto Rumah dan Foto Alat!");
         return;
       }
-      if (!this._kirim) {                               // tanya dulu nama TS & nomor tujuan, lalu kirim ulang formulir
-        var frm = this; dialogLaporan().then(function (k) { if (!k) return; frm._kirim = k; frm.requestSubmit(); });
-        return;
-      }
-      const kirimWA = this._kirim; this._kirim = null;
 
       const btn = document.getElementById('btnSubmit');
       btn.disabled = true;
@@ -532,14 +490,6 @@
       .then(res => {
         if(res.status === "success") {
           alert("✅ Data Lapangan Berhasil Diterima!");
-          var sesi = window.Auth && Auth.get();
-          if (sesi) {                                    // kirim laporan ke WhatsApp tujuan (teks saja)
-            var lap = {}; ["cid_lama", "nama_lama", "odp", "pop", "sn", "psn", "keterangan", "koordinat"].forEach(function (k) { lap[k] = data[k] || ""; });
-            fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ action: "terminateLapKirim", token: sesi.token, ts: kirimWA.ts, nomor: kirimWA.nomor, data: lap }) })
-              .then(function (r) { return r.json(); }).then(function (r) { alert("WhatsApp: " + (r.message || "selesai")); })
-              .catch(function () { alert("Data tersimpan, tetapi laporan WhatsApp gagal dikirim (koneksi)."); });
-          }
-          
           // Simpan sementara nama TS agar tidak perlu diketik ulang
           const namaTsSementara = document.getElementById('nama_ts').value;
           
